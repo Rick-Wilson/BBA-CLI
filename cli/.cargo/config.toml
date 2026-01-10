@@ -1,0 +1,3 @@
+# Cargo configuration for BBA-CLI
+# On GitHub Actions (x64 Windows), the default MSVC target is used
+# No special configuration needed

@@ -1,0 +1,61 @@
+# Build outputs
+/dist/
+/build/
+bin/
+obj/
+
+# Rust
+/cli/target/
+**/*.rs.bk
+Cargo.lock
+
+# .NET build artifacts
+*.nupkg
+packages/
+
+# C++/CLI wrapper build
+/wrapper/build/
+/wrapper/x64/
+/wrapper/Debug/
+/wrapper/Release/
+*.obj
+*.pch
+*.idb
+*.ilk
+
+# Test executables created during development
+test-epbot*.exe
+test-epbot*.cs
+inspect-*.ps1
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+/test/output*.pbn
+
+# Logs
+*.log
+
+# Don't ignore the DLLs we need
+!EPBot64.dll
+!EPBot86.dll
+!EPBotARM64.dll
+!EPBot64.tlb
+!EPBot86.tlb

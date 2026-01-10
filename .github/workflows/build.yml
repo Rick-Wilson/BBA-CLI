@@ -1,0 +1,70 @@
+name: Build BBA-CLI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout BBA-CLI
+        uses: actions/checkout@v4
+        with:
+          path: BBA-CLI
+
+      - name: Checkout dealer3 (for Rust dependencies)
+        uses: actions/checkout@v4
+        with:
+          repository: rick-wilson/dealer3
+          path: dealer3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Build C# EPBot Wrapper
+        run: |
+          cd BBA-CLI/epbot-wrapper
+          dotnet build -c Release
+
+      - name: Copy EPBot64.dll to wrapper output
+        run: |
+          copy BBA-CLI\EPBot64.dll BBA-CLI\epbot-wrapper\bin\Release\net8.0-windows\
+
+      - name: Build Rust CLI
+        run: |
+          cd BBA-CLI/cli
+          cargo build --release
+
+      - name: Upload EPBot Wrapper
+        uses: actions/upload-artifact@v4
+        with:
+          name: epbot-wrapper
+          path: |
+            BBA-CLI/epbot-wrapper/bin/Release/net8.0-windows/epbot-wrapper.exe
+            BBA-CLI/epbot-wrapper/bin/Release/net8.0-windows/epbot-wrapper.dll
+            BBA-CLI/epbot-wrapper/bin/Release/net8.0-windows/epbot-wrapper.runtimeconfig.json
+
+      - name: Upload Rust CLI
+        uses: actions/upload-artifact@v4
+        with:
+          name: bba-cli
+          path: BBA-CLI/cli/target/release/bba.exe
+
+      - name: Upload EPBot DLLs
+        uses: actions/upload-artifact@v4
+        with:
+          name: epbot-dlls
+          path: |
+            BBA-CLI/EPBot64.dll
+            BBA-CLI/EPBot86.dll
+            BBA-CLI/EPBotARM64.dll

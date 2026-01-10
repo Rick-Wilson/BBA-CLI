@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>EPBotWrapper</RootNamespace>
+    <AssemblyName>epbot-wrapper</AssemblyName>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!-- EPBot DLLs are loaded dynamically at runtime, no compile-time reference needed -->
+
+</Project>
