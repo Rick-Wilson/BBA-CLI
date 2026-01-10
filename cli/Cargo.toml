@@ -43,5 +43,5 @@ opt-level = 0
 debug = true
 
 [[bin]]
-name = "bba"
+name = "bba-cli"
 path = "src/main.rs"

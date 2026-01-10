@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bba-cli
-          path: BBA-CLI/cli/target/release/bba.exe
+          path: BBA-CLI/cli/target/release/bba-cli.exe
 
       - name: Upload EPBot DLLs
         uses: actions/upload-artifact@v4
