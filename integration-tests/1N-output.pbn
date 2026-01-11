@@ -13,8 +13,8 @@
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass 1C
-Pass 2NT 3S Pass
+1NT Pass Pass X
+Pass 2C 2NT Pass
 Pass Pass
 
 
@@ -33,8 +33,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C 1C 3D
-Pass Pass 4S Pass
+1NT 2D X 2H
+Pass Pass 3NT Pass
 Pass Pass
 
 
@@ -53,8 +53,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C Pass 3H
-Pass 3S Pass 4D
+1NT 2D Pass 2S
+Pass 2NT Pass 3H
 Pass Pass Pass
 
 
@@ -73,7 +73,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -91,7 +91,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -110,8 +110,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 3D Pass
-3S Pass 5D Pass
+1H Pass 2H Pass
+2NT Pass 4H Pass
 Pass Pass
 
 
@@ -130,8 +130,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -149,8 +149,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3C Pass
-3S Pass 4S Pass
+1S Pass 2D Pass
+2NT Pass 3NT Pass
 Pass Pass
 
 
@@ -169,7 +169,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -188,8 +188,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -207,7 +207,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 2D 1C 4D
+1D 1H X 3H
 Pass Pass Pass
 
 
@@ -226,8 +226,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -246,7 +246,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -264,7 +264,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -283,8 +283,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D 3S 4D Pass
-5D Pass Pass Pass
+1H 2NT 3H Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -302,8 +302,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -321,8 +321,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 1C
-3D 4C 4D Pass
+1NT Pass 2D X
+2H 3D 3H Pass
 Pass Pass
 
 
@@ -341,9 +341,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -361,8 +361,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -380,8 +380,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass Pass Pass
+1NT Pass 2S Pass
+3C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -399,9 +399,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4D Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3H Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -419,8 +419,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -438,12 +438,12 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4D Pass
-4H Pass 4NT Pass
-5C Pass 5S Pass
-6C Pass 6D Pass
-6NT Pass 7H Pass
+1NT Pass 2C Pass
+2S Pass 3H Pass
+3S Pass 4C Pass
+4D Pass 4NT Pass
+5D Pass 5H Pass
+6C Pass 6S Pass
 Pass Pass
 
 
@@ -462,7 +462,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3S Pass 3NT
+1NT 2NT Pass 3C
 Pass Pass Pass
 
 
@@ -481,8 +481,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3S Pass
+1NT Pass 2C Pass
+2H Pass 2NT Pass
 Pass Pass
 
 
@@ -501,8 +501,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -521,9 +521,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4C Pass
-4H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3D Pass
+3S Pass 3NT Pass
 Pass Pass
 
 
@@ -542,7 +542,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -560,7 +560,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -579,7 +579,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3H Pass Pass
+1NT 2S Pass Pass
 Pass
 
 
@@ -598,8 +598,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3D 3H 4D
-4H Pass 5H Pass
+1NT 2H 2S 3H
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -618,7 +618,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -636,9 +636,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2H Pass
-2NT Pass 3H Pass
-5H Pass Pass Pass
+1D Pass 1S Pass
+2C Pass 2S Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -656,10 +656,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT Pass 2C 2D
-2NT Pass 3C 3H
-4C 4D 5C 5D
-1C Pass Pass Pass
+1C Pass 1D 1H
+2C Pass 2D 2S
+3D 3H 4D 4H
+X Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -677,7 +677,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -696,7 +696,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -714,8 +714,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2C Pass
 2S Pass 2NT Pass
-3H Pass 3S Pass
 Pass Pass
 
 
@@ -734,7 +734,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -752,7 +752,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -771,7 +771,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -789,9 +789,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 3H
-1C 4D 4S Pass
-5H Pass Pass Pass
+1NT Pass 2H 2S
+X 3H 3NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -809,9 +809,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3NT Pass
-4NT Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 3C Pass
+4C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -829,9 +829,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -849,8 +849,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT Pass 3C
-Pass 3H Pass Pass
+1NT 2C Pass 2D
+Pass 2S Pass Pass
 Pass
 
 
@@ -869,9 +869,9 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -889,8 +889,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -908,8 +908,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2H 3D
-3NT 4C Pass 5D
+1D Pass 1S 2H
+3C 3D Pass 4H
 Pass Pass Pass
 
 
@@ -928,7 +928,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -946,8 +946,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H 1C Pass 4D
+1NT Pass 2H Pass
+2S X Pass 3H
 Pass Pass Pass
 
 
@@ -966,8 +966,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C 4C Pass
-6C Pass Pass Pass
+1NT 2D 3D Pass
+5D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -985,7 +985,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass 3D
+1NT Pass Pass 2H
 Pass Pass Pass
 
 
@@ -1004,11 +1004,11 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4C Pass
-5D Pass 5S Pass
-5NT Pass 6D Pass
-7D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3D Pass
+4H Pass 4NT Pass
+5C Pass 5H Pass
+6H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1026,8 +1026,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 4C Pass
-5H Pass Pass Pass
+1S Pass 3D Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1045,8 +1045,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3NT Pass
-4C Pass 4S Pass
+1NT Pass 3C Pass
+3D Pass 3NT Pass
 Pass Pass
 
 
@@ -1065,8 +1065,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -1085,8 +1085,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -1105,7 +1105,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1123,7 +1123,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -1142,8 +1142,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -1162,7 +1162,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1180,7 +1180,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -1199,8 +1199,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 1C
-Pass Pass 3H Pass
+1NT Pass 2H X
+Pass Pass 2S Pass
 Pass Pass
 
 
@@ -1219,8 +1219,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -1239,8 +1239,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -1259,9 +1259,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 4D
-Pass Pass 4S Pass
-5H Pass Pass Pass
+1NT Pass 2H 3H
+Pass Pass 3NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1279,7 +1279,7 @@ Pass Pass 4S Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -1298,8 +1298,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-4D Pass 5D Pass
+1NT Pass 2D Pass
+3H Pass 4H Pass
 Pass Pass
 
 
@@ -1318,8 +1318,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -1338,8 +1338,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 5S Pass
+1NT Pass 2C Pass
+2D Pass 4NT Pass
 Pass Pass
 
 
@@ -1358,7 +1358,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -1377,7 +1377,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1395,7 +1395,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1413,9 +1413,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT 3NT Pass
-4C Pass Pass 4D
-5C Pass Pass Pass
+1NT 2C 3C Pass
+3D Pass Pass 3H
+4D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1433,8 +1433,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 2NT Pass
-4C Pass 4S Pass
+1H Pass 2C Pass
+3D Pass 3NT Pass
 Pass Pass
 
 
@@ -1453,8 +1453,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -1473,8 +1473,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C 1C 3H
-Pass 3S Pass 4D
+1NT 2D X 2S
+Pass 2NT Pass 3H
 Pass Pass Pass
 
 
@@ -1493,7 +1493,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1511,8 +1511,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C Pass 3H
-Pass 3S Pass 4D
+1NT 2D Pass 2S
+Pass 2NT Pass 3H
 Pass Pass Pass
 
 
@@ -1531,8 +1531,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2D Pass
-2S Pass Pass Pass
+1D Pass 1H Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1550,9 +1550,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 4S Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 3NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1570,7 +1570,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1588,8 +1588,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 6S Pass
-7S Pass Pass Pass
+1NT Pass 5NT Pass
+6NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1607,7 +1607,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3D Pass Pass
+1NT 2H Pass Pass
 Pass
 
 
@@ -1626,7 +1626,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1644,7 +1644,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1662,7 +1662,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -1681,10 +1681,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2H Pass
 2S Pass 3D Pass
-3H Pass 4C Pass
-4S Pass 5S Pass
-7S Pass Pass Pass
+3NT Pass 4NT Pass
+6NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1702,7 +1702,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 4D 4S Pass
+1NT 3H 3NT Pass
 Pass Pass
 
 
@@ -1721,8 +1721,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -1741,11 +1741,11 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4C Pass
-4S Pass 5D Pass
-5S Pass 6C Pass
-7D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3D Pass
+3NT Pass 4H Pass
+4NT Pass 5D Pass
+6H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1763,8 +1763,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1782,7 +1782,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1800,8 +1800,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 2S Pass
-3C Pass 3NT Pass
+1H Pass 1NT Pass
+2D Pass 3C Pass
 Pass Pass
 
 
@@ -1820,8 +1820,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1839,9 +1839,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3NT Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3C Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1859,7 +1859,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT Pass 4D
+1NT 2C Pass 3H
 Pass Pass Pass
 
 
@@ -1878,8 +1878,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5C Pass
-5D Pass Pass Pass
+1NT Pass 4D Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1897,8 +1897,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3NT Pass
-4C Pass 4S Pass
+1NT Pass 3C Pass
+3D Pass 3NT Pass
 Pass Pass
 
 
@@ -1917,9 +1917,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 3S Pass
-4H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 2NT Pass
+3S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1937,10 +1937,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S Pass
-4C Pass 4H Pass
-5H Pass 5S Pass
-6H Pass 7H Pass
+1S Pass 1NT Pass
+3D Pass 3S Pass
+4S Pass 4NT Pass
+5S Pass 6S Pass
 Pass Pass
 
 
@@ -1959,8 +1959,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3NT Pass
-4C Pass Pass Pass
+1NT Pass 3C Pass
+3D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -1978,9 +1978,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass 5S Pass
-6C Pass 6H Pass
+1NT Pass 4H Pass
+4S Pass 4NT Pass
+5D Pass 5S Pass
 Pass Pass
 
 
@@ -1999,7 +1999,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -2018,8 +2018,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S Pass
-3C Pass 5D Pass
+1S Pass 1NT Pass
+2D Pass 4H Pass
 Pass Pass
 
 
@@ -2038,8 +2038,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 1C
-3H Pass 5H Pass
+1NT Pass 2C X
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -2058,8 +2058,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 2S Pass
-3C Pass 3D Pass
+1H Pass 1NT Pass
+2D Pass 2H Pass
 Pass Pass
 
 
@@ -2078,8 +2078,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3NT 4D Pass
-5D Pass Pass Pass
+1NT 3C 3H Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2097,7 +2097,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3H Pass
+1S Pass 2S Pass
 Pass Pass
 
 
@@ -2116,8 +2116,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -2136,8 +2136,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2155,8 +2155,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-4H Pass 5H Pass
+1NT Pass 2H Pass
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -2175,9 +2175,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2D Pass
-2S Pass 3S Pass
-4S Pass Pass Pass
+1D Pass 1H Pass
+1NT Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2195,8 +2195,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -2215,8 +2215,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 1C
-3H Pass 3S Pass
+1NT Pass 2C X
+2S Pass 2NT Pass
 Pass Pass
 
 
@@ -2235,8 +2235,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -2255,11 +2255,11 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2NT Pass
-4C Pass 5C Pass
-5H Pass 5S Pass
-5NT Pass 6D Pass
-7C Pass Pass Pass
+1S Pass 2C Pass
+3D Pass 4D Pass
+4S Pass 4NT Pass
+5C Pass 5H Pass
+6D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2277,8 +2277,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass 2NT
-1C 3C Pass 3D
+1NT Pass Pass 2C
+X 2D Pass 2H
 Pass Pass Pass
 
 
@@ -2297,7 +2297,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2315,8 +2315,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -2335,8 +2335,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -2355,8 +2355,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4D Pass
+1NT Pass 2D Pass
+2H Pass 3H Pass
 Pass Pass
 
 
@@ -2375,7 +2375,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C Pass 3H
+1NT 2D Pass 2S
 Pass Pass Pass
 
 
@@ -2394,7 +2394,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -2413,9 +2413,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4C Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 3D Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2433,8 +2433,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4C Pass
-4D Pass 4S Pass
+1NT Pass 3D Pass
+3H Pass 3NT Pass
 Pass Pass
 
 
@@ -2453,7 +2453,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -2472,10 +2472,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3C Pass
-3S Pass 4H Pass
-4S Pass 5S Pass
-5NT Pass 7H Pass
+1S Pass 2D Pass
+2NT Pass 3S Pass
+3NT Pass 4NT Pass
+5C Pass 6S Pass
 Pass Pass
 
 
@@ -2494,7 +2494,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3H Pass Pass
+1NT 2S Pass Pass
 Pass
 
 
@@ -2513,8 +2513,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass Pass Pass
+1NT Pass 2S Pass
+3C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2532,10 +2532,10 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5C Pass
-5H Pass 5S Pass
-6H Pass 7C Pass
+1NT Pass 2C Pass
+2S Pass 4D Pass
+4S Pass 4NT Pass
+5S Pass 6D Pass
 Pass Pass
 
 
@@ -2554,7 +2554,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -2573,7 +2573,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -2592,7 +2592,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass 3H
+1NT Pass Pass 2S
 Pass Pass Pass
 
 
@@ -2611,8 +2611,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3H 4D
-4H Pass Pass Pass
+1S Pass 2S 3H
+3S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2630,8 +2630,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -2650,8 +2650,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4C Pass
-4S Pass Pass Pass
+1NT Pass 3D Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2669,8 +2669,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 4C
-Pass Pass 1C Pass
+1NT Pass 2C 3D
+Pass Pass X Pass
 Pass Pass
 
 
@@ -2689,8 +2689,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2708,8 +2708,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4C Pass
-4S Pass Pass Pass
+1NT Pass 3D Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2727,9 +2727,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3S Pass
-4D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 2NT Pass
+3H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2747,7 +2747,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3S Pass 3NT
+1NT 2NT Pass 3C
 Pass Pass Pass
 
 
@@ -2766,8 +2766,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -2786,9 +2786,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 3H
-1C 4D 4H 5C
-1C 5D 5H Pass
+1NT Pass 2H 2S
+X 3H 3S 4D
+X 4H 4S Pass
 Pass Pass
 
 
@@ -2807,7 +2807,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2825,9 +2825,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 6S Pass
-7S Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 5NT Pass
+6NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2845,8 +2845,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 4C 4H Pass
-4S Pass 5H Pass
+1NT 3D 3S Pass
+3NT Pass 4S Pass
 Pass Pass
 
 
@@ -2865,8 +2865,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -2885,7 +2885,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C Pass 3H
+1NT 2D Pass 2S
 Pass Pass Pass
 
 
@@ -2904,8 +2904,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -2923,8 +2923,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H 2NT 3NT 4C
-4H 4NT Pass Pass
+1S 2C 3C 3D
+3S 4C Pass Pass
 Pass
 
 
@@ -2943,8 +2943,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -2963,9 +2963,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT 2C 2D 1C
-1D 2NT Pass 3H
-Pass 4H Pass Pass
+1C 1D 1H X
+XX 2C Pass 2S
+Pass 3S Pass Pass
 Pass
 
 
@@ -2984,8 +2984,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -3004,8 +3004,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S Pass
-3D Pass Pass Pass
+1S Pass 1NT Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3023,7 +3023,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3041,8 +3041,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass Pass 1C
-Pass 2D Pass Pass
+1D Pass Pass X
+Pass 1H Pass Pass
 Pass
 
 
@@ -3061,7 +3061,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -3080,8 +3080,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -3100,7 +3100,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -3119,8 +3119,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 1C
-3C Pass 4S Pass
+1NT Pass 2C X
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -3139,8 +3139,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -3159,9 +3159,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 1C
-3H Pass 5S Pass
-6C Pass 7H Pass
+1NT Pass 2H X
+2S Pass 4NT Pass
+5D Pass 6S Pass
 Pass Pass
 
 
@@ -3180,8 +3180,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 3D Pass
-3S Pass 4D Pass
+1H Pass 2H Pass
+2NT Pass 3H Pass
 Pass Pass
 
 
@@ -3200,9 +3200,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3NT Pass
-5NT Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 3C Pass
+5C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3220,7 +3220,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3238,8 +3238,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3257,9 +3257,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 1C
-Pass Pass 4S Pass
-5H Pass Pass Pass
+1NT Pass 2H X
+Pass Pass 3NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3277,9 +3277,9 @@ Pass Pass 4S Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2NT Pass
-4D Pass 4H Pass
-4NT Pass 5H Pass
+1S Pass 2C Pass
+3H Pass 3S Pass
+4C Pass 4S Pass
 Pass Pass
 
 
@@ -3298,8 +3298,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 1C
-4H Pass 5H Pass
+1NT Pass 2H X
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -3318,9 +3318,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3338,9 +3338,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 3NT Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 3C Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3358,7 +3358,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -3377,8 +3377,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -3397,8 +3397,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2D 2H
-2S Pass Pass Pass
+1D Pass 1H 1S
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3416,8 +3416,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3435,8 +3435,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -3455,9 +3455,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H 1C Pass 3NT
-4H Pass Pass 1C
+1NT Pass 2H Pass
+2S X Pass 3C
+3S Pass Pass X
 Pass Pass Pass
 
 
@@ -3476,8 +3476,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
-4D Pass 4S Pass
+1NT Pass 2NT Pass
+3H Pass 3NT Pass
 Pass Pass
 
 
@@ -3496,9 +3496,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3516,7 +3516,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -3535,8 +3535,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5H Pass
-6C Pass Pass 1C
+1NT Pass 4S Pass
+5D Pass Pass X
 Pass Pass Pass
 
 
@@ -3555,8 +3555,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5C Pass
-5D Pass Pass Pass
+1NT Pass 4D Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3574,9 +3574,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4C Pass
-5H Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 3D Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3594,8 +3594,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 1C
-3H Pass 5H Pass
+1NT Pass 2C X
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -3614,8 +3614,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3633,7 +3633,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3651,7 +3651,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3669,8 +3669,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -3689,9 +3689,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 3NT Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 3C Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3709,9 +3709,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 5S Pass
-7S Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 4NT Pass
+6NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3729,8 +3729,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -3749,7 +3749,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -3768,9 +3768,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 1C
-3D 4C 4D 5C
-1C Pass Pass Pass
+1NT Pass 2D X
+2H 3D 3H 4D
+X Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3788,8 +3788,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D 2H 3H Pass
-5D Pass Pass Pass
+1H 1S 2S Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3807,8 +3807,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 1C 3NT Pass
-4C Pass Pass Pass
+1NT X 3C Pass
+3D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3826,7 +3826,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 4C Pass Pass
+1NT 3D Pass Pass
 Pass
 
 
@@ -3845,8 +3845,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4H Pass
+1NT Pass 2C Pass
+2S Pass 3S Pass
 Pass Pass
 
 
@@ -3865,8 +3865,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -3885,8 +3885,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3904,7 +3904,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -3923,9 +3923,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3943,9 +3943,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -3963,8 +3963,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -3983,7 +3983,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4001,9 +4001,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 3NT
-Pass Pass 4C Pass
-4S Pass Pass Pass
+1NT Pass 2C 3C
+Pass Pass 3D Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4021,7 +4021,7 @@ Pass Pass 4C Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -4040,8 +4040,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT Pass 4D
-Pass 5D Pass Pass
+1NT 2C Pass 3H
+Pass 4H Pass Pass
 Pass
 
 
@@ -4060,9 +4060,9 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4H Pass
-5S Pass 6D Pass
+1NT Pass 2C Pass
+2H Pass 3S Pass
+4NT Pass 5H Pass
 Pass Pass
 
 
@@ -4081,8 +4081,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4D Pass
+1NT Pass 2D Pass
+2H Pass 3H Pass
 Pass Pass
 
 
@@ -4101,9 +4101,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3NT Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3C Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4121,7 +4121,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H 3C Pass Pass
+1S 2D Pass Pass
 Pass
 
 
@@ -4140,9 +4140,9 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4C Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3D Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4160,8 +4160,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -4180,8 +4180,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 3H
-Pass Pass 4D Pass
+1NT Pass 2D 2S
+Pass Pass 3H Pass
 Pass Pass
 
 
@@ -4200,8 +4200,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 4C Pass
-4H Pass Pass Pass
+1S Pass 3D Pass
+3S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4219,7 +4219,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 4D 4S Pass
+1NT 3H 3NT Pass
 Pass Pass
 
 
@@ -4238,7 +4238,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4256,8 +4256,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4275,9 +4275,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 3D
-Pass 3H 3NT Pass
-4D Pass Pass Pass
+1NT Pass 2D 2H
+Pass 2S 3C Pass
+3H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4295,7 +4295,7 @@ Pass 3H 3NT Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4313,8 +4313,8 @@ Pass 3H 3NT Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3NT Pass
-4C Pass Pass Pass
+1NT Pass 3C Pass
+3D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4332,8 +4332,8 @@ Pass 3H 3NT Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -4352,8 +4352,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4371,9 +4371,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 5S Pass
-7S Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 4NT Pass
+6NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4391,9 +4391,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 5C Pass
-5NT Pass 7C Pass
+1NT Pass 2C Pass
+2D Pass 4D Pass
+5C Pass 6D Pass
 Pass Pass
 
 
@@ -4412,7 +4412,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4430,9 +4430,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 1C
-3H Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2C X
+2S Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4450,7 +4450,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4468,8 +4468,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -4488,7 +4488,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -4507,7 +4507,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3H Pass
+1S Pass 2S Pass
 Pass Pass
 
 
@@ -4526,8 +4526,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 4C 4H Pass
-5H Pass Pass Pass
+1NT 3D 3S Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4545,10 +4545,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 3D 3H Pass
-4C Pass 4H Pass
-5D Pass 5S Pass
-6D Pass 7H 1C
+1D 2H 2S Pass
+3D Pass 3S Pass
+4H Pass 4NT Pass
+5H Pass 6S X
 Pass Pass Pass
 
 
@@ -4567,8 +4567,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT Pass 2H Pass
-2S Pass Pass Pass
+1C Pass 1S Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4586,8 +4586,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -4606,8 +4606,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -4626,9 +4626,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 3NT
-1C 4C Pass 4NT
-Pass 5C Pass 5NT
+1NT Pass 2D 3C
+X 3D Pass 4C
+Pass 4D Pass 5C
 Pass Pass Pass
 
 
@@ -4647,8 +4647,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -4667,9 +4667,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT Pass 2D Pass
-2S Pass 2NT Pass
-3H Pass 5D Pass
+1C Pass 1H Pass
+1NT Pass 2C Pass
+2S Pass 4H Pass
 Pass Pass
 
 
@@ -4688,7 +4688,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4706,9 +4706,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 2S Pass 3D
-Pass 3H Pass Pass
-1C Pass 4C Pass
+1D 1NT Pass 2H
+Pass 2S Pass Pass
+X Pass 3D Pass
 Pass Pass
 
 
@@ -4727,8 +4727,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -4747,8 +4747,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4766,8 +4766,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -4786,8 +4786,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4805,8 +4805,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 1C
-3D Pass 5D Pass
+1NT Pass 2D X
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -4825,8 +4825,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT 2C Pass 2H
-Pass 3D Pass Pass
+1C 1D Pass 1S
+Pass 2H Pass Pass
 Pass
 
 
@@ -4845,9 +4845,9 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 3H
-Pass 4D 1C Pass
-5H Pass Pass Pass
+1NT Pass 2H 2S
+Pass 3H X Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4865,7 +4865,7 @@ Pass 4D 1C Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT Pass 3H
+1NT 2C Pass 2S
 Pass Pass Pass
 
 
@@ -4884,8 +4884,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 3S 4H
-5D Pass Pass Pass
+1H Pass 2NT 3S
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4903,8 +4903,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4922,10 +4922,10 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3NT Pass
-4C Pass 5H Pass
-5NT Pass 6D Pass
-7C Pass Pass Pass
+1NT Pass 3C Pass
+3D Pass 4S Pass
+5C Pass 5H Pass
+6D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4943,7 +4943,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4961,8 +4961,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -4980,8 +4980,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 5D Pass
+1NT Pass 2D Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -5000,7 +5000,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3H Pass Pass
+1NT 2S Pass Pass
 Pass
 
 
@@ -5019,8 +5019,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D 1C 4D Pass
+1NT Pass 2D Pass
+2H X 3H Pass
 Pass Pass
 
 
@@ -5039,8 +5039,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -5059,9 +5059,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H 2NT 3NT Pass
-4C Pass 4D Pass
-4S Pass 5H Pass
+1S 2C 3C Pass
+3D Pass 3H Pass
+3NT Pass 4S Pass
 Pass Pass
 
 
@@ -5080,7 +5080,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 2D Pass 3D
+1D 1H Pass 2H
 Pass Pass Pass
 
 
@@ -5099,7 +5099,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass 3D
+1NT Pass Pass 2H
 Pass Pass Pass
 
 
@@ -5118,9 +5118,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3H Pass
-4H Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 2S Pass
+3S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5138,7 +5138,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5156,8 +5156,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5175,7 +5175,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5193,8 +5193,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-4H Pass 5H Pass
+1NT Pass 2H Pass
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -5213,9 +5213,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 4S Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 3NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5233,8 +5233,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -5253,7 +5253,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C Pass 3D
+1NT 2D Pass 2H
 Pass Pass Pass
 
 
@@ -5272,8 +5272,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S 3C
-3D Pass 5D Pass
+1S Pass 1NT 2D
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -5292,9 +5292,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3NT Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 3C Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5312,8 +5312,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H 2NT 3NT Pass
-5H Pass Pass Pass
+1S 2C 3C Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5331,7 +5331,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 5D Pass Pass
+1NT 4H Pass Pass
 Pass
 
 
@@ -5350,9 +5350,9 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 1C
-3H Pass 5C Pass
-5D Pass 5H Pass
+1NT Pass 2H X
+2S Pass 4D Pass
+4H Pass 4S Pass
 Pass Pass
 
 
@@ -5371,7 +5371,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5389,7 +5389,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5407,8 +5407,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -5427,11 +5427,11 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4H Pass
-5C Pass 5H Pass
-5S Pass 6C Pass
-6D Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 3S Pass
+4D Pass 4S Pass
+4NT Pass 5D Pass
+5H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5449,8 +5449,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass Pass Pass
+1NT Pass 2C Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5468,8 +5468,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 5D Pass
+1NT Pass 2D Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -5488,7 +5488,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -5507,8 +5507,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5526,9 +5526,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5546,8 +5546,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3S Pass
+1NT Pass 2C Pass
+2H Pass 2NT Pass
 Pass Pass
 
 
@@ -5566,8 +5566,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -5586,11 +5586,11 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4D Pass
-4NT Pass 5D Pass
-5S Pass 6D Pass
-7H Pass Pass Pass
+1NT Pass 2C Pass
+2S Pass 3H Pass
+4C Pass 4H Pass
+4NT Pass 5H Pass
+6S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5608,9 +5608,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5628,7 +5628,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5646,8 +5646,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass Pass 3C
-Pass 4D Pass 5C
+1H Pass Pass 2D
+Pass 3H Pass 4D
 Pass Pass Pass
 
 
@@ -5666,7 +5666,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5684,8 +5684,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D 1C
-5H Pass Pass Pass
+1NT Pass 4H X
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5703,8 +5703,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -5723,8 +5723,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -5743,8 +5743,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 1C
-Pass Pass 3H Pass
+1NT Pass 2H X
+Pass Pass 2S Pass
 Pass Pass
 
 
@@ -5763,8 +5763,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT 3NT Pass
-4C Pass 6C Pass
+1NT 2C 3C Pass
+3D Pass 5D Pass
 Pass Pass
 
 
@@ -5783,7 +5783,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5801,7 +5801,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5819,8 +5819,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass Pass Pass
+1NT Pass 2S Pass
+3C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5838,9 +5838,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 4C
-1C Pass 4D Pass
-Pass 1C Pass Pass
+1NT Pass 2D 3D
+X Pass 3H Pass
+Pass X Pass Pass
 Pass
 
 
@@ -5859,8 +5859,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -5879,8 +5879,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -5899,8 +5899,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3D 3S Pass
-3NT Pass 4S Pass
+1NT 2H 2NT Pass
+3C Pass 3NT Pass
 Pass Pass
 
 
@@ -5919,8 +5919,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -5939,8 +5939,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -5958,8 +5958,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 1C
-3C 3NT 4C Pass
+1NT Pass 2C X
+2D 3C 3D Pass
 Pass Pass
 
 
@@ -5978,8 +5978,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -5998,8 +5998,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S Pass
-2NT Pass 4S Pass
+1S Pass 1NT Pass
+2C Pass 3NT Pass
 Pass Pass
 
 
@@ -6018,9 +6018,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-4H Pass 4S Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+3S Pass 3NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6038,8 +6038,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6057,7 +6057,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6075,9 +6075,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1D Pass 1S Pass
 2C Pass 2H Pass
-2NT Pass 3D Pass
-4S Pass Pass Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6095,8 +6095,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6114,7 +6114,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -6133,8 +6133,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3D Pass 3S
-Pass 4C 1C Pass
+1NT 2H Pass 2NT
+Pass 3D X Pass
 Pass Pass
 
 
@@ -6153,7 +6153,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -6172,7 +6172,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6190,9 +6190,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4D Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3H Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6210,8 +6210,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-4H Pass 5H Pass
+1NT Pass 2H Pass
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -6230,7 +6230,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -6249,8 +6249,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4H Pass
+1NT Pass 2C Pass
+2S Pass 3S Pass
 Pass Pass
 
 
@@ -6269,9 +6269,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4D Pass
-5D Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 3H Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6289,8 +6289,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 4C
-Pass Pass 4H Pass
+1NT Pass 2H 3D
+Pass Pass 3S Pass
 Pass Pass
 
 
@@ -6309,7 +6309,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H 3C Pass Pass
+1S 2D Pass Pass
 Pass
 
 
@@ -6328,8 +6328,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -6348,7 +6348,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -6367,8 +6367,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H 1C Pass 3S
+1NT Pass 2H Pass
+2S X Pass 2NT
 Pass Pass Pass
 
 
@@ -6387,8 +6387,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -6407,8 +6407,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6426,7 +6426,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3H Pass
+1S Pass 2S Pass
 Pass Pass
 
 
@@ -6445,8 +6445,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -6465,8 +6465,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -6485,8 +6485,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -6505,8 +6505,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -6525,9 +6525,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D 2H 3H 4H
-5D Pass Pass 5H
-6D Pass Pass 1C
+1H 1S 2S 3S
+4H Pass Pass 4S
+5H Pass Pass X
 Pass Pass Pass
 
 
@@ -6546,8 +6546,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3H Pass
-5H Pass Pass Pass
+1S Pass 2S Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6565,9 +6565,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4C Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 3D Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6585,7 +6585,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3D Pass Pass
+1NT 2H Pass Pass
 Pass
 
 
@@ -6604,8 +6604,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -6624,8 +6624,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -6644,7 +6644,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6662,8 +6662,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 2S Pass
-3S Pass 3NT Pass
+1H Pass 1NT Pass
+2NT Pass 3C Pass
 Pass Pass
 
 
@@ -6682,8 +6682,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6701,8 +6701,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6720,7 +6720,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6738,8 +6738,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3S Pass
+1NT Pass 2C Pass
+2H Pass 2NT Pass
 Pass Pass
 
 
@@ -6758,10 +6758,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2H Pass
 2S Pass 3D Pass
-3H Pass 4C Pass
-5H Pass 5S Pass
-5NT Pass 7H Pass
+4S Pass 4NT Pass
+5C Pass 6S Pass
 Pass Pass
 
 
@@ -6780,7 +6780,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3NT 4H
+1NT Pass 3C 3S
 Pass Pass Pass
 
 
@@ -6799,8 +6799,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6818,8 +6818,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6837,8 +6837,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 3H Pass
-4H Pass Pass Pass
+1S Pass 2S Pass
+3S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6856,8 +6856,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6875,8 +6875,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass 5NT Pass
+1NT Pass 2S Pass
+3C Pass 5C Pass
 Pass Pass
 
 
@@ -6895,9 +6895,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3NT Pass
-4H Pass 5H Pass
+1NT Pass 2C Pass
+2H Pass 3C Pass
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -6916,8 +6916,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
-4D Pass 4S Pass
+1NT Pass 2NT Pass
+3H Pass 3NT Pass
 Pass Pass
 
 
@@ -6936,7 +6936,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D 2S Pass Pass
+1H 1NT Pass Pass
 Pass
 
 
@@ -6955,7 +6955,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6973,8 +6973,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -6992,7 +6992,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7010,8 +7010,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -7030,8 +7030,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7049,8 +7049,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass 2NT
-Pass 3H Pass Pass
+1NT Pass Pass 2C
+Pass 2S Pass Pass
 Pass
 
 
@@ -7069,9 +7069,9 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2H Pass
 2S Pass 3D Pass
-3H Pass 4C Pass
-4S Pass Pass Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7089,8 +7089,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4S Pass
+1NT Pass 2C Pass
+2S Pass 3NT Pass
 Pass Pass
 
 
@@ -7109,7 +7109,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 3D Pass Pass
+1D 2H Pass Pass
 Pass
 
 
@@ -7128,8 +7128,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7147,7 +7147,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -7166,8 +7166,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT 2H 1C Pass
-2NT Pass Pass Pass
+1C 1S X Pass
+2C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7185,7 +7185,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -7204,9 +7204,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7224,7 +7224,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -7243,9 +7243,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7263,7 +7263,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7281,7 +7281,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -7300,8 +7300,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2H Pass
-2S Pass Pass Pass
+1D Pass 1S Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7319,8 +7319,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT 1C
-3D Pass 4S Pass
+1NT Pass 2C X
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -7339,7 +7339,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7357,7 +7357,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -7376,9 +7376,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7396,8 +7396,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4H Pass
+1NT Pass 2C Pass
+2S Pass 3S Pass
 Pass Pass
 
 
@@ -7416,7 +7416,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3D Pass Pass
+1NT 2H Pass Pass
 Pass
 
 
@@ -7435,7 +7435,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3H Pass Pass
+1NT 2S Pass Pass
 Pass
 
 
@@ -7454,8 +7454,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass Pass Pass
+1NT Pass 2S Pass
+3C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7473,7 +7473,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass Pass 2S
+1S Pass Pass 1NT
 Pass Pass Pass
 
 
@@ -7492,7 +7492,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7510,9 +7510,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3NT Pass
-5H Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 3C Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7530,8 +7530,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 1C Pass 2NT
-Pass 3D Pass Pass
+1NT X Pass 2C
+Pass 2H Pass Pass
 Pass
 
 
@@ -7550,8 +7550,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7569,7 +7569,7 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -7588,9 +7588,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT Pass 2D Pass
-2S Pass 2NT Pass
-3S Pass 4S Pass
+1C Pass 1H Pass
+1NT Pass 2C Pass
+2NT Pass 3NT Pass
 Pass Pass
 
 
@@ -7609,7 +7609,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 4C 4NT 1C
+1NT 3D 4C X
 Pass Pass Pass
 
 
@@ -7628,8 +7628,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 3D Pass
-4C Pass 4D Pass
+1H Pass 2H Pass
+3D Pass 3H Pass
 Pass Pass
 
 
@@ -7648,9 +7648,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7668,11 +7668,11 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2H Pass
 2S Pass 3D Pass
-3H Pass 4C Pass
-5H Pass 5S Pass
-6C Pass 6D Pass
-6NT Pass 7H Pass
+4S Pass 4NT Pass
+5D Pass 5H Pass
+6C Pass 6S Pass
 Pass Pass
 
 
@@ -7691,8 +7691,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7710,8 +7710,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 6S Pass
-7S Pass Pass Pass
+1NT Pass 5NT Pass
+6NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7729,8 +7729,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-4H Pass 5H Pass
+1NT Pass 2H Pass
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -7749,9 +7749,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4NT Pass
-5H Pass 5NT Pass
-6D Pass 7S Pass
+1NT Pass 4C Pass
+4S Pass 5C Pass
+5H Pass 6NT Pass
 Pass Pass
 
 
@@ -7770,7 +7770,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -7789,8 +7789,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -7809,8 +7809,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D 3NT Pass 5NT
-Pass Pass 1C Pass
+1H 3C Pass 5C
+Pass Pass X Pass
 Pass Pass
 
 
@@ -7829,9 +7829,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 5S Pass
-7S Pass Pass Pass
+1NT Pass 2C Pass
+2D Pass 4NT Pass
+6NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7849,8 +7849,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5C Pass
-5D Pass Pass Pass
+1NT Pass 4D Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7868,8 +7868,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S 1C
-Pass 3D Pass 4D
+1S Pass 1NT X
+Pass 2H Pass 3H
 Pass Pass Pass
 
 
@@ -7888,9 +7888,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7908,7 +7908,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7926,8 +7926,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-4D Pass 5D Pass
+1NT Pass 2D Pass
+3H Pass 4H Pass
 Pass Pass
 
 
@@ -7946,9 +7946,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3NT Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3C Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -7966,8 +7966,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3NT Pass
-4C Pass 4S Pass
+1NT Pass 3C Pass
+3D Pass 3NT Pass
 Pass Pass
 
 
@@ -7986,8 +7986,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 5H Pass
+1NT Pass 2C Pass
+2S Pass 4S Pass
 Pass Pass
 
 
@@ -8006,9 +8006,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3NT Pass
-5D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 3C Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8026,9 +8026,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D 5H
-1C 6D Pass Pass
-1C Pass Pass Pass
+1NT Pass 4H 4S
+X 5H Pass Pass
+X Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8046,8 +8046,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 4S Pass
+1NT Pass 2C Pass
+2D Pass 3NT Pass
 Pass Pass
 
 
@@ -8066,7 +8066,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 1C Pass Pass
+1NT X Pass Pass
 Pass
 
 
@@ -8085,10 +8085,10 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4H Pass
-5S Pass 6C Pass
-7D Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 3S Pass
+4NT Pass 5D Pass
+6H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8106,8 +8106,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 3H
-1C Pass 4D Pass
+1NT Pass 2D 2S
+X Pass 3H Pass
 Pass Pass
 
 
@@ -8126,8 +8126,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 1C 2D Pass
-2S Pass Pass Pass
+1D X 1H Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8145,8 +8145,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -8165,8 +8165,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass 4S Pass
+1NT Pass 2S Pass
+3C Pass 3NT Pass
 Pass Pass
 
 
@@ -8185,7 +8185,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8203,9 +8203,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D 1C
-3H Pass 4NT Pass
-5C Pass 5H Pass
+1NT Pass 2H X
+2S Pass 4C Pass
+4D Pass 4S Pass
 Pass Pass
 
 
@@ -8224,7 +8224,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8242,8 +8242,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 2S 3D
-Pass 3H Pass Pass
+1H Pass 1NT 2H
+Pass 2S Pass Pass
 Pass
 
 
@@ -8262,10 +8262,10 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4C Pass
-4D Pass 5S Pass
-7C Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass 3D Pass
+3H Pass 4NT Pass
+6D Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8283,8 +8283,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 4H Pass
+1NT Pass 2H Pass
+2S Pass 3S Pass
 Pass Pass
 
 
@@ -8303,7 +8303,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8321,8 +8321,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3C Pass 3S Pass
+1NT Pass 2C Pass
+2D Pass 2NT Pass
 Pass Pass
 
 
@@ -8341,9 +8341,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3D Pass 3NT
-Pass 4C Pass 4NT
-Pass 5C Pass 5NT
+1NT 2H Pass 3C
+Pass 3D Pass 4C
+Pass 4D Pass 5C
 Pass Pass Pass
 
 
@@ -8362,8 +8362,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2C Pass
 2S Pass 2NT Pass
-3H Pass 3S Pass
 Pass Pass
 
 
@@ -8382,7 +8382,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8400,9 +8400,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-1NT 1C Pass 2D
-Pass 2H Pass 3S
-Pass 4H Pass 5H
+1C X Pass 1H
+Pass 1S Pass 2NT
+Pass 3S Pass 4S
 Pass Pass Pass
 
 
@@ -8421,8 +8421,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass Pass Pass
+1NT Pass 2S Pass
+3C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8440,9 +8440,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 3S Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 2NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8460,8 +8460,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 2H Pass
-2S Pass Pass Pass
+1H Pass 1S Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8479,7 +8479,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8497,7 +8497,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8515,8 +8515,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8534,8 +8534,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2D Pass
-2NT Pass Pass Pass
+1D Pass 1H Pass
+2C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8553,8 +8553,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8572,8 +8572,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 3H
-1C Pass 5D Pass
+1NT Pass 2D 2S
+X Pass 4H Pass
 Pass Pass
 
 
@@ -8592,8 +8592,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass Pass Pass
+1NT Pass 2C Pass
+2H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8611,8 +8611,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3H 3S Pass
-3NT Pass Pass Pass
+1NT 2S 2NT Pass
+3C Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8630,7 +8630,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8648,7 +8648,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -8667,7 +8667,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8685,9 +8685,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass Pass 4D
-Pass 4NT Pass 5D
+1NT Pass 2S Pass
+3C Pass Pass 3H
+Pass 4C Pass 4H
 Pass Pass Pass
 
 
@@ -8706,7 +8706,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -8725,9 +8725,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C 3H
-Pass Pass 1C Pass
-4D Pass Pass Pass
+1NT Pass 2D 2S
+Pass Pass X Pass
+3H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8745,7 +8745,7 @@ Pass Pass 1C Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8763,8 +8763,8 @@ Pass Pass 1C Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8782,8 +8782,8 @@ Pass Pass 1C Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 3S Pass
+1NT Pass 2H Pass
+2S Pass 2NT Pass
 Pass Pass
 
 
@@ -8802,10 +8802,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2H Pass
 2S Pass 3D Pass
-3H Pass 4C Pass
-5H Pass 6D Pass
-6S Pass 7C Pass
+4S Pass 5H Pass
+5NT Pass 6D Pass
 Pass Pass
 
 
@@ -8824,8 +8824,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3S Pass
+1NT Pass 2D Pass
+2H Pass 2NT Pass
 Pass Pass
 
 
@@ -8844,9 +8844,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 3S Pass
-4D Pass Pass Pass
+1NT Pass 2D Pass
+2H Pass 2NT Pass
+3H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8864,8 +8864,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3C Pass 3D
-Pass Pass 3S Pass
+1NT 2D Pass 2H
+Pass Pass 2NT Pass
 Pass Pass
 
 
@@ -8884,7 +8884,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3H Pass Pass
+1NT 2S Pass Pass
 Pass
 
 
@@ -8903,8 +8903,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4NT Pass
-5H Pass 5S Pass
+1NT Pass 4C Pass
+4S Pass 4NT Pass
 Pass Pass
 
 
@@ -8923,10 +8923,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4NT Pass
-5C Pass 5H Pass
-5NT Pass 7S Pass
+1NT Pass 2C Pass
+2H Pass 4C Pass
+4D Pass 4S Pass
+5C Pass 6NT Pass
 Pass Pass
 
 
@@ -8945,7 +8945,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -8963,8 +8963,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -8983,9 +8983,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass 3H
-Pass 3S Pass 3NT
-Pass 5H Pass Pass
+1NT Pass Pass 2S
+Pass 2NT Pass 3C
+Pass 4S Pass Pass
 Pass
 
 
@@ -9004,8 +9004,8 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H Pass
-3NT Pass 4S Pass
+1NT Pass 2S Pass
+3C Pass 3NT Pass
 Pass Pass
 
 
@@ -9024,8 +9024,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D Pass 2H Pass
-4H Pass 5H Pass
+1H Pass 1S Pass
+3S Pass 4S Pass
 Pass Pass
 
 
@@ -9044,10 +9044,10 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4C Pass
-5D Pass 5S Pass
-6C Pass 7D Pass
+1NT Pass 2D Pass
+2H Pass 3D Pass
+4H Pass 4NT Pass
+5D Pass 6H Pass
 Pass Pass
 
 
@@ -9066,7 +9066,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9084,7 +9084,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9102,9 +9102,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S Pass
-4D Pass 4H Pass
-5H Pass Pass Pass
+1S Pass 1NT Pass
+3H Pass 3S Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9122,7 +9122,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT Pass 3D
+1NT 2C Pass 2H
 Pass Pass Pass
 
 
@@ -9141,8 +9141,8 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4D Pass
+1NT Pass 2C Pass
+2H Pass 3H Pass
 Pass Pass
 
 
@@ -9161,8 +9161,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2D 2H 3H Pass
-5D Pass Pass Pass
+1H 1S 2S Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9180,8 +9180,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2C Pass
 2S Pass 2NT Pass
-3H Pass 3S Pass
 Pass Pass
 
 
@@ -9200,8 +9200,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2H Pass 2S Pass
-3C Pass 3H Pass
+1S Pass 1NT Pass
+2D Pass 2S Pass
 Pass Pass
 
 
@@ -9220,9 +9220,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
+1NT Pass 2H Pass
 2S Pass 3D Pass
-3H Pass 4C Pass
-5H Pass Pass Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9240,7 +9240,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 2NT Pass 3D
+1NT 2C Pass 2H
 Pass Pass Pass
 
 
@@ -9259,7 +9259,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S 3S 4S Pass
+1NT 2NT 3NT Pass
 Pass Pass
 
 
@@ -9278,8 +9278,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3C Pass
-3D Pass 4S Pass
+1NT Pass 2D Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -9298,7 +9298,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9316,7 +9316,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -9335,8 +9335,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass Pass Pass
+1NT Pass 4H Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9354,7 +9354,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9372,7 +9372,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -9391,8 +9391,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C Pass 2H 3D
-1C Pass 3H 4D
+1D Pass 1S 2H
+X Pass 2S 3H
 Pass Pass Pass
 
 
@@ -9411,9 +9411,9 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass 3S Pass
-5H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass 2NT Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9431,7 +9431,7 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
+1NT Pass 2NT Pass
 Pass Pass
 
 
@@ -9450,8 +9450,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 4S Pass
+1NT Pass 2C Pass
+2H Pass 3NT Pass
 Pass Pass
 
 
@@ -9470,7 +9470,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9488,7 +9488,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 2NT Pass Pass
+1D 2C Pass Pass
 Pass
 
 
@@ -9507,11 +9507,11 @@ Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5D Pass
-5H Pass 5S Pass
+1NT Pass 4H Pass
+4S Pass 4NT Pass
+5C Pass 5D Pass
 5NT Pass 6C Pass
-6S Pass 6NT Pass
-7C Pass 7H Pass
+6D Pass 6S Pass
 Pass Pass
 
 
@@ -9530,8 +9530,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3H 4D
-Pass Pass 4NT Pass
+1NT Pass 2S 3H
+Pass Pass 4C Pass
 Pass Pass
 
 
@@ -9550,7 +9550,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9568,7 +9568,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9586,8 +9586,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3D Pass 5D Pass
+1NT Pass 2C Pass
+2H Pass 4H Pass
 Pass Pass
 
 
@@ -9606,8 +9606,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 5C Pass
-5D Pass Pass Pass
+1NT Pass 4D Pass
+4H Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9625,8 +9625,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-3H Pass Pass Pass
+1NT Pass 2H Pass
+2S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9644,8 +9644,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3D Pass
-4H Pass Pass Pass
+1NT Pass 2H Pass
+3S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9663,7 +9663,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -9682,9 +9682,9 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 2NT Pass
-3H Pass 4H Pass
-5H Pass Pass Pass
+1NT Pass 2C Pass
+2S Pass 3S Pass
+4S Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9702,7 +9702,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 4S Pass
+1NT Pass 3NT Pass
 Pass Pass
 
 
@@ -9721,8 +9721,8 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass 3S Pass
-4S Pass Pass Pass
+1NT Pass 2NT Pass
+3NT Pass Pass Pass
 
 
 [Event "Hand simulated by dealer with file P:\dlr\1N.dlr, seed 5"]
@@ -9740,7 +9740,7 @@ Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2C 3S Pass 4D
+1D 2NT Pass 3H
 Pass Pass Pass
 
 
@@ -9759,5 +9759,5 @@ Pass Pass Pass
 [Contract "?"]
 [Result "?"]
 [Auction "S"]
-2S Pass Pass Pass
+1NT Pass Pass Pass
 
