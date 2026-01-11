@@ -205,8 +205,7 @@ namespace EPBotWrapper
 
         /// <summary>
         /// Process a single deal and generate its auction.
-        /// Uses 4 EPBot instances (one per player) as per Edward's design.
-        /// After each bid, broadcast it to all players via set_bid.
+        /// Uses EPBot's generate_bidding method which runs the complete auction internally.
         /// </summary>
         static DealResult ProcessDeal(dynamic bot, DealInput deal)
         {
@@ -232,49 +231,76 @@ namespace EPBotWrapper
                     players[i].new_hand(i, ref hand, dealer, vul, false, false);
                 }
 
-                // Generate auction
-                var bids = new List<string>();
-                int currentPos = dealer;
-                int passCount = 0;
-                bool hasBid = false;
-
-                for (int round = 0; round < 100; round++) // Safety limit
+                // Try using generate_bidding which might run the full auction
+                try
                 {
-                    // Get bid from current player
-                    int bidCode = players[currentPos].get_bid();
-                    string bidStr = DecodeBid(bidCode);
+                    players[dealer].generate_bidding();
+                    string biddingStr = players[dealer].get_str_bidding();
 
-                    // Broadcast this bid to ALL players using round as the bid index
-                    for (int i = 0; i < 4; i++)
+                    // Parse the bidding string into individual bids
+                    var bids = new List<string>();
+                    if (!string.IsNullOrEmpty(biddingStr))
                     {
-                        players[i].set_bid(round, bidCode, "");
+                        // EPBot returns bidding as space or tab separated string
+                        string[] parts = biddingStr.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var part in parts)
+                        {
+                            string bid = part.Trim();
+                            if (!string.IsNullOrEmpty(bid))
+                            {
+                                // Convert numeric bid codes if needed
+                                if (int.TryParse(bid, out int code))
+                                {
+                                    bids.Add(DecodeBid(code));
+                                }
+                                else
+                                {
+                                    bids.Add(bid);
+                                }
+                            }
+                        }
                     }
 
-                    bids.Add(bidStr);
-
-                    // Track passes for auction end detection
-                    if (bidStr == "Pass" || bidStr == "P")
-                    {
-                        passCount++;
-                    }
-                    else
-                    {
-                        passCount = 0;
-                        hasBid = true;
-                    }
-
-                    // Auction ends with 3 passes after a bid, or 4 initial passes
-                    if ((hasBid && passCount >= 3) || (!hasBid && passCount >= 4))
-                    {
-                        break;
-                    }
-
-                    // Move to next position
-                    currentPos = (currentPos + 1) % 4;
+                    result.auction = bids;
+                    result.success = true;
                 }
+                catch
+                {
+                    // Fallback: manual auction loop
+                    var bids = new List<string>();
+                    int currentPos = dealer;
+                    int passCount = 0;
+                    bool hasBid = false;
 
-                result.auction = bids;
-                result.success = true;
+                    for (int round = 0; round < 100; round++)
+                    {
+                        int bidCode = players[currentPos].get_bid();
+                        string bidStr = DecodeBid(bidCode);
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            players[i].set_bid(round, bidCode, "");
+                        }
+
+                        bids.Add(bidStr);
+
+                        if (bidStr == "Pass" || bidStr == "P")
+                            passCount++;
+                        else
+                        {
+                            passCount = 0;
+                            hasBid = true;
+                        }
+
+                        if ((hasBid && passCount >= 3) || (!hasBid && passCount >= 4))
+                            break;
+
+                        currentPos = (currentPos + 1) % 4;
+                    }
+
+                    result.auction = bids;
+                    result.success = true;
+                }
             }
             catch (Exception ex)
             {
