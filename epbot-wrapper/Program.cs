@@ -227,12 +227,15 @@ namespace EPBotWrapper
 
                 // Create 4 EPBot instances, one per player
                 dynamic[] players = new dynamic[4];
+                string[] posNames = { "N", "E", "S", "W" };
                 for (int i = 0; i < 4; i++)
                 {
                     players[i] = CreateEPBot();
                     string[] hand = hands[i];
+                    Console.Error.WriteLine($"Player {posNames[i]}: {string.Join(".", hand)}");
                     players[i].new_hand(i, ref hand, dealer, vul, false, false);
                 }
+                Console.Error.WriteLine($"Dealer: {posNames[dealer]}, Vul: {vul}");
 
                 // Generate auction
                 var bids = new List<string>();
@@ -246,6 +249,7 @@ namespace EPBotWrapper
                     int bidCode = players[currentPos].get_bid();
                     string bidStr = DecodeBid(bidCode);
                     bids.Add(bidStr);
+                    Console.Error.WriteLine($"  {posNames[currentPos]}: {bidStr} (code {bidCode})");
 
                     // Broadcast this bid to ALL players using set_bid(position, bid, alert)
                     // Per API: "set_bid position, bid - confirm of the player's bid in position"
