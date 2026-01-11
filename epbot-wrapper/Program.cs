@@ -243,13 +243,14 @@ namespace EPBotWrapper
                     // Get bid from current player
                     int bidCode = players[currentPos].get_bid();
                     string bidStr = DecodeBid(bidCode);
-                    bids.Add(bidStr);
 
-                    // Broadcast this bid to ALL players
+                    // Broadcast this bid to ALL players using round as the bid index
                     for (int i = 0; i < 4; i++)
                     {
-                        players[i].set_bid(currentPos, bidCode, "");
+                        players[i].set_bid(round, bidCode, "");
                     }
+
+                    bids.Add(bidStr);
 
                     // Track passes for auction end detection
                     if (bidStr == "Pass" || bidStr == "P")
