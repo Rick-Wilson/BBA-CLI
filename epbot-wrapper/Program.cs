@@ -227,30 +227,37 @@ namespace EPBotWrapper
                 int passCount = 0;
                 bool hasBid = false;
 
-                // Store bid codes for set_bid
-                var bidCodes = new List<int>();
+                // Initialize first hand (this is the dealer)
+                string[] dealerHand = hands[dealer];
+                bot.new_hand(dealer, ref dealerHand, dealer, vul, false, false);
 
-                for (int round = 0; round < 100; round++) // Safety limit
+                // Get initial bid from dealer
+                int bidCode = bot.get_bid();
+                string bidStr = DecodeBid(bidCode);
+                bids.Add(bidStr);
+
+                if (bidStr == "Pass" || bidStr == "P")
+                    passCount++;
+                else
+                    hasBid = true;
+
+                currentPos = (dealer + 1) % 4;
+
+                // Continue auction with remaining players
+                for (int round = 1; round < 100; round++) // Safety limit
                 {
-                    // Initialize hand for current player
+                    // Check if auction is over
+                    if ((hasBid && passCount >= 3) || (!hasBid && passCount >= 4))
+                        break;
+
+                    // Set up this player's hand with repeating=true
                     string[] playerHand = hands[currentPos];
-
-                    // Call new_hand for this position
-                    // repeating=true if not the first bid
-                    bot.new_hand(currentPos, ref playerHand, dealer, vul, round > 0, false);
-
-                    // Set previous bids using set_bid (index, bid_code, alert)
-                    for (int i = 0; i < bidCodes.Count; i++)
-                    {
-                        bot.set_bid(i, bidCodes[i], "");
-                    }
+                    bot.new_hand(currentPos, ref playerHand, dealer, vul, true, false);
 
                     // Get the bid
-                    int bidCode = bot.get_bid();
-                    string bidStr = DecodeBid(bidCode);
-
+                    bidCode = bot.get_bid();
+                    bidStr = DecodeBid(bidCode);
                     bids.Add(bidStr);
-                    bidCodes.Add(bidCode);
 
                     // Track passes for auction end detection
                     if (bidStr == "Pass" || bidStr == "P")
@@ -261,12 +268,6 @@ namespace EPBotWrapper
                     {
                         passCount = 0;
                         hasBid = true;
-                    }
-
-                    // Auction ends with 3 passes after a bid, or 4 initial passes
-                    if ((hasBid && passCount >= 3) || (!hasBid && passCount >= 4))
-                    {
-                        break;
                     }
 
                     // Move to next position
