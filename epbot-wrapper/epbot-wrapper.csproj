@@ -2,11 +2,16 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <RootNamespace>EPBotWrapper</RootNamespace>
     <AssemblyName>epbot-wrapper</AssemblyName>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+  </ItemGroup>
 
   <!-- EPBot DLLs are loaded dynamically at runtime, no compile-time reference needed -->
 

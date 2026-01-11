@@ -31,20 +31,31 @@ namespace EPBotWrapper
             foreach (var dllName in dllNames)
             {
                 string dllPath = Path.Combine(baseDir, dllName);
+                Console.Error.WriteLine($"Trying {dllPath} - exists: {File.Exists(dllPath)}");
                 if (File.Exists(dllPath))
                 {
                     try
                     {
                         var assembly = Assembly.LoadFrom(dllPath);
+                        Console.Error.WriteLine($"Loaded assembly: {assembly.FullName}");
                         var typeName = dllName.Replace(".dll", "") + ".EPBot";
+                        Console.Error.WriteLine($"Looking for type: {typeName}");
                         var type = assembly.GetType(typeName);
+                        Console.Error.WriteLine($"Found type: {type}");
+                        if (type == null)
+                        {
+                            Console.Error.WriteLine("Available types:");
+                            foreach (var t in assembly.GetTypes())
+                                Console.Error.WriteLine($"  {t.FullName}");
+                        }
                         if (type != null)
                         {
                             return Activator.CreateInstance(type);
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Console.Error.WriteLine($"Error loading: {ex.Message}");
                         // Try next DLL
                     }
                 }
@@ -59,8 +70,14 @@ namespace EPBotWrapper
             {
                 bool interactive = args.Length > 0 && args[0] == "--interactive";
                 bool testMode = args.Length > 0 && args[0] == "--test";
+                bool convMode = args.Length > 0 && args[0] == "--conventions";
 
-                if (testMode)
+                if (convMode)
+                {
+                    string convFile = args.Length > 1 ? args[1] : @"P:\bbsa\21GF-DEFAULT.bbsa";
+                    return DumpConventions(convFile);
+                }
+                else if (testMode)
                 {
                     return RunTest();
                 }
@@ -82,11 +99,123 @@ namespace EPBotWrapper
         }
 
         /// <summary>
-        /// Test mode: List all EPBot methods
+        /// Dump all conventions loaded from a .bbsa file
+        /// </summary>
+        static int DumpConventions(string convFile)
+        {
+            Console.WriteLine($"Loading conventions from: {convFile}");
+
+            dynamic bot = CreateEPBot();
+            bot.scoring = 0;
+
+            // Load conventions for NS (side 0) and EW (side 1)
+            LoadConventions(bot, convFile, 0);
+            LoadConventions(bot, convFile, 1);
+
+            // Get system type
+            int sysType = bot.get_system_type(0);
+            int oppType = bot.get_opponent_type(0);
+            Console.WriteLine($"System type: {sysType}");
+            Console.WriteLine($"Opponent type: {oppType}");
+
+            // Get selected conventions
+            Console.WriteLine("\n=== Selected Conventions (enabled) ===");
+            try
+            {
+                string[] selected = bot.selected_conventions();
+                Console.WriteLine($"  (Total: {selected.Length} entries)");
+                // Only show non-empty entries with differences
+                foreach (var c in selected)
+                {
+                    if (!string.IsNullOrWhiteSpace(c) && c.Contains("True") && c.Contains("False"))
+                    {
+                        Console.WriteLine($"  DIFF: {c}");
+                    }
+                }
+                Console.WriteLine("\n  (Full list where both True:)");
+                foreach (var c in selected)
+                {
+                    if (!string.IsNullOrWhiteSpace(c) && c.EndsWith("True True"))
+                    {
+                        Console.WriteLine($"  {c}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting selected_conventions: {ex.Message}");
+            }
+
+            // Query specific conventions mentioned in reference file
+            Console.WriteLine("\n=== Key Conventions Check ===");
+            string[] keyConventions = {
+                "Lebensohl after 1NT",
+                "Cappelletti",
+                "Stayman",
+                "Jacoby 2NT",
+                "Texas",
+                "New Minor Forcing",
+                "Fourth suit game force",
+                "Support double redouble",
+                "Unusual 2NT",
+                "Michaels Cuebid",
+                "Weak Jump Shifts 3",
+                "Blackwood 0314",
+                "Gerber",
+                "1N-2S transfer to clubs",
+                "1N-3C transfer to diamonds"
+            };
+
+            foreach (var conv in keyConventions)
+            {
+                try
+                {
+                    bool enabled = bot.get_conventions(0, conv);
+                    Console.WriteLine($"  {conv} = {enabled}");
+                }
+                catch
+                {
+                    Console.WriteLine($"  {conv} = [not found]");
+                }
+            }
+
+            // Also dump all conventions from the file with their loaded values
+            Console.WriteLine("\n=== All Conventions from File ===");
+            foreach (var line in File.ReadAllLines(convFile))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#") || line.StartsWith(";"))
+                    continue;
+
+                var parts = line.Split(new[] { '=' }, 2);
+                if (parts.Length != 2) continue;
+
+                string key = parts[0].Trim();
+                string fileVal = parts[1].Trim();
+
+                // Skip system/opponent type
+                if (key == "System type" || key == "Opponent type") continue;
+
+                try
+                {
+                    bool loaded = bot.get_conventions(0, key);
+                    string match = (fileVal == "1" && loaded) || (fileVal == "0" && !loaded) ? "" : " <-- MISMATCH";
+                    Console.WriteLine($"  {key}: file={fileVal}, loaded={loaded}{match}");
+                }
+                catch
+                {
+                    // Convention name not recognized by EPBot
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Test mode: List all EPBot methods and test bidding
         /// </summary>
         static int RunTest()
         {
-            Console.Error.WriteLine("EPBot Wrapper Test Mode - Listing EPBot methods");
+            Console.Error.WriteLine("EPBot Wrapper Test Mode");
 
             try
             {
@@ -95,19 +224,194 @@ namespace EPBotWrapper
                 // Get the type and list methods
                 Type botType = bot.GetType();
                 Console.Error.WriteLine($"Type: {botType.FullName}");
-                Console.Error.WriteLine("\nMethods containing 'bid' or 'hand':");
 
-                foreach (var method in botType.GetMethods())
+                // Get EPBot internal version
+                int epbotVersion = bot.version();
+                Console.Error.WriteLine($"EPBot internal version: {epbotVersion}");
+
+                // List all methods
+                Console.Error.WriteLine("\n=== All EPBot Methods ===");
+                foreach (var method in botType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 {
-                    string name = method.Name.ToLower();
-                    if (name.Contains("bid") || name.Contains("hand") || name.Contains("auction"))
+                    var parms = string.Join(", ", method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                    Console.Error.WriteLine($"  {method.ReturnType.Name} {method.Name}({parms})");
+                }
+
+                // Test Board 2 from 1m-1N.pbn - should open 1C
+                // Deal: N:A653.Q97.K64.954 KQ4.AT8432.A72.A J8.K.QJ98.KJT762 T972.J65.T53.Q83
+                // Dealer: S, Vul: NS
+                // South has J8.K.QJ98.KJT762 = 2-1-4-6 shape, should open 1C
+
+                Console.Error.WriteLine("\n=== Testing Board 2 from 1m-1N.pbn ===");
+                Console.Error.WriteLine("Deal: N:A653.Q97.K64.954 KQ4.AT8432.A72.A J8.K.QJ98.KJT762 T972.J65.T53.Q83");
+                Console.Error.WriteLine("Expected: 1C (South opens with 6 clubs)");
+
+                string convPath = @"P:\bbsa\21GF-DEFAULT.bbsa";
+
+                // Create 4 players - Board 2 from 1m-1N.pbn
+                // N:A653.Q97.K64.954 KQ4.AT8432.A72.A J8.K.QJ98.KJT762 T972.J65.T53.Q83
+                // PBN format is S.H.D.C but EPBot might expect C.D.H.S - let's try reversed!
+                string[][] hands = new string[4][];
+                hands[0] = new[] { "954", "K64", "Q97", "A653" };        // N (reversed: C.D.H.S)
+                hands[1] = new[] { "A", "A72", "AT8432", "KQ4" };        // E (reversed: C.D.H.S)
+                hands[2] = new[] { "KJT762", "QJ98", "K", "J8" };        // S (reversed: should open 1C now)
+                hands[3] = new[] { "Q83", "T53", "J65", "T972" };        // W (reversed: C.D.H.S)
+
+                int dealer = 2; // South
+                int vul = 1;    // NS
+
+                // Create players
+                dynamic[] players = new dynamic[4];
+                string[] posNames = {"N", "E", "S", "W"};
+
+                for (int i = 0; i < 4; i++)
+                {
+                    players[i] = CreateEPBot();
+                    players[i].scoring = 0;  // Set scoring like Edward's code
+                    // No conventions needed for pass-out hands
+                    string[] hand = hands[i];
+                    players[i].new_hand(i, ref hand, dealer, vul, false, false);
+
+                    // Debug: print what EPBot thinks the hand is AND what position it thinks it's in
+                    int epbotPos = players[i].get_Position();
+                    string[] epbotHand = players[i].get_hand(i);
+                    Console.Error.WriteLine($"{posNames[i]} (pos {i}): input={string.Join(".", hands[i])} -> EPBot pos={epbotPos}, sees: {string.Join(".", epbotHand)}");
+
+                    // Also check what hand EPBot has at each position
+                    for (int j = 0; j < 4; j++)
                     {
-                        var paramStrs = method.GetParameters()
-                            .Select(p => $"{p.ParameterType.Name} {p.Name}")
-                            .ToArray();
-                        Console.Error.WriteLine($"  {method.Name}({string.Join(", ", paramStrs)}) -> {method.ReturnType.Name}");
+                        string[] h = players[i].get_hand(j);
+                        Console.Error.WriteLine($"    get_hand({j}) = {string.Join(".", h)}");
                     }
                 }
+
+                // Test get_bid vs ask
+                Console.Error.WriteLine("\n=== Comparing get_bid() vs ask() ===");
+
+                int currentPos = dealer;
+                var bidsGetBid = new List<string>();
+                var bidsAsk = new List<string>();
+
+                // Debug: What does each bot return for get_bid() BEFORE any bidding?
+                Console.Error.WriteLine("\n=== Initial get_bid() from each bot (before any bidding) ===");
+                for (int i = 0; i < 4; i++)
+                {
+                    int bidCode = players[i].get_bid();
+                    string bidStr = DecodeBid(bidCode);
+                    Console.Error.WriteLine($"  Bot for {posNames[i]}: get_bid() = {bidStr} (code {bidCode})");
+                }
+
+                // First try with get_bid()
+                Console.Error.WriteLine("\nUsing get_bid() in auction order:");
+                for (int round = 0; round < 4; round++)
+                {
+                    int bidCode = players[currentPos].get_bid();
+                    string bidStr = DecodeBid(bidCode);
+                    bidsGetBid.Add(bidStr);
+                    Console.Error.WriteLine($"  {posNames[currentPos]}: {bidStr} (code {bidCode})");
+
+                    // Broadcast to all - use 2-param set_bid like Edward's code
+                    for (int j = 0; j < 4; j++)
+                        players[j].set_bid(currentPos, bidCode);
+
+                    currentPos = (currentPos + 1) % 4;
+                }
+
+                // Now recreate and try with ask()
+                Console.Error.WriteLine("\nUsing ask():");
+                for (int i = 0; i < 4; i++)
+                {
+                    players[i] = CreateEPBot();
+                    players[i].scoring = 0;
+                    string[] hand = hands[i];
+                    players[i].new_hand(i, ref hand, dealer, vul, false, false);
+                }
+
+                currentPos = dealer;
+                for (int round = 0; round < 4; round++)
+                {
+                    int bidCode = players[currentPos].ask();
+                    string bidStr = DecodeBid(bidCode);
+                    bidsAsk.Add(bidStr);
+                    Console.Error.WriteLine($"  {posNames[currentPos]}: {bidStr} (code {bidCode})");
+
+                    // Broadcast to all - use 2-param set_bid
+                    for (int j = 0; j < 4; j++)
+                        players[j].set_bid(currentPos, bidCode);
+
+                    currentPos = (currentPos + 1) % 4;
+                }
+
+                Console.Error.WriteLine($"\nget_bid() produced: {string.Join(" ", bidsGetBid)}");
+                Console.Error.WriteLine($"ask() produced: {string.Join(" ", bidsAsk)}");
+                Console.Error.WriteLine("Expected: 1C Pass 1S 2H (South opens 1C with 6 clubs)");
+
+                // Test the problematic deal: after 1NT-2C, what does North bid?
+                Console.Error.WriteLine("\n=== Testing 1NT-2C response for North ===");
+                Console.Error.WriteLine("Deal: N:J754.K63.QJ96.AT");
+                Console.Error.WriteLine("After 1NT-2C, expected: X (double showing values)");
+
+                // Create North bot
+                dynamic northBot = CreateEPBot();
+                northBot.scoring = 0;  // Set scoring like Edward's code
+                // Load conventions for both sides
+                LoadConventions(northBot, @"P:\bbsa\21GF-DEFAULT.bbsa", 0);
+                LoadConventions(northBot, @"P:\bbsa\21GF-DEFAULT.bbsa", 1);
+
+                // North's hand: J754.K63.QJ96.AT -> in C.D.H.S order: AT.QJ96.K63.J754
+                string[] northHand = new[] { "AT", "QJ96", "K63", "J754" };
+                northBot.new_hand(0, ref northHand, 2, 2, false, false);  // position=N(0), dealer=S(2), vul=NS(2)
+
+                // Feed the auction: 1NT from South, 2C from West
+                // 1NT = code 9, 2C = code 10
+                // Use 2-param set_bid like Edward's code
+                northBot.set_bid(2, 9);  // South bids 1NT
+                northBot.set_bid(3, 10); // West bids 2C
+
+                // Now ask North what it would bid
+                int northBid = northBot.get_bid();
+                Console.Error.WriteLine($"North bids: {DecodeBid(northBid)} (code {northBid})");
+                Console.Error.WriteLine($"Expected: X (code 1)");
+
+                // Also try using set_arr_bids instead
+                // Edward's code uses 2-digit format: "09" for 1NT (code 9), "10" for 2C (code 10)
+                dynamic northBot2 = CreateEPBot();
+                northBot2.scoring = 0;
+                LoadConventions(northBot2, @"P:\bbsa\21GF-DEFAULT.bbsa", 0);
+                LoadConventions(northBot2, @"P:\bbsa\21GF-DEFAULT.bbsa", 1);
+                northBot2.new_hand(0, ref northHand, 2, 2, false, false);
+
+                string[] arrBids = new[] { "09", "10" };  // 1NT=9, 2C=10 in Edward's format
+                northBot2.set_arr_bids(ref arrBids);
+
+                int northBid2 = northBot2.get_bid();
+                Console.Error.WriteLine($"With set_arr_bids: North bids: {DecodeBid(northBid2)} (code {northBid2})");
+
+                // Try with ask() instead of get_bid()
+                dynamic northBot3 = CreateEPBot();
+                northBot3.scoring = 0;
+                LoadConventions(northBot3, @"P:\bbsa\21GF-DEFAULT.bbsa", 0);
+                LoadConventions(northBot3, @"P:\bbsa\21GF-DEFAULT.bbsa", 1);
+                northBot3.new_hand(0, ref northHand, 2, 2, false, false);
+                northBot3.set_bid(2, 9);  // South bids 1NT
+                northBot3.set_bid(3, 10); // West bids 2C
+
+                int northBid3 = northBot3.ask();
+                Console.Error.WriteLine($"With ask(): North bids: {DecodeBid(northBid3)} (code {northBid3})");
+
+                // Try with interpret_bid after each set_bid
+                dynamic northBot4 = CreateEPBot();
+                northBot4.scoring = 0;
+                LoadConventions(northBot4, @"P:\bbsa\21GF-DEFAULT.bbsa", 0);
+                LoadConventions(northBot4, @"P:\bbsa\21GF-DEFAULT.bbsa", 1);
+                northBot4.new_hand(0, ref northHand, 2, 2, false, false);
+                northBot4.set_bid(2, 9);
+                northBot4.interpret_bid(9);  // Interpret 1NT
+                northBot4.set_bid(3, 10);
+                northBot4.interpret_bid(10); // Interpret 2C
+
+                int northBid4 = northBot4.get_bid();
+                Console.Error.WriteLine($"With interpret_bid: North bids: {DecodeBid(northBid4)} (code {northBid4})");
 
                 Console.WriteLine("{\"success\": true}");
                 return 0;
@@ -135,24 +439,11 @@ namespace EPBotWrapper
                 return 1;
             }
 
-            // Create EPBot instance
-            dynamic bot = CreateEPBot();
-
-            // Load conventions if specified
-            if (!string.IsNullOrEmpty(request.ns_conventions) && File.Exists(request.ns_conventions))
-            {
-                LoadConventions(bot, request.ns_conventions, 0); // 0 = NS
-            }
-            if (!string.IsNullOrEmpty(request.ew_conventions) && File.Exists(request.ew_conventions))
-            {
-                LoadConventions(bot, request.ew_conventions, 1); // 1 = EW
-            }
-
             var results = new List<DealResult>();
 
             foreach (var deal in request.deals)
             {
-                var result = ProcessDeal(bot, deal);
+                var result = ProcessDeal(deal, request.ns_conventions, request.ew_conventions);
                 results.Add(result);
             }
 
@@ -170,8 +461,6 @@ namespace EPBotWrapper
             Console.Error.WriteLine("EPBot Wrapper - Interactive Mode");
             Console.Error.WriteLine("Enter JSON requests, one per line. Ctrl+C to exit.");
 
-            dynamic bot = CreateEPBot();
-
             string line;
             while ((line = Console.ReadLine()) != null)
             {
@@ -182,16 +471,7 @@ namespace EPBotWrapper
                     var request = JsonSerializer.Deserialize<SingleRequest>(line);
                     if (request != null)
                     {
-                        if (!string.IsNullOrEmpty(request.ns_conventions) && File.Exists(request.ns_conventions))
-                        {
-                            LoadConventions(bot, request.ns_conventions, 0);
-                        }
-                        if (!string.IsNullOrEmpty(request.ew_conventions) && File.Exists(request.ew_conventions))
-                        {
-                            LoadConventions(bot, request.ew_conventions, 1);
-                        }
-
-                        var result = ProcessDeal(bot, request.deal);
+                        var result = ProcessDeal(request.deal, request.ns_conventions, request.ew_conventions);
                         Console.WriteLine(JsonSerializer.Serialize(result));
                     }
                 }
@@ -210,7 +490,7 @@ namespace EPBotWrapper
         /// Pattern: get_bid() from current player, then set_bid(position, bid) to ALL players.
         /// Per API docs: "EPBot.set_bid position, bid - confirm of the player's bid in position"
         /// </summary>
-        static DealResult ProcessDeal(dynamic bot, DealInput deal)
+        static DealResult ProcessDeal(DealInput deal, string nsConventions, string ewConventions)
         {
             var result = new DealResult { deal = deal.pbn };
 
@@ -226,12 +506,48 @@ namespace EPBotWrapper
                 int vul = ParseVulnerability(deal.vulnerability);
 
                 // Create 4 EPBot instances, one per player
+                // Each bot needs BOTH partnerships' conventions loaded
+                // IMPORTANT: Per Edward's docs, the correct order is:
+                //   1. System selection (system_type)
+                //   2. Convention setting (set_conventions)
+                //   3. new_hand() call
                 dynamic[] players = new dynamic[4];
+                string[] posNames = {"N", "E", "S", "W"};
+
                 for (int i = 0; i < 4; i++)
                 {
                     players[i] = CreateEPBot();
+
+                    // Set scoring mode FIRST (0 = matchpoints, 1 = IMP)
+                    players[i].scoring = 0;
+
+                    // Load NS conventions as side 0 (includes system_type)
+                    if (!string.IsNullOrEmpty(nsConventions) && File.Exists(nsConventions))
+                    {
+                        LoadConventions(players[i], nsConventions, 0);
+                    }
+                    // Load EW conventions as side 1 (includes system_type)
+                    if (!string.IsNullOrEmpty(ewConventions) && File.Exists(ewConventions))
+                    {
+                        LoadConventions(players[i], ewConventions, 1);
+                    }
+
+                    // NOW call new_hand AFTER system/conventions are configured
                     string[] hand = hands[i];
                     players[i].new_hand(i, ref hand, dealer, vul, false, false);
+
+                    // Debug: print what EPBot thinks the hands are
+                    string[] epbotHand = players[i].get_hand(i);
+                    Console.Error.WriteLine($"{posNames[i]} hand input: {string.Join(".", hand)} -> EPBot: {string.Join(".", epbotHand)}");
+
+                    // Check key conventions and system types
+                    bool lebNS = players[i].get_conventions(0, "Lebensohl after 1NT");
+                    bool lebEW = players[i].get_conventions(1, "Lebensohl after 1NT");
+                    bool cappNS = players[i].get_conventions(0, "Cappelletti");
+                    bool cappEW = players[i].get_conventions(1, "Cappelletti");
+                    int sysTypeNS = players[i].get_system_type(0);
+                    int sysTypeEW = players[i].get_system_type(1);
+                    Console.Error.WriteLine($"  {posNames[i]}: LebNS={lebNS}, LebEW={lebEW}, CappNS={cappNS}, CappEW={cappEW}, sysNS={sysTypeNS}, sysEW={sysTypeEW}");
                 }
 
                 // Generate auction
@@ -239,6 +555,8 @@ namespace EPBotWrapper
                 int currentPos = dealer;
                 int passCount = 0;
                 bool hasBid = false;
+                string[] positions = {"N", "E", "S", "W"};
+                Console.Error.WriteLine($"Starting auction, dealer = {positions[dealer]}");
 
                 for (int round = 0; round < 100; round++) // Safety limit
                 {
@@ -247,12 +565,21 @@ namespace EPBotWrapper
                     string bidStr = DecodeBid(bidCode);
                     bids.Add(bidStr);
 
-                    // Broadcast this bid to ALL players using set_bid(position, bid, alert)
-                    // Per API: "set_bid position, bid - confirm of the player's bid in position"
+                    // Broadcast this bid to ALL players using set_bid(position, bid)
+                    // Note: Edward's code uses 2 params, not 3
                     for (int i = 0; i < 4; i++)
                     {
-                        players[i].set_bid(currentPos, bidCode, "");
+                        players[i].set_bid(currentPos, bidCode);
                     }
+
+                    // Get bid meaning and extended meaning
+                    string bidMeaning = "";
+                    string extMeaning = "";
+                    try { bidMeaning = players[currentPos].get_info_meaning(bidCode); } catch { }
+                    try { extMeaning = players[currentPos].get_info_meaning_extended(currentPos); } catch { }
+                    Console.Error.WriteLine($"{positions[currentPos]}: {bidStr}");
+                    Console.Error.WriteLine($"  meaning: \"{bidMeaning}\"");
+                    Console.Error.WriteLine($"  extended: \"{extMeaning}\"");
 
                     // Track passes for auction end detection
                     if (bidStr == "Pass" || bidStr == "P")
@@ -290,6 +617,7 @@ namespace EPBotWrapper
         /// <summary>
         /// Parse PBN deal format: "N:S.H.D.C S.H.D.C S.H.D.C S.H.D.C"
         /// Returns (first seat, array of hands where index 0=N, 1=E, 2=S, 3=W)
+        /// NOTE: PBN uses S.H.D.C order but EPBot expects C.D.H.S order, so we reverse.
         /// </summary>
         static (int firstSeat, string[][] hands) ParsePbnDeal(string pbn)
         {
@@ -316,6 +644,8 @@ namespace EPBotWrapper
                 if (suits.Length != 4)
                     throw new ArgumentException($"Invalid hand format - expected 4 suits, got {suits.Length}");
 
+                // PBN format is S.H.D.C but EPBot expects C.D.H.S - reverse the array
+                Array.Reverse(suits);
                 hands[pos] = suits;
             }
 
@@ -357,8 +687,11 @@ namespace EPBotWrapper
         /// <summary>
         /// Load conventions from a .bbsa file
         /// </summary>
+        static bool _conventionsLogged = false;
         static void LoadConventions(dynamic bot, string filePath, int side)
         {
+            int success = 0, failed = 0;
+
             foreach (var line in File.ReadAllLines(filePath))
             {
                 if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#") || line.StartsWith(";"))
@@ -370,14 +703,50 @@ namespace EPBotWrapper
                 string key = parts[0].Trim();
                 string valueStr = parts[1].Trim();
 
-                if (valueStr == "1" || valueStr.ToLower() == "true")
+                // Try to parse as integer first (for settings like "System type = 3")
+                if (int.TryParse(valueStr, out int intValue))
                 {
-                    try { bot.set_conventions(side, key, true); } catch { }
+                    try
+                    {
+                        // Special handling for System type - use set_system_type method
+                        if (key.Equals("System type", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bot.set_system_type(side, intValue);
+                        }
+                        // Special handling for Opponent type - use set_opponent_type method
+                        else if (key.Equals("Opponent type", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bot.set_opponent_type(side, intValue);
+                        }
+                        else
+                        {
+                            // For boolean-like values (0/1), use set_conventions with bool
+                            bot.set_conventions(side, key, intValue == 1);
+                        }
+                        success++;
+                    }
+                    catch (Exception)
+                    {
+                        failed++;
+                    }
                 }
-                else if (valueStr == "0" || valueStr.ToLower() == "false")
+                else if (valueStr.ToLower() == "true")
                 {
-                    try { bot.set_conventions(side, key, false); } catch { }
+                    try { bot.set_conventions(side, key, true); success++; }
+                    catch (Exception) { failed++; }
                 }
+                else if (valueStr.ToLower() == "false")
+                {
+                    try { bot.set_conventions(side, key, false); success++; }
+                    catch (Exception) { failed++; }
+                }
+            }
+
+            // Log once per run
+            if (!_conventionsLogged)
+            {
+                Console.Error.WriteLine($"Conventions from {Path.GetFileName(filePath)}: {success} success, {failed} failed");
+                _conventionsLogged = true;
             }
         }
 
@@ -394,14 +763,22 @@ namespace EPBotWrapper
             }
         }
 
+        /// <summary>
+        /// Parse vulnerability string to EPBot code.
+        /// EPBot encoding (per https://sites.google.com/view/bbaenglish/for-programmers):
+        ///   0 = both before (None)
+        ///   1 = EW vulnerable
+        ///   2 = NS vulnerable
+        ///   3 = both vulnerable
+        /// </summary>
         static int ParseVulnerability(string vul)
         {
             if (string.IsNullOrEmpty(vul)) return 0;
             switch (vul.ToUpper().Replace("-", ""))
             {
                 case "NONE": case "": case "-": return 0;
-                case "NS": case "NORTHSOUTH": return 1;
-                case "EW": case "EASTWEST": return 2;
+                case "EW": case "EASTWEST": return 1;
+                case "NS": case "NORTHSOUTH": return 2;
                 case "BOTH": case "ALL": return 3;
                 default: return 0;
             }
