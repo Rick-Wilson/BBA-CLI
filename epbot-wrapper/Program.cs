@@ -204,7 +204,9 @@ namespace EPBotWrapper
         }
 
         /// <summary>
-        /// Process a single deal and generate its auction
+        /// Process a single deal and generate its auction.
+        /// Uses 4 EPBot instances (one per player) as per Edward's design.
+        /// After each bid, broadcast it to all players via set_bid.
         /// </summary>
         static DealResult ProcessDeal(dynamic bot, DealInput deal)
         {
@@ -221,43 +223,33 @@ namespace EPBotWrapper
                 // Set vulnerability (0=None, 1=NS, 2=EW, 3=Both)
                 int vul = ParseVulnerability(deal.vulnerability);
 
-                // Generate auction by having each player bid
+                // Create 4 EPBot instances, one per player
+                dynamic[] players = new dynamic[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    players[i] = CreateEPBot();
+                    string[] hand = hands[i];
+                    players[i].new_hand(i, ref hand, dealer, vul, false, false);
+                }
+
+                // Generate auction
                 var bids = new List<string>();
                 int currentPos = dealer;
                 int passCount = 0;
                 bool hasBid = false;
 
-                // Initialize first hand (this is the dealer)
-                string[] dealerHand = hands[dealer];
-                bot.new_hand(dealer, ref dealerHand, dealer, vul, false, false);
-
-                // Get initial bid from dealer
-                int bidCode = bot.get_bid();
-                string bidStr = DecodeBid(bidCode);
-                bids.Add(bidStr);
-
-                if (bidStr == "Pass" || bidStr == "P")
-                    passCount++;
-                else
-                    hasBid = true;
-
-                currentPos = (dealer + 1) % 4;
-
-                // Continue auction with remaining players
-                for (int round = 1; round < 100; round++) // Safety limit
+                for (int round = 0; round < 100; round++) // Safety limit
                 {
-                    // Check if auction is over
-                    if ((hasBid && passCount >= 3) || (!hasBid && passCount >= 4))
-                        break;
-
-                    // Set up this player's hand with repeating=true
-                    string[] playerHand = hands[currentPos];
-                    bot.new_hand(currentPos, ref playerHand, dealer, vul, true, false);
-
-                    // Get the bid
-                    bidCode = bot.get_bid();
-                    bidStr = DecodeBid(bidCode);
+                    // Get bid from current player
+                    int bidCode = players[currentPos].get_bid();
+                    string bidStr = DecodeBid(bidCode);
                     bids.Add(bidStr);
+
+                    // Broadcast this bid to ALL players
+                    for (int i = 0; i < 4; i++)
+                    {
+                        players[i].set_bid(currentPos, bidCode, "");
+                    }
 
                     // Track passes for auction end detection
                     if (bidStr == "Pass" || bidStr == "P")
@@ -268,6 +260,12 @@ namespace EPBotWrapper
                     {
                         passCount = 0;
                         hasBid = true;
+                    }
+
+                    // Auction ends with 3 passes after a bid, or 4 initial passes
+                    if ((hasBid && passCount >= 3) || (!hasBid && passCount >= 4))
+                    {
+                        break;
                     }
 
                     // Move to next position
