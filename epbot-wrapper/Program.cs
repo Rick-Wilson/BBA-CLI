@@ -258,6 +258,9 @@ namespace EPBotWrapper
                         players[i].set_bid(currentPos, bidCode, "");
                     }
 
+                    // Debug: show what each player thinks the auction is
+                    Console.Error.WriteLine($"    After set_bid, player[0] auction: {players[0].get_str_bidding()}");
+
                     // Track passes for auction end detection
                     if (bidStr == "Pass" || bidStr == "P")
                     {
