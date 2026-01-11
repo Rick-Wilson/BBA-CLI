@@ -330,23 +330,35 @@ namespace EPBotWrapper
         }
 
         /// <summary>
-        /// Decode bid code to string
+        /// Decode bid code to string.
+        /// EPBot encoding (derived from testing):
+        /// 0 = Pass
+        /// 1 = X (Double)
+        /// 2 = XX (Redouble)
+        /// 3, 4 = reserved/unknown
+        /// 5-9 = 1C, 1D, 1H, 1S, 1NT
+        /// 10-14 = 2C, 2D, 2H, 2S, 2NT
+        /// ...
+        /// 35-39 = 7C, 7D, 7H, 7S, 7NT
         /// </summary>
         static string DecodeBid(int code)
         {
             if (code == 0) return "Pass";
-            if (code == 36) return "X";
-            if (code == 37) return "XX";
+            if (code == 1) return "X";
+            if (code == 2) return "XX";
 
-            if (code >= 1 && code <= 35)
+            // Codes 5-39 represent bids 1C through 7NT
+            if (code >= 5 && code <= 39)
             {
-                int level = (code - 1) / 5 + 1;
-                int suit = (code - 1) % 5;
+                int adjustedCode = code - 5;
+                int level = adjustedCode / 5 + 1;
+                int suit = adjustedCode % 5;
                 string[] suits = { "C", "D", "H", "S", "NT" };
                 return $"{level}{suits[suit]}";
             }
 
-            return "Pass";
+            // Unknown codes
+            return $"?{code}";
         }
 
         /// <summary>
