@@ -130,16 +130,17 @@ namespace EPBotWrapper
                     }
 
                     // Tell all players about this bid
+                    // Try using round (bid_index) as first param instead of position
                     for (int i = 0; i < 4; i++)
                     {
                         try
                         {
-                            players[i].set_bid(currentPos, bidCode, "");
-                            Console.Error.WriteLine($"  set_bid({currentPos}, {bidCode}) on player {i}: OK");
+                            players[i].set_bid(round, bidCode, "");
+                            Console.Error.WriteLine($"  set_bid({round}, {bidCode}) on player {i}: OK");
                         }
                         catch (Exception ex)
                         {
-                            Console.Error.WriteLine($"  set_bid({currentPos}, {bidCode}) on player {i}: {ex.Message}");
+                            Console.Error.WriteLine($"  set_bid({round}, {bidCode}) on player {i}: {ex.Message}");
                         }
                     }
 
