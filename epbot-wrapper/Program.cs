@@ -81,64 +81,31 @@ namespace EPBotWrapper
         }
 
         /// <summary>
-        /// Test mode: Try generate_bidding() approach
+        /// Test mode: List all EPBot methods
         /// </summary>
         static int RunTest()
         {
-            Console.Error.WriteLine("EPBot Wrapper Test Mode - Testing generate_bidding()");
+            Console.Error.WriteLine("EPBot Wrapper Test Mode - Listing EPBot methods");
 
             try
             {
-                // Create 4 players with a simple test hand
-                dynamic[] players = new dynamic[4];
-                string[][] hands = new string[][] {
-                    new string[] { "AK32", "KQ5", "AQ4", "K87" },   // N: 17 HCP
-                    new string[] { "J654", "J32", "J65", "J32" },   // E: weak
-                    new string[] { "Q87", "A64", "K32", "Q654" },   // S: 11 HCP
-                    new string[] { "T9", "T987", "T987", "AT9" }    // W: weak
-                };
+                dynamic bot = CreateEPBot();
 
-                int dealer = 0; // North deals
-                int vul = 0;    // None vul
+                // Get the type and list methods
+                Type botType = bot.GetType();
+                Console.Error.WriteLine($"Type: {botType.FullName}");
+                Console.Error.WriteLine("\nMethods containing 'bid' or 'hand':");
 
-                // Initialize all 4 players
-                for (int i = 0; i < 4; i++)
+                foreach (var method in botType.GetMethods())
                 {
-                    players[i] = CreateEPBot();
-                    string[] hand = hands[i];
-                    players[i].new_hand(i, ref hand, dealer, vul, false, false);
-                    Console.Error.WriteLine($"Player {i} initialized");
-                }
-
-                // Try calling generate_bidding on dealer
-                Console.Error.WriteLine("\nCalling generate_bidding() on dealer (position 0)...");
-                try
-                {
-                    players[0].generate_bidding();
-                    Console.Error.WriteLine("generate_bidding() completed");
-
-                    string bidding = players[0].get_str_bidding();
-                    Console.Error.WriteLine($"get_str_bidding(): '{bidding}'");
-
-                    // Try to get arr_bids
-                    try
+                    string name = method.Name.ToLower();
+                    if (name.Contains("bid") || name.Contains("hand") || name.Contains("auction"))
                     {
-                        string[] arrBids = new string[50];
-                        players[0].get_arr_bids(ref arrBids);
-                        Console.Error.WriteLine("Bids from get_arr_bids:");
-                        for (int i = 0; i < arrBids.Length && !string.IsNullOrEmpty(arrBids[i]); i++)
-                        {
-                            Console.Error.WriteLine($"  [{i}]: {arrBids[i]}");
-                        }
+                        var paramStrs = method.GetParameters()
+                            .Select(p => $"{p.ParameterType.Name} {p.Name}")
+                            .ToArray();
+                        Console.Error.WriteLine($"  {method.Name}({string.Join(", ", paramStrs)}) -> {method.ReturnType.Name}");
                     }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine($"get_arr_bids failed: {ex.Message}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"generate_bidding() failed: {ex.Message}");
                 }
 
                 Console.WriteLine("{\"success\": true}");
