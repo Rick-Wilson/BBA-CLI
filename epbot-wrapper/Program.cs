@@ -81,34 +81,72 @@ namespace EPBotWrapper
         }
 
         /// <summary>
-        /// Test mode: Just verify EPBot can be loaded and create an auction
+        /// Test mode: Debug the auction flow
         /// </summary>
         static int RunTest()
         {
-            Console.Error.WriteLine("EPBot Wrapper Test Mode");
+            Console.Error.WriteLine("EPBot Wrapper Test Mode - Debugging auction flow");
 
             try
             {
-                dynamic bot = CreateEPBot();
-                Console.Error.WriteLine($"EPBot version: {bot.version()}");
+                // Create 4 players with a simple test hand
+                dynamic[] players = new dynamic[4];
+                string[][] hands = new string[][] {
+                    new string[] { "AK32", "KQ5", "AQ4", "K87" },   // N: 17 HCP
+                    new string[] { "J654", "J32", "J65", "J32" },   // E: weak
+                    new string[] { "Q87", "A64", "K32", "Q654" },   // S: 11 HCP
+                    new string[] { "T9", "T987", "T987", "AT9" }    // W: weak
+                };
 
-                // Try to set up a simple hand
-                string[] northHand = new string[] { "AK32", "KQ5", "AQ4", "K87" };  // 17 HCP balanced
+                int dealer = 0; // North deals
+                int vul = 0;    // None vul
 
-                // Initialize the hand
-                bot.new_hand(0, ref northHand, 0, 0, false, false);
+                for (int i = 0; i < 4; i++)
+                {
+                    players[i] = CreateEPBot();
+                    string[] hand = hands[i];
+                    players[i].new_hand(i, ref hand, dealer, vul, false, false);
+                    Console.Error.WriteLine($"Player {i} initialized");
+                }
 
-                Console.Error.WriteLine("Hand initialized successfully");
+                // Try to run a few rounds of bidding
+                int currentPos = dealer;
+                for (int round = 0; round < 8; round++)
+                {
+                    Console.Error.WriteLine($"\nRound {round}: Position {currentPos}");
 
-                // Try to get a bid
-                int bidCode = bot.get_bid();
-                Console.Error.WriteLine($"Bid code: {bidCode}");
+                    int bidCode = players[currentPos].get_bid();
+                    Console.Error.WriteLine($"  get_bid() returned: {bidCode} ({DecodeBid(bidCode)})");
 
-                // Get bidding as string
-                string bidding = bot.get_str_bidding();
-                Console.Error.WriteLine($"Bidding: {bidding}");
+                    // Try get_str_bidding to see what EPBot thinks the auction is
+                    try
+                    {
+                        string biddingStr = players[currentPos].get_str_bidding();
+                        Console.Error.WriteLine($"  get_str_bidding(): '{biddingStr}'");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine($"  get_str_bidding() failed: {ex.Message}");
+                    }
 
-                Console.WriteLine("{\"success\": true, \"version\": " + bot.version() + "}");
+                    // Tell all players about this bid
+                    for (int i = 0; i < 4; i++)
+                    {
+                        try
+                        {
+                            players[i].set_bid(currentPos, bidCode, "");
+                            Console.Error.WriteLine($"  set_bid({currentPos}, {bidCode}) on player {i}: OK");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine($"  set_bid({currentPos}, {bidCode}) on player {i}: {ex.Message}");
+                        }
+                    }
+
+                    currentPos = (currentPos + 1) % 4;
+                }
+
+                Console.WriteLine("{\"success\": true}");
                 return 0;
             }
             catch (Exception ex)
