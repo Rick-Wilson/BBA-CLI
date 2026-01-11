@@ -238,17 +238,22 @@ namespace EPBotWrapper
                 int passCount = 0;
                 bool hasBid = false;
 
+                // Keep track of bid codes for set_arr_bids
+                var bidCodes = new List<string>();
+
                 for (int round = 0; round < 100; round++) // Safety limit
                 {
                     // Get bid from current player
                     int bidCode = players[currentPos].get_bid();
                     string bidStr = DecodeBid(bidCode);
                     bids.Add(bidStr);
+                    bidCodes.Add(bidCode.ToString("00")); // Format as 2-digit string like Edward does
 
-                    // Broadcast this bid to ALL players: set_bid(position_who_bid, bid_code)
+                    // Update all players with complete bid history using set_arr_bids
+                    string[] bidArray = bidCodes.ToArray();
                     for (int i = 0; i < 4; i++)
                     {
-                        players[i].set_bid(currentPos, bidCode);
+                        players[i].set_arr_bids(ref bidArray);
                     }
 
                     // Track passes for auction end detection
