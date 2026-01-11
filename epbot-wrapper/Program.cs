@@ -208,6 +208,7 @@ namespace EPBotWrapper
         /// Process a single deal and generate its auction.
         /// Uses 4 EPBot instances per Edward's design.
         /// Pattern: get_bid() from current player, then set_bid(position, bid) to ALL players.
+        /// Per API docs: "EPBot.set_bid position, bid - confirm of the player's bid in position"
         /// </summary>
         static DealResult ProcessDeal(dynamic bot, DealInput deal)
         {
@@ -239,22 +240,18 @@ namespace EPBotWrapper
                 int passCount = 0;
                 bool hasBid = false;
 
-                // Keep track of bid codes for set_arr_bids
-                var bidCodes = new List<string>();
-
                 for (int round = 0; round < 100; round++) // Safety limit
                 {
                     // Get bid from current player
                     int bidCode = players[currentPos].get_bid();
                     string bidStr = DecodeBid(bidCode);
                     bids.Add(bidStr);
-                    bidCodes.Add(bidCode.ToString("00")); // Format as 2-digit string like Edward does
 
-                    // Update all players with complete bid history using set_arr_bids
-                    string[] bidArray = bidCodes.ToArray();
+                    // Broadcast this bid to ALL players using set_bid(position, bid, alert)
+                    // Per API: "set_bid position, bid - confirm of the player's bid in position"
                     for (int i = 0; i < 4; i++)
                     {
-                        players[i].set_arr_bids(ref bidArray);
+                        players[i].set_bid(currentPos, bidCode, "");
                     }
 
                     // Track passes for auction end detection
