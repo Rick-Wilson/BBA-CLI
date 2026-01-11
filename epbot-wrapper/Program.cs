@@ -233,7 +233,15 @@ namespace EPBotWrapper
                     string[] playerHand = hands[currentPos];
 
                     // Call new_hand for this position
+                    // repeating=true if not the first bid
                     bot.new_hand(currentPos, ref playerHand, dealer, vul, round > 0, false);
+
+                    // Set previous bids so EPBot knows the auction state
+                    if (bids.Count > 0)
+                    {
+                        string[] bidArray = bids.ToArray();
+                        bot.set_arr_bids(ref bidArray);
+                    }
 
                     // Get the bid
                     int bidCode = bot.get_bid();
