@@ -227,6 +227,9 @@ namespace EPBotWrapper
                 int passCount = 0;
                 bool hasBid = false;
 
+                // Store bid codes for set_bid
+                var bidCodes = new List<int>();
+
                 for (int round = 0; round < 100; round++) // Safety limit
                 {
                     // Initialize hand for current player
@@ -236,11 +239,10 @@ namespace EPBotWrapper
                     // repeating=true if not the first bid
                     bot.new_hand(currentPos, ref playerHand, dealer, vul, round > 0, false);
 
-                    // Set previous bids so EPBot knows the auction state
-                    if (bids.Count > 0)
+                    // Set previous bids using set_bid (index, bid_code, alert)
+                    for (int i = 0; i < bidCodes.Count; i++)
                     {
-                        string[] bidArray = bids.ToArray();
-                        bot.set_arr_bids(ref bidArray);
+                        bot.set_bid(i, bidCodes[i], "");
                     }
 
                     // Get the bid
@@ -248,6 +250,7 @@ namespace EPBotWrapper
                     string bidStr = DecodeBid(bidCode);
 
                     bids.Add(bidStr);
+                    bidCodes.Add(bidCode);
 
                     // Track passes for auction end detection
                     if (bidStr == "Pass" || bidStr == "P")
