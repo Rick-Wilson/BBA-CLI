@@ -81,11 +81,11 @@ namespace EPBotWrapper
         }
 
         /// <summary>
-        /// Test mode: Debug the auction flow
+        /// Test mode: Try generate_bidding() approach
         /// </summary>
         static int RunTest()
         {
-            Console.Error.WriteLine("EPBot Wrapper Test Mode - Debugging auction flow");
+            Console.Error.WriteLine("EPBot Wrapper Test Mode - Testing generate_bidding()");
 
             try
             {
@@ -101,6 +101,7 @@ namespace EPBotWrapper
                 int dealer = 0; // North deals
                 int vul = 0;    // None vul
 
+                // Initialize all 4 players
                 for (int i = 0; i < 4; i++)
                 {
                     players[i] = CreateEPBot();
@@ -109,42 +110,35 @@ namespace EPBotWrapper
                     Console.Error.WriteLine($"Player {i} initialized");
                 }
 
-                // Try to run a few rounds of bidding
-                int currentPos = dealer;
-                for (int round = 0; round < 8; round++)
+                // Try calling generate_bidding on dealer
+                Console.Error.WriteLine("\nCalling generate_bidding() on dealer (position 0)...");
+                try
                 {
-                    Console.Error.WriteLine($"\nRound {round}: Position {currentPos}");
+                    players[0].generate_bidding();
+                    Console.Error.WriteLine("generate_bidding() completed");
 
-                    int bidCode = players[currentPos].get_bid();
-                    Console.Error.WriteLine($"  get_bid() returned: {bidCode} ({DecodeBid(bidCode)})");
+                    string bidding = players[0].get_str_bidding();
+                    Console.Error.WriteLine($"get_str_bidding(): '{bidding}'");
 
-                    // Try get_str_bidding to see what EPBot thinks the auction is
+                    // Try to get arr_bids
                     try
                     {
-                        string biddingStr = players[currentPos].get_str_bidding();
-                        Console.Error.WriteLine($"  get_str_bidding(): '{biddingStr}'");
+                        string[] arrBids = new string[50];
+                        players[0].get_arr_bids(ref arrBids);
+                        Console.Error.WriteLine("Bids from get_arr_bids:");
+                        for (int i = 0; i < arrBids.Length && !string.IsNullOrEmpty(arrBids[i]); i++)
+                        {
+                            Console.Error.WriteLine($"  [{i}]: {arrBids[i]}");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Console.Error.WriteLine($"  get_str_bidding() failed: {ex.Message}");
+                        Console.Error.WriteLine($"get_arr_bids failed: {ex.Message}");
                     }
-
-                    // Tell all players about this bid
-                    // Try using round (bid_index) as first param instead of position
-                    for (int i = 0; i < 4; i++)
-                    {
-                        try
-                        {
-                            players[i].set_bid(round, bidCode, "");
-                            Console.Error.WriteLine($"  set_bid({round}, {bidCode}) on player {i}: OK");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Error.WriteLine($"  set_bid({round}, {bidCode}) on player {i}: {ex.Message}");
-                        }
-                    }
-
-                    currentPos = (currentPos + 1) % 4;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"generate_bidding() failed: {ex.Message}");
                 }
 
                 Console.WriteLine("{\"success\": true}");
