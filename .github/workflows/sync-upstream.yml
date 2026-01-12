@@ -24,6 +24,7 @@ jobs:
       - name: Checkout BBA-CLI
         uses: actions/checkout@v4
         with:
+          path: BBA-CLI
           fetch-depth: 0  # Need full history for tags
 
       - name: Get upstream latest release
@@ -49,6 +50,7 @@ jobs:
 
       - name: Determine version to create
         id: version
+        working-directory: BBA-CLI
         run: |
           $upstreamVersion = "${{ steps.upstream.outputs.version }}"
           $increment = "${{ github.event.inputs.increment || '0' }}"
@@ -90,11 +92,11 @@ jobs:
         run: |
           # EPBot64.dll is in the repo, not release assets - download from repo at the tag
           $url = "https://raw.githubusercontent.com/EdwardPiwowar/BBA/${{ steps.version.outputs.upstream }}/EPBot64.dll"
-          New-Item -ItemType Directory -Force -Path "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}"
-          Invoke-WebRequest -Uri $url -OutFile "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll"
+          New-Item -ItemType Directory -Force -Path "BBA-CLI/epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}"
+          Invoke-WebRequest -Uri $url -OutFile "BBA-CLI/epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll"
 
           # Also update the default location
-          Copy-Item "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll" "epbot-wrapper/EPBot-8734/EPBot64.dll" -Force
+          Copy-Item "BBA-CLI/epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll" "BBA-CLI/epbot-wrapper/EPBot-8734/EPBot64.dll" -Force
           echo "Downloaded EPBot64.dll version ${{ steps.version.outputs.upstream }}"
 
       - name: Checkout dealer3 (for Rust dependencies)
@@ -117,24 +119,24 @@ jobs:
       - name: Build C# EPBot Wrapper
         if: steps.version.outputs.exists == 'false'
         run: |
-          cd epbot-wrapper
+          cd BBA-CLI/epbot-wrapper
           dotnet build -c Release
 
       - name: Build C# CLI
         if: steps.version.outputs.exists == 'false'
         run: |
-          cd bba-cli-cs
+          cd BBA-CLI/bba-cli-cs
           dotnet build -c Release
 
       - name: Copy EPBot64.dll to C# CLI output
         if: steps.version.outputs.exists == 'false'
         run: |
-          Copy-Item "epbot-wrapper\EPBot-8734\EPBot64.dll" "bba-cli-cs\bin\Release\net48\" -Force
+          Copy-Item "BBA-CLI\epbot-wrapper\EPBot-8734\EPBot64.dll" "BBA-CLI\bba-cli-cs\bin\Release\net48\" -Force
 
       - name: Build Rust CLI
         if: steps.version.outputs.exists == 'false'
         run: |
-          cd cli
+          cd BBA-CLI/cli
           cargo build --release
 
       - name: Create Release Zip
@@ -142,19 +144,20 @@ jobs:
         run: |
           mkdir BBA-CLI-Release
           # C# CLI as primary bba-cli.exe
-          Copy-Item "bba-cli-cs\bin\Release\net48\bba-cli.exe" "BBA-CLI-Release\"
-          Copy-Item "bba-cli-cs\bin\Release\net48\*.dll" "BBA-CLI-Release\"
-          Copy-Item "bba-cli-cs\bin\Release\net48\*.config" "BBA-CLI-Release\"
+          Copy-Item "BBA-CLI\bba-cli-cs\bin\Release\net48\bba-cli.exe" "BBA-CLI-Release\"
+          Copy-Item "BBA-CLI\bba-cli-cs\bin\Release\net48\*.dll" "BBA-CLI-Release\"
+          Copy-Item "BBA-CLI\bba-cli-cs\bin\Release\net48\*.config" "BBA-CLI-Release\"
           # Rust CLI as bba-cli-rust.exe
-          Copy-Item "cli\target\release\bba-cli.exe" "BBA-CLI-Release\bba-cli-rust.exe"
+          Copy-Item "BBA-CLI\cli\target\release\bba-cli.exe" "BBA-CLI-Release\bba-cli-rust.exe"
           # EPBot wrapper (for Rust CLI compatibility)
-          Copy-Item "epbot-wrapper\bin\Release\net48\epbot-wrapper.exe" "BBA-CLI-Release\"
-          Copy-Item "epbot-wrapper\bin\Release\net48\epbot-wrapper.exe.config" "BBA-CLI-Release\"
+          Copy-Item "BBA-CLI\epbot-wrapper\bin\Release\net48\epbot-wrapper.exe" "BBA-CLI-Release\"
+          Copy-Item "BBA-CLI\epbot-wrapper\bin\Release\net48\epbot-wrapper.exe.config" "BBA-CLI-Release\"
 
           Compress-Archive -Path "BBA-CLI-Release\*" -DestinationPath "BBA-CLI-${{ steps.version.outputs.tag }}-windows-x64.zip"
 
       - name: Create Git tag
         if: steps.version.outputs.exists == 'false'
+        working-directory: BBA-CLI
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
