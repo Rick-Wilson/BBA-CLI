@@ -1,9 +1,9 @@
 name: Sync Upstream Release
 
 on:
-  # Check hourly for new upstream releases
+  # Check daily for new upstream releases
   schedule:
-    - cron: '0 * * * *'  # Every hour at :00
+    - cron: '0 14 * * *'  # 6 AM Pacific (14:00 UTC)
   # Manual trigger with optional increment
   workflow_dispatch:
     inputs:
