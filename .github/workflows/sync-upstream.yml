@@ -1,0 +1,187 @@
+name: Sync Upstream Release
+
+on:
+  # Check daily for new upstream releases
+  schedule:
+    - cron: '0 6 * * *'  # 6 AM UTC daily
+  # Manual trigger with optional increment
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Increment number (0 for new upstream version, 1+ for patch releases)'
+        required: false
+        default: '0'
+      force_version:
+        description: 'Force specific upstream version (leave empty to use latest)'
+        required: false
+        default: ''
+
+jobs:
+  check-and-sync:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout BBA-CLI
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for tags
+
+      - name: Get upstream latest release
+        id: upstream
+        run: |
+          # Get latest release from EdwardPiwowar/BBA
+          $release = gh release view --repo EdwardPiwowar/BBA --json tagName,assets | ConvertFrom-Json
+          $upstreamVersion = $release.tagName
+          echo "version=$upstreamVersion" >> $env:GITHUB_OUTPUT
+          echo "Upstream version: $upstreamVersion"
+
+          # Find EPBot64.dll asset URL
+          $dllAsset = $release.assets | Where-Object { $_.name -eq "EPBot64.dll" }
+          if ($dllAsset) {
+            echo "dll_url=$($dllAsset.url)" >> $env:GITHUB_OUTPUT
+            echo "Found EPBot64.dll asset"
+          } else {
+            echo "dll_url=" >> $env:GITHUB_OUTPUT
+            echo "No EPBot64.dll in release assets"
+          }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine version to create
+        id: version
+        run: |
+          $upstreamVersion = "${{ steps.upstream.outputs.version }}"
+          $increment = "${{ github.event.inputs.increment || '0' }}"
+          $forceVersion = "${{ github.event.inputs.force_version }}"
+
+          if ($forceVersion) {
+            $upstreamVersion = $forceVersion
+          }
+
+          $newTag = "v$upstreamVersion.$increment"
+          echo "tag=$newTag" >> $env:GITHUB_OUTPUT
+          echo "upstream=$upstreamVersion" >> $env:GITHUB_OUTPUT
+          echo "New tag would be: $newTag"
+
+          # Check if this tag already exists
+          $existingTag = git tag -l $newTag
+          if ($existingTag) {
+            echo "exists=true" >> $env:GITHUB_OUTPUT
+            echo "Tag $newTag already exists"
+          } else {
+            echo "exists=false" >> $env:GITHUB_OUTPUT
+            echo "Tag $newTag does not exist - will create"
+          }
+
+      - name: Skip if tag exists (scheduled run)
+        if: steps.version.outputs.exists == 'true' && github.event_name == 'schedule'
+        run: |
+          echo "Tag ${{ steps.version.outputs.tag }} already exists, skipping scheduled sync"
+          exit 0
+
+      - name: Fail if tag exists (manual run)
+        if: steps.version.outputs.exists == 'true' && github.event_name == 'workflow_dispatch'
+        run: |
+          echo "::error::Tag ${{ steps.version.outputs.tag }} already exists. Use a different increment."
+          exit 1
+
+      - name: Download EPBot64.dll from upstream
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          # Download from upstream release
+          gh release download ${{ steps.version.outputs.upstream }} --repo EdwardPiwowar/BBA --pattern "EPBot64.dll" --dir epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}
+
+          # Also update the default location
+          if (Test-Path "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll") {
+            Copy-Item "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll" "epbot-wrapper/EPBot-8734/EPBot64.dll" -Force
+            echo "Updated EPBot64.dll to version ${{ steps.version.outputs.upstream }}"
+          }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout dealer3 (for Rust dependencies)
+        if: steps.version.outputs.exists == 'false'
+        uses: actions/checkout@v4
+        with:
+          repository: rick-wilson/dealer3
+          path: dealer3
+
+      - name: Setup .NET
+        if: steps.version.outputs.exists == 'false'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Rust
+        if: steps.version.outputs.exists == 'false'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build C# EPBot Wrapper
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          cd epbot-wrapper
+          dotnet build -c Release
+
+      - name: Build C# CLI
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          cd bba-cli-cs
+          dotnet build -c Release
+
+      - name: Copy EPBot64.dll to C# CLI output
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          Copy-Item "epbot-wrapper\EPBot-8734\EPBot64.dll" "bba-cli-cs\bin\Release\net48\" -Force
+
+      - name: Build Rust CLI
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          cd cli
+          cargo build --release
+
+      - name: Create Release Zip
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          mkdir BBA-CLI-Release
+          # C# CLI as primary bba-cli.exe
+          Copy-Item "bba-cli-cs\bin\Release\net48\bba-cli.exe" "BBA-CLI-Release\"
+          Copy-Item "bba-cli-cs\bin\Release\net48\*.dll" "BBA-CLI-Release\"
+          Copy-Item "bba-cli-cs\bin\Release\net48\*.config" "BBA-CLI-Release\"
+          # Rust CLI as bba-cli-rust.exe
+          Copy-Item "cli\target\release\bba-cli.exe" "BBA-CLI-Release\bba-cli-rust.exe"
+          # EPBot wrapper (for Rust CLI compatibility)
+          Copy-Item "epbot-wrapper\bin\Release\net48\epbot-wrapper.exe" "BBA-CLI-Release\"
+          Copy-Item "epbot-wrapper\bin\Release\net48\epbot-wrapper.exe.config" "BBA-CLI-Release\"
+
+          Compress-Archive -Path "BBA-CLI-Release\*" -DestinationPath "BBA-CLI-${{ steps.version.outputs.tag }}-windows-x64.zip"
+
+      - name: Create Git tag
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }} (EPBot ${{ steps.version.outputs.upstream }})"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body: |
+            ## BBA-CLI ${{ steps.version.outputs.tag }}
+
+            Based on EPBot version **${{ steps.version.outputs.upstream }}** from [EdwardPiwowar/BBA](https://github.com/EdwardPiwowar/BBA/releases/tag/${{ steps.version.outputs.upstream }})
+
+            ### Included
+            - `bba-cli.exe` - Fast C# CLI (recommended)
+            - `bba-cli-rust.exe` - Rust CLI (for compatibility)
+            - `epbot-wrapper.exe` - EPBot wrapper for Rust CLI
+            - `EPBot64.dll` - EPBot engine v${{ steps.version.outputs.upstream }}
+
+            ### Usage
+            ```
+            bba-cli.exe -i input.pbn -o output.pbn --ns-conventions conv.bbsa --ew-conventions conv.bbsa
+            ```
+          files: BBA-CLI-${{ steps.version.outputs.tag }}-windows-x64.zip
