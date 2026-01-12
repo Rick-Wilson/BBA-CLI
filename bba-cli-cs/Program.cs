@@ -20,6 +20,7 @@ namespace BbaCli
                 string outputPath = null;
                 string nsConventions = null;
                 string ewConventions = null;
+                string scoring = "MP";  // Default to Matchpoints
                 bool verbose = false;
                 bool dryRun = false;
 
@@ -48,6 +49,9 @@ namespace BbaCli
                             break;
                         case "--dry-run":
                             dryRun = true;
+                            break;
+                        case "--scoring":
+                            scoring = args[++i];
                             break;
                         case "-j":
                         case "--threads":
@@ -116,9 +120,10 @@ namespace BbaCli
                     Console.Error.WriteLine($"Output: {outputPath}");
                     Console.Error.WriteLine($"NS Conventions: {nsConventions}");
                     Console.Error.WriteLine($"EW Conventions: {ewConventions}");
+                    Console.Error.WriteLine($"Scoring: {scoring}");
                 }
 
-                var processor = new PbnProcessor { Verbose = verbose };
+                var processor = new PbnProcessor { Verbose = verbose, Scoring = scoring };
                 var stats = processor.ProcessFile(inputPath, outputPath, nsConventions, ewConventions, dryRun);
 
                 Console.Error.WriteLine($"Processed {stats.DealsProcessed} deals, generated {stats.AuctionsGenerated} auctions");
@@ -160,6 +165,7 @@ namespace BbaCli
             Console.WriteLine("  --ew-conventions <FILE>      Convention file (.bbsa) for East-West partnership");
             Console.WriteLine("  -v, --verbose                Enable verbose logging");
             Console.WriteLine("  --dry-run                    Parse input but don't write output");
+            Console.WriteLine("  --scoring <TYPE>             Scoring type: MP (default), IMP, BAM, etc.");
             Console.WriteLine("  -j, --threads <N>            (ignored, for compatibility)");
             Console.WriteLine("  --wrapper <FILE>             (ignored, for compatibility)");
             Console.WriteLine("  -h, --help                   Show this help");
@@ -183,19 +189,21 @@ namespace BbaCli
         private const int C_EAST = 1;
         private const int C_SOUTH = 2;
         private const int C_WEST = 3;
+        private const string Version = "0.3.0";
 
         public bool Verbose { get; set; }
+        public string Scoring { get; set; } = "MP";
 
         public ProcessingStats ProcessFile(string inputPath, string outputPath, string nsConventions, string ewConventions, bool dryRun = false)
         {
             var stats = new ProcessingStats();
-            var games = ReadPbnFile(inputPath);
+            var pbnFile = ReadPbnFile(inputPath);
 
             if (Verbose)
-                Console.Error.WriteLine($"Read {games.Count} games from {inputPath}");
+                Console.Error.WriteLine($"Read {pbnFile.Games.Count} games from {inputPath}");
 
             // Process each game
-            foreach (var game in games)
+            foreach (var game in pbnFile.Games)
             {
                 if (game.Deal == null) continue;
 
@@ -205,11 +213,14 @@ namespace BbaCli
                 {
                     var auction = GenerateAuction(game, nsConventions, ewConventions);
                     game.Auction = auction;
+                    ComputeContractFromAuction(game);
                     stats.AuctionsGenerated++;
                 }
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine($"Error processing game {stats.DealsProcessed}: {ex.Message}");
+                    if (Verbose)
+                        Console.Error.WriteLine($"  Stack trace: {ex.StackTrace}");
                     stats.Errors++;
                 }
             }
@@ -217,9 +228,9 @@ namespace BbaCli
             // Write output
             if (!dryRun)
             {
-                WritePbnFile(outputPath, games);
+                WritePbnFile(outputPath, pbnFile, nsConventions, ewConventions, inputPath);
                 if (Verbose)
-                    Console.Error.WriteLine($"Wrote {games.Count} games to {outputPath}");
+                    Console.Error.WriteLine($"Wrote {pbnFile.Games.Count} games to {outputPath}");
             }
 
             return stats;
@@ -261,6 +272,8 @@ namespace BbaCli
 
             // Generate auction
             var bids = new List<string>();
+            var alerts = new List<string>();
+            int alertIndex = 0;
             int currentPos = dealer;
             int passCount = 0;
             bool hasBid = false;
@@ -270,7 +283,6 @@ namespace BbaCli
                 // Get bid from current player
                 int bidCode = players[currentPos].get_bid();
                 string bidStr = DecodeBid(bidCode);
-                bids.Add(bidStr);
 
                 // Broadcast to all players
                 for (int i = 0; i < 4; i++)
@@ -278,8 +290,33 @@ namespace BbaCli
                     players[i].set_bid(currentPos, bidCode);
                 }
 
+                // Check for alert (VB.NET indexed properties accessed via get_ methods in C#)
+                try
+                {
+                    // Note: info_alerting/info_meaning use the position of the PARTNER who would alert
+                    // For positions N=0,E=1,S=2,W=3, partner is (pos+2)%4
+                    int partnerPos = (currentPos + 2) % 4;
+                    bool isAlert = players[partnerPos].get_info_alerting(currentPos);
+                    if (isAlert)
+                    {
+                        alertIndex++;
+                        string meaning = players[partnerPos].get_info_meaning(currentPos);
+                        if (!string.IsNullOrEmpty(meaning))
+                        {
+                            bidStr = $"{bidStr} ={alertIndex}=";
+                            alerts.Add($"{alertIndex}:{meaning}");
+                        }
+                    }
+                }
+                catch
+                {
+                    // Alert methods may not be available in all versions or may fail for some bids
+                }
+
+                bids.Add(bidStr);
+
                 // Track passes
-                if (bidStr == "Pass")
+                if (bidStr == "Pass" || bidStr.StartsWith("Pass "))
                 {
                     passCount++;
                 }
@@ -298,7 +335,120 @@ namespace BbaCli
                 currentPos = (currentPos + 1) % 4;
             }
 
+            game.AlertNotes = alerts;
             return bids;
+        }
+
+        /// <summary>
+        /// Compute the final contract and declarer from the auction.
+        /// </summary>
+        private void ComputeContractFromAuction(PbnGame game)
+        {
+            if (game.Auction == null || game.Auction.Count == 0)
+            {
+                game.Contract = "Pass";
+                game.Declarer = -1;
+                return;
+            }
+
+            string lastBid = null;
+            int lastBidder = -1;
+            bool doubled = false;
+            bool redoubled = false;
+            int currentPos = game.Dealer;
+
+            // Track first bidder of each strain for each partnership
+            // firstBid[side][strain] where side 0=NS, 1=EW and strain 0-4=C,D,H,S,NT
+            int[,] firstBidOfStrain = new int[2, 5];
+            for (int s = 0; s < 2; s++)
+                for (int st = 0; st < 5; st++)
+                    firstBidOfStrain[s, st] = -1;
+
+            foreach (var bidWithAlert in game.Auction)
+            {
+                // Strip alert markers like " =1=" from the bid
+                string bid = bidWithAlert;
+                int alertPos = bid.IndexOf(" =");
+                if (alertPos > 0)
+                    bid = bid.Substring(0, alertPos);
+
+                if (bid == "Pass")
+                {
+                    // Do nothing
+                }
+                else if (bid == "X")
+                {
+                    doubled = true;
+                    redoubled = false;
+                }
+                else if (bid == "XX")
+                {
+                    redoubled = true;
+                }
+                else if (bid.Length >= 2)
+                {
+                    // A real bid like "1NT", "3S", etc.
+                    lastBid = bid;
+                    lastBidder = currentPos;
+                    doubled = false;
+                    redoubled = false;
+
+                    // Determine the strain
+                    int strain = GetStrainFromBid(bid);
+                    if (strain >= 0)
+                    {
+                        int side = currentPos % 2;  // 0 for NS, 1 for EW
+                        if (firstBidOfStrain[side, strain] < 0)
+                        {
+                            firstBidOfStrain[side, strain] = currentPos;
+                        }
+                    }
+                }
+
+                currentPos = (currentPos + 1) % 4;
+            }
+
+            // Determine final contract
+            if (lastBid == null)
+            {
+                // All pass
+                game.Contract = "Pass";
+                game.Declarer = -1;
+            }
+            else
+            {
+                // Get the strain of the final contract
+                int strain = GetStrainFromBid(lastBid);
+                int declaringSide = lastBidder % 2;
+
+                // Declarer is first person on that side to bid this strain
+                game.Declarer = firstBidOfStrain[declaringSide, strain];
+
+                // Build contract string
+                string contractStr = lastBid.Replace("NT", "N");
+                if (redoubled)
+                    contractStr += "XX";
+                else if (doubled)
+                    contractStr += "X";
+
+                game.Contract = contractStr;
+            }
+        }
+
+        private int GetStrainFromBid(string bid)
+        {
+            if (bid.Length < 2) return -1;
+            string strain = bid.Substring(1).ToUpper();
+            switch (strain)
+            {
+                case "C": return 0;
+                case "D": return 1;
+                case "H": return 2;
+                case "S": return 3;
+                case "N":
+                case "NT": return 4;
+                default: return -1;
+            }
         }
 
         /// <summary>
@@ -362,32 +512,64 @@ namespace BbaCli
 
         #region PBN File I/O
 
-        private List<PbnGame> ReadPbnFile(string path)
+        private PbnFile ReadPbnFile(string path)
         {
-            var games = new List<PbnGame>();
+            var pbnFile = new PbnFile();
             PbnGame current = null;
+            bool inAuction = false;
+            bool headerDone = false;
+            string lastTagName = null;
 
             foreach (var line in File.ReadAllLines(path))
             {
                 string trimmed = line.Trim();
 
+                // Blank line ends current game
                 if (string.IsNullOrEmpty(trimmed))
                 {
                     if (current != null && current.Tags.Count > 0)
                     {
-                        games.Add(current);
+                        pbnFile.Games.Add(current);
                         current = null;
+                        inAuction = false;
+                        lastTagName = null;
                     }
                     continue;
                 }
 
+                // Header comments (% lines before any games)
+                if (trimmed.StartsWith("%") && !headerDone)
+                {
+                    pbnFile.HeaderComments.Add(line);
+                    continue;
+                }
+
+                // Tag line
                 if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
                 {
+                    headerDone = true;
                     if (current == null)
                         current = new PbnGame();
 
                     var (name, value) = ParseTag(trimmed);
+                    lastTagName = name;
+
+                    // Skip existing Auction tag - we'll generate our own
+                    if (name.Equals("Auction", StringComparison.OrdinalIgnoreCase))
+                    {
+                        current.HasExistingAuction = true;
+                        inAuction = true;
+                        continue;
+                    }
+
+                    // Skip BidSystem tags - we'll generate our own
+                    if (name.StartsWith("BidSystem", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     current.Tags.Add((name, value));
+                    inAuction = false;
 
                     if (name.Equals("Deal", StringComparison.OrdinalIgnoreCase))
                     {
@@ -402,6 +584,31 @@ namespace BbaCli
                         current.Vulnerability = ParseVulnerability(value);
                     }
                 }
+                // Comment line
+                else if (trimmed.StartsWith("{") && trimmed.EndsWith("}"))
+                {
+                    if (current != null)
+                    {
+                        // Classify the comment
+                        if (trimmed.StartsWith("{Shape"))
+                            current.ShapeComment = trimmed;
+                        else if (trimmed.StartsWith("{HCP"))
+                            current.HcpComment = trimmed;
+                        else if (trimmed.StartsWith("{Losers"))
+                            current.LosersComment = trimmed;
+                        else if (lastTagName != null && lastTagName.Equals("Board", StringComparison.OrdinalIgnoreCase))
+                            current.HexComment = trimmed;  // Hex comment comes after Board tag
+                        else
+                            current.OtherLines.Add(line);
+                    }
+                }
+                // Auction bids (skip - we'll generate our own)
+                else if (inAuction)
+                {
+                    // Skip existing auction lines
+                    continue;
+                }
+                // Other content
                 else if (current != null)
                 {
                     current.OtherLines.Add(line);
@@ -410,27 +617,138 @@ namespace BbaCli
 
             if (current != null && current.Tags.Count > 0)
             {
-                games.Add(current);
+                pbnFile.Games.Add(current);
             }
 
-            return games;
+            return pbnFile;
         }
 
-        private void WritePbnFile(string path, List<PbnGame> games)
+        private void WritePbnFile(string path, PbnFile pbnFile, string nsConventions, string ewConventions, string inputPath)
         {
             using (var writer = new StreamWriter(path))
             {
-                for (int i = 0; i < games.Count; i++)
+                // Write header comments
+                foreach (var comment in pbnFile.HeaderComments)
+                {
+                    writer.WriteLine(comment);
+                }
+
+                // If no header comments from input, generate standard ones
+                if (pbnFile.HeaderComments.Count == 0)
+                {
+                    writer.WriteLine("% PBN 2.1");
+                    writer.WriteLine($"% Generated by BBA-CLI v{Version}");
+                    writer.WriteLine("% https://github.com/rick-wilson/BBA-CLI");
+                    writer.WriteLine($"% The source file name: \"{Path.GetFullPath(inputPath)}\"");
+                    writer.WriteLine($"% CC1 - {nsConventions}");
+                    writer.WriteLine($"% CC2 - {ewConventions}");
+
+                    // Read and compare conventions from both files
+                    var cc1Conventions = ReadEnabledConventions(nsConventions);
+                    var cc2Conventions = ReadEnabledConventions(ewConventions);
+
+                    // Find conventions in both, CC1 only, CC2 only
+                    foreach (var conv in cc1Conventions)
+                    {
+                        if (cc2Conventions.Contains(conv))
+                            writer.WriteLine($"% 1-2 - {conv}");
+                        else
+                            writer.WriteLine($"% CC1 - {conv}");
+                    }
+                    foreach (var conv in cc2Conventions)
+                    {
+                        if (!cc1Conventions.Contains(conv))
+                            writer.WriteLine($"% CC2 - {conv}");
+                    }
+                }
+
+                // Blank line after header
+                if (pbnFile.HeaderComments.Count > 0 || pbnFile.Games.Count > 0)
+                    writer.WriteLine();
+
+                for (int i = 0; i < pbnFile.Games.Count; i++)
                 {
                     if (i > 0) writer.WriteLine();
 
-                    var game = games[i];
+                    var game = pbnFile.Games[i];
 
-                    // Write tags
+                    // Write tags with comments in correct positions
+                    bool wrotePlayers = false;
+
                     foreach (var (name, value) in game.Tags)
                     {
+                        // Skip individual player tags - we'll write them in correct order
+                        if (name.Equals("North", StringComparison.OrdinalIgnoreCase) ||
+                            name.Equals("East", StringComparison.OrdinalIgnoreCase) ||
+                            name.Equals("South", StringComparison.OrdinalIgnoreCase) ||
+                            name.Equals("West", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        // Write player tags in correct order (N, E, S, W) before Dealer
+                        if (name.Equals("Dealer", StringComparison.OrdinalIgnoreCase) && !wrotePlayers)
+                        {
+                            writer.WriteLine("[North \"EPBot\"]");
+                            writer.WriteLine("[East \"EPBot\"]");
+                            writer.WriteLine("[South \"EPBot\"]");
+                            writer.WriteLine("[West \"EPBot\"]");
+                            writer.WriteLine("[Room \"Open\"]");
+                            wrotePlayers = true;
+                        }
+
+                        // Convert Site "-" to Site ""
+                        if (name.Equals("Site", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string siteValue = (value == "-") ? "" : value;
+                            writer.WriteLine($"[Site \"{siteValue}\"]");
+                            continue;
+                        }
+
+                        // Update Declarer based on computed value
+                        if (name.Equals("Declarer", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string declarer = game.Declarer >= 0 ? new[] { "N", "E", "S", "W" }[game.Declarer] : "";
+                            writer.WriteLine($"[Declarer \"{declarer}\"]");
+                            continue;
+                        }
+
+                        // Update Contract based on computed value
+                        if (name.Equals("Contract", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.WriteLine($"[Contract \"{game.Contract ?? ""}\"]");
+                            continue;
+                        }
+
+                        // Skip Result - we can't compute it without double-dummy
+                        if (name.Equals("Result", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.WriteLine($"[Result \"\"]");
+                            continue;
+                        }
+
                         writer.WriteLine($"[{name} \"{value}\"]");
+
+                        // Hex comment goes immediately after Board tag
+                        if (name.Equals("Board", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(game.HexComment))
+                        {
+                            writer.WriteLine(game.HexComment);
+                        }
+
+                        // Shape/HCP/Losers comments go after Deal tag
+                        if (name.Equals("Deal", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (!string.IsNullOrEmpty(game.ShapeComment))
+                                writer.WriteLine(game.ShapeComment);
+                            if (!string.IsNullOrEmpty(game.HcpComment))
+                                writer.WriteLine(game.HcpComment);
+                            if (!string.IsNullOrEmpty(game.LosersComment))
+                                writer.WriteLine(game.LosersComment);
+                        }
                     }
+
+                    // Add Scoring tag before Auction
+                    writer.WriteLine($"[Scoring \"{Scoring}\"]");
 
                     // Write auction if generated
                     if (game.Auction != null && game.Auction.Count > 0)
@@ -440,13 +758,82 @@ namespace BbaCli
                         writer.WriteLine(FormatAuction(game.Auction));
                     }
 
+                    // Write alert notes (after auction, before play)
+                    if (game.AlertNotes != null && game.AlertNotes.Count > 0)
+                    {
+                        foreach (var note in game.AlertNotes)
+                        {
+                            writer.WriteLine($"[Note \"{note}\"]");
+                        }
+                    }
+
+                    // Add Play tag (empty - we don't generate play)
+                    if (game.Declarer >= 0)
+                    {
+                        // Leader is player to the left of declarer
+                        string leader = new[] { "N", "E", "S", "W" }[(game.Declarer + 1) % 4];
+                        writer.WriteLine($"[Play \"{leader}\"]");
+                        writer.WriteLine("*");
+                    }
+
                     // Write other lines
                     foreach (var line in game.OtherLines)
                     {
                         writer.WriteLine(line);
                     }
+
+                    // Add BidSystem tags at the end
+                    writer.WriteLine($"[BidSystemEW \"{GetBidSystemName(ewConventions)}\"]");
+                    writer.WriteLine($"[BidSystemNS \"{GetBidSystemName(nsConventions)}\"]");
                 }
             }
+        }
+
+        private string GetBidSystemName(string conventionFilePath)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(conventionFilePath);
+            // Convert common convention file names to readable names
+            if (fileName.Contains("21GF") || fileName.Contains("2-1"))
+                return "2/1GF - 2/1 Game Force";
+            if (fileName.Contains("SAYC"))
+                return "SAYC - Standard American Yellow Card";
+            if (fileName.Contains("Precision"))
+                return "Precision";
+            return fileName;
+        }
+
+        /// <summary>
+        /// Read enabled conventions (value = 1 or True) from a .bbsa file.
+        /// </summary>
+        private HashSet<string> ReadEnabledConventions(string filePath)
+        {
+            var conventions = new HashSet<string>();
+            if (!File.Exists(filePath)) return conventions;
+
+            foreach (var line in File.ReadAllLines(filePath))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#") || line.StartsWith(";"))
+                    continue;
+
+                var parts = line.Split(new[] { '=' }, 2);
+                if (parts.Length != 2) continue;
+
+                string key = parts[0].Trim();
+                string valueStr = parts[1].Trim();
+
+                // Skip system type and opponent type - they're not conventions
+                if (key.Equals("System type", StringComparison.OrdinalIgnoreCase) ||
+                    key.Equals("Opponent type", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // Check if convention is enabled (value is 1 or True)
+                if (valueStr == "1" || valueStr.Equals("True", StringComparison.OrdinalIgnoreCase))
+                {
+                    conventions.Add(key);
+                }
+            }
+
+            return conventions;
         }
 
         private (string name, string value) ParseTag(string line)
@@ -476,7 +863,13 @@ namespace BbaCli
             for (int i = 0; i < 4; i++)
             {
                 int pos = (firstSeat + i) % 4;
+                // Split by '.' but don't remove empty entries - empty suits are valid
                 string[] suits = handParts[i].Split('.');
+                // Ensure we have exactly 4 suits
+                if (suits.Length != 4)
+                {
+                    throw new Exception($"Invalid hand format: {handParts[i]} has {suits.Length} suits instead of 4");
+                }
                 Array.Reverse(suits); // PBN S.H.D.C -> EPBot C.D.H.S
                 hands[pos] = suits;
             }
@@ -539,5 +932,28 @@ namespace BbaCli
         public int Dealer { get; set; }
         public int Vulnerability { get; set; }
         public List<string> Auction { get; set; }
+
+        // Comments and their positions
+        public string HexComment { get; set; }  // The {089EE...} comment after Board tag
+        public string ShapeComment { get; set; }  // {Shape ...}
+        public string HcpComment { get; set; }    // {HCP ...}
+        public string LosersComment { get; set; } // {Losers ...}
+
+        // Existing auction from input (to be replaced)
+        public List<string> OriginalAuction { get; set; }
+        public bool HasExistingAuction { get; set; }
+
+        // Contract info computed from auction
+        public string Contract { get; set; }  // e.g., "3S", "4HX", "Pass"
+        public int Declarer { get; set; } = -1;  // 0=N, 1=E, 2=S, 3=W, -1=unknown
+
+        // Alert notes for the auction
+        public List<string> AlertNotes { get; set; } = new List<string>();
+    }
+
+    public class PbnFile
+    {
+        public List<string> HeaderComments { get; } = new List<string>();  // % lines at start
+        public List<PbnGame> Games { get; } = new List<PbnGame>();
     }
 }

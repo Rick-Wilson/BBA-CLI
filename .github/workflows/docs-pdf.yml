@@ -1,0 +1,40 @@
+name: Generate PDF Documentation
+
+on:
+  push:
+    paths:
+      - 'CLI-README.md'
+    branches: [main]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install md-to-pdf
+        run: npm install -g md-to-pdf
+
+      - name: Generate PDF
+        run: |
+          md-to-pdf CLI-README.md --pdf-options '{"format": "Letter", "margin": {"top": "20mm", "bottom": "20mm", "left": "20mm", "right": "20mm"}}'
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CLI-README-pdf
+          path: CLI-README.pdf
+
+      - name: Create Release Asset (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: CLI-README.pdf

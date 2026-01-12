@@ -53,6 +53,9 @@ Thumbs.db
 # Logs
 *.log
 
+# Generated PDFs (created by GitHub Actions)
+CLI-README.pdf
+
 # Don't ignore the DLLs we need
 !EPBot64.dll
 !EPBot86.dll
