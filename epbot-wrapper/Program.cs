@@ -246,8 +246,6 @@ namespace EPBotWrapper
                 Console.Error.WriteLine("Deal: N:A653.Q97.K64.954 KQ4.AT8432.A72.A J8.K.QJ98.KJT762 T972.J65.T53.Q83");
                 Console.Error.WriteLine("Expected: 1C (South opens with 6 clubs)");
 
-                string convPath = @"P:\bbsa\21GF-DEFAULT.bbsa";
-
                 // Create 4 players - Board 2 from 1m-1N.pbn
                 // N:A653.Q97.K64.954 KQ4.AT8432.A72.A J8.K.QJ98.KJT762 T972.J65.T53.Q83
                 // PBN format is S.H.D.C but EPBot might expect C.D.H.S - let's try reversed!
@@ -262,7 +260,7 @@ namespace EPBotWrapper
 
                 // Create players
                 dynamic[] players = new dynamic[4];
-                string[] posNames = {"N", "E", "S", "W"};
+                string[] posNames = { "N", "E", "S", "W" };
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -512,7 +510,7 @@ namespace EPBotWrapper
                 //   2. Convention setting (set_conventions)
                 //   3. new_hand() call
                 dynamic[] players = new dynamic[4];
-                string[] posNames = {"N", "E", "S", "W"};
+                string[] posNames = { "N", "E", "S", "W" };
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -558,7 +556,7 @@ namespace EPBotWrapper
                 int currentPos = dealer;
                 int passCount = 0;
                 bool hasBid = false;
-                string[] positions = {"N", "E", "S", "W"};
+                string[] positions = { "N", "E", "S", "W" };
                 Console.Error.WriteLine($"Starting auction, dealer = {positions[dealer]}");
 
                 for (int round = 0; round < 100; round++) // Safety limit
