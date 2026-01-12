@@ -21,7 +21,7 @@ Module Program
         ' Board 2 from reference PBN - hex code includes dealer/vulnerability
         Dim str_hand As String = "0AA3C6EC2DD39E66314C111542D2"
 
-        Console.WriteLine("=== Board 2 Test (Minimal Conventions) ===")
+        Console.WriteLine("=== Board 2 Test (All Conventions from 21GF-DEFAULT.bbsa) ===")
         Console.WriteLine("Hex: " & str_hand)
         Console.WriteLine("Expected: 1NT 2C X Pass 2H Pass 3NT Pass Pass Pass")
         Console.WriteLine()
@@ -54,23 +54,85 @@ Module Program
         Next i
         Console.WriteLine()
 
-        ' Edward's setup + Cappelletti + Lebensohl
+        ' TEST: Add conventions 7-12 to find which breaks it
         For k = 0 To 3
             Player(k).new_hand(k, hand(k).suit, dealer, vulnerable)
             Player(k).scoring = 0
-            ' Team NS (side 0)
-            Player(k).system_type(0) = T_21GF
-            Player(k).conventions(0, "Cue bid") = 1
-            Player(k).conventions(0, "Cappelletti") = 1
-            Player(k).conventions(0, "Lebensohl after 1NT") = 1
-            ' Team EW (side 1)
-            Player(k).system_type(1) = T_21GF
-            Player(k).conventions(1, "Cue bid") = 1
-            Player(k).conventions(1, "Cappelletti") = 1
-            Player(k).conventions(1, "Lebensohl after 1NT") = 1
+
+            For side = 0 To 1
+                Player(k).system_type(side) = T_21GF
+
+                ' The minimal 3 that work
+                Player(k).conventions(side, "Cue bid") = 1
+                Player(k).conventions(side, "Cappelletti") = 1
+                Player(k).conventions(side, "Lebensohl after 1NT") = 1
+
+                ' FIRST QUARTER of additional conventions (conventions 1-6) - these work
+                Player(k).conventions(side, "1m opening allows 5M") = 1
+                Player(k).conventions(side, "1M-3M inviting") = 1
+                Player(k).conventions(side, "1N-2S transfer to clubs") = 1
+                Player(k).conventions(side, "1N-3C transfer to diamonds") = 1
+                Player(k).conventions(side, "1N-3D natural") = 1
+                Player(k).conventions(side, "1NT opening NT style") = 1
+
+                ' Adding 7-12 - work fine
+                Player(k).conventions(side, "1NT opening range 15-17") = 1
+                Player(k).conventions(side, "1NT opening shape 5422") = 1
+                Player(k).conventions(side, "1NT opening shape 5 major") = 1
+                Player(k).conventions(side, "1X-(Y)-2Z forcing") = 1
+                Player(k).conventions(side, "1X-(1Y)-2Z weak") = 1
+                Player(k).conventions(side, "4NT opening") = 1
+
+                ' Adding 13-18
+                Player(k).conventions(side, "Blackwood 0314") = 1
+                Player(k).conventions(side, "DOPI") = 1
+                Player(k).conventions(side, "Extended acceptance after NT") = 1
+                Player(k).conventions(side, "Forcing 1NT") = 1
+                Player(k).conventions(side, "Fourth suit game force") = 1
+                Player(k).conventions(side, "Gambling") = 1
+
+                ' ALL conventions EXCEPT Garbage Stayman
+                Player(k).conventions(side, "Gerber") = 1
+                Player(k).conventions(side, "Inverted minors") = 1
+                Player(k).conventions(side, "Jacoby 2NT") = 1
+                Player(k).conventions(side, "Jordan Truscott 2NT") = 1
+                Player(k).conventions(side, "King ask by 5NT") = 1
+                Player(k).conventions(side, "Lavinthal from void") = 1
+                Player(k).conventions(side, "Lavinthal on ace") = 1
+                Player(k).conventions(side, "Lavinthal to void") = 1
+                ' Second half of enabled conventions
+                Player(k).conventions(side, "Lebensohl after 1m") = 1
+                Player(k).conventions(side, "Lebensohl after double") = 1
+                Player(k).conventions(side, "Mark on queen") = 1
+                Player(k).conventions(side, "Mark on king") = 1
+                Player(k).conventions(side, "Michaels Cuebid") = 1
+                Player(k).conventions(side, "Minor Suit Transfers after 2NT") = 1
+                Player(k).conventions(side, "New Minor Forcing") = 1
+                Player(k).conventions(side, "Quantitative 4NT") = 1
+                Player(k).conventions(side, "Responsive double") = 1
+                Player(k).conventions(side, "Reverse drury") = 1
+                Player(k).conventions(side, "ROPI") = 1
+                Player(k).conventions(side, "Shape Bergen structure") = 1
+                Player(k).conventions(side, "SMOLEN") = 1
+                Player(k).conventions(side, "Splinter") = 1
+                Player(k).conventions(side, "Strong jump shifts 2") = 1
+                Player(k).conventions(side, "Super acceptance after NT") = 1
+                Player(k).conventions(side, "Support double redouble") = 1
+                Player(k).conventions(side, "Texas") = 1
+                Player(k).conventions(side, "Transfers if RHO bids clubs") = 1
+                Player(k).conventions(side, "Two suit takeout double") = 1
+                Player(k).conventions(side, "Unusual 1NT") = 1
+                Player(k).conventions(side, "Unusual 2NT") = 1
+                Player(k).conventions(side, "Unusual 4NT") = 1
+                Player(k).conventions(side, "Weak Jump Shifts 3") = 1
+                Player(k).conventions(side, "Weak natural 2D") = 1
+                Player(k).conventions(side, "Weak natural 2M") = 1
+
+                Player(k).opponent_type(side) = 0
+            Next side
         Next k
 
-        Console.WriteLine("Conventions: system_type=T_21GF, Cue bid=1, Cappelletti=1, Lebensohl after 1NT=1")
+        Console.WriteLine("Conventions: ALL ENABLED except Garbage Stayman")
         Console.WriteLine()
 
         ' Run bidding

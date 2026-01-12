@@ -518,9 +518,14 @@ namespace EPBotWrapper
                 {
                     players[i] = CreateEPBot();
 
-                    // Set scoring mode FIRST (0 = matchpoints, 1 = IMP)
-                    players[i].scoring = 0;
+                    // Call new_hand FIRST (matching Edward's VB order)
+                    string[] hand = hands[i];
+                    players[i].new_hand(i, ref hand, dealer, vul, false, false);
 
+                    // Then set scoring mode (0 = MP, 1 = IMP)
+                    players[i].scoring = 1;
+
+                    // Then load conventions
                     // Load NS conventions as side 0 (includes system_type)
                     if (!string.IsNullOrEmpty(nsConventions) && File.Exists(nsConventions))
                     {
@@ -532,22 +537,20 @@ namespace EPBotWrapper
                         LoadConventions(players[i], ewConventions, 1);
                     }
 
-                    // NOW call new_hand AFTER system/conventions are configured
-                    string[] hand = hands[i];
-                    players[i].new_hand(i, ref hand, dealer, vul, false, false);
-
                     // Debug: print what EPBot thinks the hands are
                     string[] epbotHand = players[i].get_hand(i);
                     Console.Error.WriteLine($"{posNames[i]} hand input: {string.Join(".", hand)} -> EPBot: {string.Join(".", epbotHand)}");
 
-                    // Check key conventions and system types
+                    // Check key conventions and system types - including ones that differ between DEFAULT and GIB
                     bool lebNS = players[i].get_conventions(0, "Lebensohl after 1NT");
                     bool lebEW = players[i].get_conventions(1, "Lebensohl after 1NT");
                     bool cappNS = players[i].get_conventions(0, "Cappelletti");
                     bool cappEW = players[i].get_conventions(1, "Cappelletti");
+                    bool gamblingNS = players[i].get_conventions(0, "Gambling");
+                    bool gamblingEW = players[i].get_conventions(1, "Gambling");
                     int sysTypeNS = players[i].get_system_type(0);
                     int sysTypeEW = players[i].get_system_type(1);
-                    Console.Error.WriteLine($"  {posNames[i]}: LebNS={lebNS}, LebEW={lebEW}, CappNS={cappNS}, CappEW={cappEW}, sysNS={sysTypeNS}, sysEW={sysTypeEW}");
+                    Console.Error.WriteLine($"  {posNames[i]}: LebNS={lebNS}, LebEW={lebEW}, CappNS={cappNS}, CappEW={cappEW}, GamblingNS={gamblingNS}, GamblingEW={gamblingEW}");
                 }
 
                 // Generate auction
@@ -685,6 +688,181 @@ namespace EPBotWrapper
         }
 
         /// <summary>
+        /// Set all conventions from 21GF-DEFAULT.bbsa explicitly
+        /// Uses method calls for C# dynamic compatibility
+        /// </summary>
+        static void SetMinimalConventions(dynamic bot, int side)
+        {
+            // System type = 0 (T_21GF)
+            bot.set_system_type(side, 0);
+
+            // All conventions from 21GF-DEFAULT.bbsa
+            bot.set_conventions(side, "1D opening with 4 cards", false);
+            bot.set_conventions(side, "1D opening with 5 cards", false);
+            bot.set_conventions(side, "1m opening allows 5M", true);
+            bot.set_conventions(side, "1M-3M blocking", false);
+            bot.set_conventions(side, "1M-3M inviting", true);
+            bot.set_conventions(side, "1N-2S Minor Suit Stayman", false);
+            bot.set_conventions(side, "1N-2S transfer to clubs", true);
+            bot.set_conventions(side, "1N-2N transfer to clubs", false);
+            bot.set_conventions(side, "1N-2N transfer to diamonds", false);
+            bot.set_conventions(side, "1N-3C transfer to diamonds", true);
+            bot.set_conventions(side, "1N-3C Puppet Stayman", false);
+            bot.set_conventions(side, "1N-3D majors", false);
+            bot.set_conventions(side, "1N-3D minors", false);
+            bot.set_conventions(side, "1N-3D natural", true);
+            bot.set_conventions(side, "1N-3D splinter", false);
+            bot.set_conventions(side, "1N-3M splinter", false);
+            bot.set_conventions(side, "1NT opening allows less 1HCP", false);
+            bot.set_conventions(side, "1NT opening natural", false);
+            bot.set_conventions(side, "1NT opening NT style", true);
+            bot.set_conventions(side, "1NT opening range 12-14", false);
+            bot.set_conventions(side, "1NT opening range 13-15", false);
+            bot.set_conventions(side, "1NT opening range 14-16", false);
+            bot.set_conventions(side, "1NT opening range 15-17", true);
+            bot.set_conventions(side, "1NT opening shape 4441", false);
+            bot.set_conventions(side, "1NT opening shape 5422", true);
+            bot.set_conventions(side, "1NT opening shape 5 major", true);
+            bot.set_conventions(side, "1NT opening shape 6 minor", false);
+            bot.set_conventions(side, "(1X)-1Y-(1Z)-2Z natural", false);
+            bot.set_conventions(side, "1X-(Y)-2Z forcing", true);
+            bot.set_conventions(side, "1X-(1Y)-2Z strong", false);
+            bot.set_conventions(side, "1X-(1Y)-2Z weak", true);
+            bot.set_conventions(side, "2N-3C-3N both majors", false);
+            bot.set_conventions(side, "2N-3C Puppet Stayman", false);
+            bot.set_conventions(side, "4NT opening", true);
+            bot.set_conventions(side, "5431 after 1NT", false);
+            bot.set_conventions(side, "5NT pick a slam", false);
+            bot.set_conventions(side, "Benjamin 2D", false);
+            bot.set_conventions(side, "Bergen", false);
+            bot.set_conventions(side, "Blackwood 0123", false);
+            bot.set_conventions(side, "Blackwood 0314", true);
+            bot.set_conventions(side, "Blackwood 1430", false);
+            bot.set_conventions(side, "Blackwood without K and Q", false);
+            bot.set_conventions(side, "BROMAD", false);
+            bot.set_conventions(side, "Cappelletti", true);
+            bot.set_conventions(side, "Checkback", false);
+            bot.set_conventions(side, "Crosswood 0123", false);
+            bot.set_conventions(side, "Crosswood 0314", false);
+            bot.set_conventions(side, "Crosswood 1430", false);
+            bot.set_conventions(side, "Cue bid", true);
+            bot.set_conventions(side, "DEPO", false);
+            bot.set_conventions(side, "DOPI", true);
+            bot.set_conventions(side, "Drury", false);
+            bot.set_conventions(side, "Exclusion", false);
+            bot.set_conventions(side, "Extended Stayman", false);
+            bot.set_conventions(side, "Extended acceptance after NT", true);
+            bot.set_conventions(side, "Flannery", false);
+            bot.set_conventions(side, "Fit showing jumps", false);
+            bot.set_conventions(side, "Forcing 1NT", true);
+            bot.set_conventions(side, "Fourth suit", false);
+            bot.set_conventions(side, "Fourth suit game force", true);
+            bot.set_conventions(side, "French 2D", false);
+            bot.set_conventions(side, "Gambling", true);
+            bot.set_conventions(side, "Garbage Stayman", true);
+            bot.set_conventions(side, "Gazzilli", false);
+            bot.set_conventions(side, "Gerber", true);
+            bot.set_conventions(side, "Gerber only for NT openings", false);
+            bot.set_conventions(side, "Ghestem", false);
+            bot.set_conventions(side, "Imposible 2S", false);
+            bot.set_conventions(side, "Inverted count signals", false);
+            bot.set_conventions(side, "Inverted minors", true);
+            bot.set_conventions(side, "Inviting Jump Shifts", false);
+            bot.set_conventions(side, "Jacoby 2NT", true);
+            bot.set_conventions(side, "Jordan Truscott 2NT", true);
+            bot.set_conventions(side, "Jordan Truscott 2NT defence", false);
+            bot.set_conventions(side, "Kickback 0123", false);
+            bot.set_conventions(side, "Kickback 0314", false);
+            bot.set_conventions(side, "Kickback 1430", false);
+            bot.set_conventions(side, "King ask by 5NT", true);
+            bot.set_conventions(side, "King ask by 5NT inviting", false);
+            bot.set_conventions(side, "King ask by available bid", false);
+            bot.set_conventions(side, "Kokish Relay", false);
+            bot.set_conventions(side, "Landy", false);
+            bot.set_conventions(side, "Lavinthal from void", true);
+            bot.set_conventions(side, "Lavinthal on ace", true);
+            bot.set_conventions(side, "Lavinthal on trump", false);
+            bot.set_conventions(side, "Lavinthal to void", true);
+            bot.set_conventions(side, "Leaping Michaels", false);
+            bot.set_conventions(side, "Lebensohl after 1NT", true);
+            bot.set_conventions(side, "Lebensohl after 1m", true);
+            bot.set_conventions(side, "Lebensohl after double", true);
+            bot.set_conventions(side, "Major Direct Jump Cuebid Gambling", false);
+            bot.set_conventions(side, "Major Direct Jump Cuebid Minor", false);
+            bot.set_conventions(side, "Major Direct Jump Cuebid Strong", false);
+            bot.set_conventions(side, "Mark on queen", true);
+            bot.set_conventions(side, "Mark on king", true);
+            bot.set_conventions(side, "Minor Direct Jump Cuebid Gambling", false);
+            bot.set_conventions(side, "Minor Direct Jump Cuebid Majors", false);
+            bot.set_conventions(side, "Minor Direct Jump Cuebid Preempt", false);
+            bot.set_conventions(side, "Maximal Doubles", false);
+            bot.set_conventions(side, "Michaels Cuebid", true);
+            bot.set_conventions(side, "Mini Splinter", false);
+            bot.set_conventions(side, "Minor Suit Slam Try after 2NT", false);
+            bot.set_conventions(side, "Minor Suit Stayman after 2NT", false);
+            bot.set_conventions(side, "Minor Suit Transfers after 2NT", true);
+            bot.set_conventions(side, "Mixed raise", false);
+            bot.set_conventions(side, "Multi", false);
+            bot.set_conventions(side, "Multi-Landy", false);
+            bot.set_conventions(side, "Namyats", false);
+            bot.set_conventions(side, "Natural 3N entering style", false);
+            bot.set_conventions(side, "New Minor Forcing", true);
+            bot.set_conventions(side, "NMF by passed hand", false);
+            bot.set_conventions(side, "Non-Leaping Michaels", false);
+            bot.set_conventions(side, "Ogust", false);
+            bot.set_conventions(side, "Polish two suiters", false);
+            bot.set_conventions(side, "Precision 2D", false);
+            bot.set_conventions(side, "Quantitative 4NT", true);
+            bot.set_conventions(side, "Raptor 1NT", false);
+            bot.set_conventions(side, "Responsive double", true);
+            bot.set_conventions(side, "Reverse Bergen", false);
+            bot.set_conventions(side, "Reverse drury", true);
+            bot.set_conventions(side, "Reverse Flannery 2H", false);
+            bot.set_conventions(side, "Reverse Flannery 2S", false);
+            bot.set_conventions(side, "ROPI", true);
+            bot.set_conventions(side, "Rubensohl after 1NT", false);
+            bot.set_conventions(side, "Rubensohl after 1m", false);
+            bot.set_conventions(side, "Rubensohl after double", false);
+            bot.set_conventions(side, "Scrambling 2NT", false);
+            bot.set_conventions(side, "Semi forcing 1NT", false);
+            bot.set_conventions(side, "Shape Bergen structure", true);
+            bot.set_conventions(side, "SMOLEN", true);
+            bot.set_conventions(side, "Snapdragon Double", false);
+            bot.set_conventions(side, "Soloway Jump Shifts", false);
+            bot.set_conventions(side, "Soloway Jump Shifts Extended", false);
+            bot.set_conventions(side, "Splinter", true);
+            bot.set_conventions(side, "Strength Lawrence structure", false);
+            bot.set_conventions(side, "Strong natural 2D", false);
+            bot.set_conventions(side, "Strong natural 2M", false);
+            bot.set_conventions(side, "Strong jump shifts 2", true);
+            bot.set_conventions(side, "Super acceptance after NT", true);
+            bot.set_conventions(side, "Support 1NT", false);
+            bot.set_conventions(side, "Support double redouble", true);
+            bot.set_conventions(side, "Surplus pass", false);
+            bot.set_conventions(side, "Texas", true);
+            bot.set_conventions(side, "Transfers if RHO passes", false);
+            bot.set_conventions(side, "Transfers if RHO doubles", false);
+            bot.set_conventions(side, "Transfers if RHO bids clubs", true);
+            bot.set_conventions(side, "Two suit takeout double", true);
+            bot.set_conventions(side, "Two way game tries", false);
+            bot.set_conventions(side, "Two Way New Minor Forcing", false);
+            bot.set_conventions(side, "TWNMF by passed hand", false);
+            bot.set_conventions(side, "Unusual 1NT", true);
+            bot.set_conventions(side, "Unusual 2NT", true);
+            bot.set_conventions(side, "Unusual 3NT", false);
+            bot.set_conventions(side, "Unusual 4NT", true);
+            bot.set_conventions(side, "Weak Jump Shifts 2", false);
+            bot.set_conventions(side, "Weak Jump Shifts 3", true);
+            bot.set_conventions(side, "Weak natural 2D", true);
+            bot.set_conventions(side, "Weak natural 2M", true);
+            bot.set_conventions(side, "Walsh style", false);
+            bot.set_conventions(side, "Wilkosz", false);
+
+            // Opponent type = 0
+            bot.set_opponent_type(side, 0);
+        }
+
+        /// <summary>
         /// Load conventions from a .bbsa file
         /// </summary>
         static bool _conventionsLogged = false;
@@ -725,8 +903,9 @@ namespace EPBotWrapper
                         }
                         success++;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Console.Error.WriteLine($"[FAILED] Convention '{key}' = {intValue}: {ex.Message}");
                         failed++;
                     }
                 }
