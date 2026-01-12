@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>BbaCli</RootNamespace>
+    <AssemblyName>bba-cli</AssemblyName>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Direct reference to EPBot64.dll -->
+    <Reference Include="EPBot64">
+      <HintPath>..\epbot-wrapper\EPBot-8734\EPBot64.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
