@@ -1,6 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Net.Http;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace BbaCli
 {
@@ -10,7 +16,7 @@ namespace BbaCli
     /// </summary>
     class Program
     {
-        const string Version = "0.3.0";
+        public const string Version = "0.3.0";
 
         static int Main(string[] args)
         {
@@ -23,6 +29,8 @@ namespace BbaCli
                 string scoring = "MP";  // Default to Matchpoints
                 bool verbose = false;
                 bool dryRun = false;
+                bool autoUpdate = false;
+                bool noAutoUpdate = false;
 
                 // Parse arguments (matching Rust CLI)
                 for (int i = 0; i < args.Length; i++)
@@ -53,6 +61,12 @@ namespace BbaCli
                         case "--scoring":
                             scoring = args[++i];
                             break;
+                        case "--auto-update":
+                            autoUpdate = true;
+                            break;
+                        case "--no-auto-update":
+                            noAutoUpdate = true;
+                            break;
                         case "-j":
                         case "--threads":
                             i++; // Skip value - not implemented but accept for compatibility
@@ -68,6 +82,19 @@ namespace BbaCli
                             Console.WriteLine($"bba-cli {Version}");
                             return 0;
                     }
+                }
+
+                // Handle auto-update if requested and not suppressed
+                if (autoUpdate && !noAutoUpdate)
+                {
+                    var updater = new AutoUpdater { Verbose = verbose };
+                    var updateResult = updater.CheckAndUpdate(args);
+                    if (updateResult == AutoUpdater.UpdateResult.Updated)
+                    {
+                        // Update succeeded and new process was started
+                        return 0;
+                    }
+                    // UpdateResult.NoUpdate or UpdateResult.Error - continue with normal processing
                 }
 
                 // Validate required arguments
@@ -166,6 +193,8 @@ namespace BbaCli
             Console.WriteLine("  -v, --verbose                Enable verbose logging");
             Console.WriteLine("  --dry-run                    Parse input but don't write output");
             Console.WriteLine("  --scoring <TYPE>             Scoring type: MP (default), IMP, BAM, etc.");
+            Console.WriteLine("  --auto-update                Check for updates (daily) and install if available");
+            Console.WriteLine("  --no-auto-update             Skip update check (used internally after update)");
             Console.WriteLine("  -j, --threads <N>            (ignored, for compatibility)");
             Console.WriteLine("  --wrapper <FILE>             (ignored, for compatibility)");
             Console.WriteLine("  -h, --help                   Show this help");
@@ -955,5 +984,344 @@ namespace BbaCli
     {
         public List<string> HeaderComments { get; } = new List<string>();  // % lines at start
         public List<PbnGame> Games { get; } = new List<PbnGame>();
+    }
+
+    /// <summary>
+    /// Handles automatic updates from GitHub releases.
+    /// </summary>
+    public class AutoUpdater
+    {
+        private const string GitHubApiUrl = "https://api.github.com/repos/rick-wilson/BBA-CLI/releases/latest";
+        private const string AppName = "BBA-CLI";
+        private const int TimeoutSeconds = 10;
+
+        public bool Verbose { get; set; }
+
+        public enum UpdateResult
+        {
+            NoUpdate,   // No update available or check skipped
+            Updated,    // Update installed, new process started
+            Error       // Error occurred (silently continue)
+        }
+
+        /// <summary>
+        /// Check for updates and install if available.
+        /// </summary>
+        public UpdateResult CheckAndUpdate(string[] originalArgs)
+        {
+            try
+            {
+                // Check if we should check for updates (daily check)
+                if (!ShouldCheckForUpdates())
+                {
+                    if (Verbose)
+                        Console.Error.WriteLine("Update check skipped (checked within last 24 hours)");
+                    return UpdateResult.NoUpdate;
+                }
+
+                if (Verbose)
+                    Console.Error.WriteLine("Checking for updates...");
+
+                // Get latest release info from GitHub
+                var releaseInfo = GetLatestReleaseAsync().GetAwaiter().GetResult();
+                if (releaseInfo == null)
+                {
+                    if (Verbose)
+                        Console.Error.WriteLine("Could not retrieve release info");
+                    return UpdateResult.Error;
+                }
+
+                // Update the last-check timestamp
+                UpdateLastCheckTimestamp();
+
+                // Compare versions
+                string currentVersion = Program.Version;
+                string latestVersion = releaseInfo.TagName.TrimStart('v');
+
+                if (Verbose)
+                {
+                    Console.Error.WriteLine($"Current version: {currentVersion}");
+                    Console.Error.WriteLine($"Latest version: {latestVersion}");
+                }
+
+                if (!IsNewerVersion(latestVersion, currentVersion))
+                {
+                    if (Verbose)
+                        Console.Error.WriteLine("Already up to date");
+                    return UpdateResult.NoUpdate;
+                }
+
+                // Download and install update
+                if (Verbose)
+                    Console.Error.WriteLine($"Downloading update {releaseInfo.TagName}...");
+
+                string downloadUrl = releaseInfo.ZipUrl;
+                if (string.IsNullOrEmpty(downloadUrl))
+                {
+                    if (Verbose)
+                        Console.Error.WriteLine("No download URL found in release");
+                    return UpdateResult.Error;
+                }
+
+                string tempDir = Path.Combine(Path.GetTempPath(), $"bba-cli-update-{releaseInfo.TagName}");
+                string zipPath = Path.Combine(tempDir, "update.zip");
+                string extractPath = Path.Combine(tempDir, "extracted");
+
+                // Clean up any previous update attempt
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, true);
+                Directory.CreateDirectory(tempDir);
+                Directory.CreateDirectory(extractPath);
+
+                // Download the zip file
+                if (!DownloadFileAsync(downloadUrl, zipPath).GetAwaiter().GetResult())
+                {
+                    if (Verbose)
+                        Console.Error.WriteLine("Download failed");
+                    return UpdateResult.Error;
+                }
+
+                if (Verbose)
+                    Console.Error.WriteLine("Extracting...");
+
+                // Extract the zip
+                ZipFile.ExtractToDirectory(zipPath, extractPath);
+
+                // Get the current exe directory
+                string currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+                if (Verbose)
+                    Console.Error.WriteLine("Replacing files...");
+
+                // Replace all files
+                var updateFiles = Directory.GetFiles(extractPath, "*", SearchOption.AllDirectories);
+                foreach (var updateFile in updateFiles)
+                {
+                    string fileName = Path.GetFileName(updateFile);
+                    string currentFile = Path.Combine(currentDir, fileName);
+                    string oldFile = currentFile + ".old";
+
+                    // Delete previous .old if exists
+                    if (File.Exists(oldFile))
+                    {
+                        try { File.Delete(oldFile); } catch { }
+                    }
+
+                    // Rename current to .old (works even for running exe on Windows)
+                    if (File.Exists(currentFile))
+                    {
+                        if (Verbose)
+                            Console.Error.WriteLine($"  {fileName} -> {fileName}.old");
+                        File.Move(currentFile, oldFile);
+                    }
+
+                    // Copy new file
+                    File.Copy(updateFile, currentFile);
+                }
+
+                // Write update log
+                WriteUpdateLog(currentVersion, latestVersion);
+
+                if (Verbose)
+                    Console.Error.WriteLine("Update complete, restarting...");
+
+                // Re-exec with --no-auto-update to prevent infinite loop
+                var newArgs = new List<string>(originalArgs);
+                newArgs.Remove("--auto-update");
+                if (!newArgs.Contains("--no-auto-update"))
+                    newArgs.Add("--no-auto-update");
+
+                string exePath = Path.Combine(currentDir, "bba-cli.exe");
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    Arguments = string.Join(" ", newArgs.ConvertAll(QuoteArg)),
+                    UseShellExecute = false
+                };
+                Process.Start(startInfo);
+
+                // Clean up temp directory
+                try { Directory.Delete(tempDir, true); } catch { }
+
+                return UpdateResult.Updated;
+            }
+            catch (Exception ex)
+            {
+                if (Verbose)
+                    Console.Error.WriteLine($"Update error: {ex.Message}");
+                return UpdateResult.Error;
+            }
+        }
+
+        private bool ShouldCheckForUpdates()
+        {
+            // Check if this is the first run since 7 AM Pacific time
+            // GitHub Actions checks upstream at 6 AM Pacific and creates releases,
+            // so checking after 7 AM optimizes release-to-install time
+
+            string timestampFile = GetTimestampFilePath();
+            if (!File.Exists(timestampFile))
+                return true;
+
+            try
+            {
+                string content = File.ReadAllText(timestampFile).Trim();
+                if (DateTime.TryParse(content, out DateTime lastCheckUtc))
+                {
+                    // Ensure lastCheck is in UTC
+                    if (lastCheckUtc.Kind != DateTimeKind.Utc)
+                        lastCheckUtc = lastCheckUtc.ToUniversalTime();
+
+                    // Get Pacific timezone (handles DST automatically)
+                    TimeZoneInfo pacificZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+
+                    // Get current time in Pacific
+                    DateTime nowPacific = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pacificZone);
+
+                    // Get today's 7 AM Pacific
+                    DateTime today7amPacific = nowPacific.Date.AddHours(7);
+
+                    // Convert last check to Pacific for comparison
+                    DateTime lastCheckPacific = TimeZoneInfo.ConvertTimeFromUtc(lastCheckUtc, pacificZone);
+
+                    // Should check if last check was before today's 7 AM Pacific
+                    return lastCheckPacific < today7amPacific;
+                }
+            }
+            catch { }
+
+            return true;
+        }
+
+        private void UpdateLastCheckTimestamp()
+        {
+            try
+            {
+                string timestampFile = GetTimestampFilePath();
+                string dir = Path.GetDirectoryName(timestampFile);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+                File.WriteAllText(timestampFile, DateTime.UtcNow.ToString("o"));
+            }
+            catch { }
+        }
+
+        private string GetTimestampFilePath()
+        {
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            return Path.Combine(localAppData, AppName, "last-update-check.txt");
+        }
+
+        private void WriteUpdateLog(string oldVersion, string newVersion)
+        {
+            try
+            {
+                string currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string logPath = Path.Combine(currentDir, "auto-updated.txt");
+                string entry = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC - Updated from v{oldVersion} to v{newVersion}\n";
+                File.AppendAllText(logPath, entry);
+            }
+            catch { }
+        }
+
+        private async Task<ReleaseInfo> GetLatestReleaseAsync()
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(TimeoutSeconds);
+                    client.DefaultRequestHeaders.Add("User-Agent", $"{AppName}/{Program.Version}");
+                    client.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+
+                    var response = await client.GetStringAsync(GitHubApiUrl);
+
+                    // Simple JSON parsing without external dependencies
+                    var tagMatch = Regex.Match(response, @"""tag_name""\s*:\s*""([^""]+)""");
+                    var urlMatch = Regex.Match(response, @"""browser_download_url""\s*:\s*""([^""]+\.zip)""");
+
+                    if (tagMatch.Success)
+                    {
+                        return new ReleaseInfo
+                        {
+                            TagName = tagMatch.Groups[1].Value,
+                            ZipUrl = urlMatch.Success ? urlMatch.Groups[1].Value : null
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Verbose)
+                    Console.Error.WriteLine($"API error: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private async Task<bool> DownloadFileAsync(string url, string path)
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60); // Longer timeout for download
+                    client.DefaultRequestHeaders.Add("User-Agent", $"{AppName}/{Program.Version}");
+
+                    var response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+
+                    using (var fs = new FileStream(path, FileMode.Create))
+                    {
+                        await response.Content.CopyToAsync(fs);
+                    }
+
+                    if (Verbose)
+                    {
+                        var fi = new FileInfo(path);
+                        Console.Error.WriteLine($"Downloaded {fi.Length / 1024.0 / 1024.0:F1} MB");
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Verbose)
+                    Console.Error.WriteLine($"Download error: {ex.Message}");
+                return false;
+            }
+        }
+
+        private bool IsNewerVersion(string latest, string current)
+        {
+            // Handle version formats: "8736.0" or "0.3.0"
+            var latestParts = latest.Split('.');
+            var currentParts = current.Split('.');
+
+            for (int i = 0; i < Math.Max(latestParts.Length, currentParts.Length); i++)
+            {
+                int latestNum = i < latestParts.Length && int.TryParse(latestParts[i], out int ln) ? ln : 0;
+                int currentNum = i < currentParts.Length && int.TryParse(currentParts[i], out int cn) ? cn : 0;
+
+                if (latestNum > currentNum) return true;
+                if (latestNum < currentNum) return false;
+            }
+
+            return false;
+        }
+
+        private string QuoteArg(string arg)
+        {
+            if (arg.Contains(" ") || arg.Contains("\""))
+                return "\"" + arg.Replace("\"", "\\\"") + "\"";
+            return arg;
+        }
+
+        private class ReleaseInfo
+        {
+            public string TagName { get; set; }
+            public string ZipUrl { get; set; }
+        }
     }
 }

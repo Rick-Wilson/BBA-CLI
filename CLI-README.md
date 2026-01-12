@@ -39,6 +39,7 @@ bba-cli --input <INPUT.pbn> --output <OUTPUT.pbn> --ns-conventions <NS.bbsa> --e
 | Argument | Short | Description |
 |----------|-------|-------------|
 | `--scoring <TYPE>` | | Scoring type for output (default: `MP`) |
+| `--auto-update` | | Check for updates and install if available |
 | `--verbose` | `-v` | Enable verbose logging |
 | `--dry-run` | | Parse input but don't write output |
 | `--help` | `-h` | Show help message |
@@ -184,6 +185,44 @@ Pass Pass
 |------|-------------|
 | 0 | Success |
 | 1 | Error (missing arguments, file not found, processing errors) |
+
+## Auto-Update
+
+BBA-CLI can automatically update itself when run with the `--auto-update` flag:
+
+```bash
+bba-cli.exe --auto-update -i deals.pbn -o auctions.pbn --ns-conventions 21GF-DEFAULT.bbsa --ew-conventions 21GF-DEFAULT.bbsa
+```
+
+### How It Works
+
+1. **Daily check**: Updates are checked once per day after 7 AM Pacific time (timestamp stored in `%LOCALAPPDATA%\BBA-CLI\last-update-check.txt`). This timing aligns with the release schedule - new versions are published around 6 AM Pacific.
+2. **Silent operation**: Update checks and installs are silent unless `--verbose` is also specified
+3. **Network failures**: If the update check fails (no network, timeout, etc.), processing continues normally
+4. **Automatic restart**: After a successful update, the CLI automatically restarts with the new version
+
+### Update Log
+
+When an update occurs, it is logged to `auto-updated.txt` in the same directory as the executable:
+
+```
+2025-01-12 14:30:45 UTC - Updated from v0.3.0 to v8737.0
+2025-01-15 09:12:33 UTC - Updated from v8737.0 to v8738.0
+```
+
+### Rollback
+
+If an update causes issues, you can manually rollback by renaming the `.old` files:
+
+1. Each file replaced during update is renamed to `{filename}.old`
+2. To rollback: rename `bba-cli.exe.old` to `bba-cli.exe`, etc.
+3. The `.old` files are kept for one update cycle (deleted on next update)
+
+### Network Requirements
+
+Auto-update requires access to:
+- `api.github.com` - To check for new releases
+- `github.com` - To download release assets
 
 ## Related Projects
 

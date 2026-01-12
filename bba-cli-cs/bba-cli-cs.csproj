@@ -13,6 +13,10 @@
     <Reference Include="EPBot64">
       <HintPath>..\epbot-wrapper\EPBot-8734\EPBot64.dll</HintPath>
     </Reference>
+    <!-- For auto-update feature -->
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
 </Project>
