@@ -88,16 +88,14 @@ jobs:
       - name: Download EPBot64.dll from upstream
         if: steps.version.outputs.exists == 'false'
         run: |
-          # Download from upstream release
-          gh release download ${{ steps.version.outputs.upstream }} --repo EdwardPiwowar/BBA --pattern "EPBot64.dll" --dir epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}
+          # EPBot64.dll is in the repo, not release assets - download from repo at the tag
+          $url = "https://raw.githubusercontent.com/EdwardPiwowar/BBA/${{ steps.version.outputs.upstream }}/EPBot64.dll"
+          New-Item -ItemType Directory -Force -Path "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}"
+          Invoke-WebRequest -Uri $url -OutFile "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll"
 
           # Also update the default location
-          if (Test-Path "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll") {
-            Copy-Item "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll" "epbot-wrapper/EPBot-8734/EPBot64.dll" -Force
-            echo "Updated EPBot64.dll to version ${{ steps.version.outputs.upstream }}"
-          }
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          Copy-Item "epbot-wrapper/EPBot-${{ steps.version.outputs.upstream }}/EPBot64.dll" "epbot-wrapper/EPBot-8734/EPBot64.dll" -Force
+          echo "Downloaded EPBot64.dll version ${{ steps.version.outputs.upstream }}"
 
       - name: Checkout dealer3 (for Rust dependencies)
         if: steps.version.outputs.exists == 'false'
