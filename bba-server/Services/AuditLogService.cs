@@ -12,7 +12,7 @@ public class AuditLogService
     private static readonly object _lock = new();
 
     // CSV header
-    private const string CsvHeader = "Timestamp,RequestIP,DurationMs,Version,EPBotVersion,Dealer,Vulnerability,Scoring,NSConvention,EWConvention,Scenario,PBN,Success,Auction,Error";
+    private const string CsvHeader = "Timestamp,RequestIP,DurationMs,Version,EPBotVersion,Dealer,Vulnerability,Scoring,NSConvention,EWConvention,Scenario,PBN,Success,Auction,Alerts,Error";
 
     public AuditLogService(IConfiguration configuration)
     {
@@ -40,6 +40,7 @@ public class AuditLogService
         string pbn,
         bool success,
         string? auction,
+        string? alerts,
         string? error)
     {
         var logFile = Path.Combine(_logDirectory, $"audit-{DateTime.Now:yyyy-MM}.csv");
@@ -64,6 +65,7 @@ public class AuditLogService
             EscapeCsv(pbn),
             success ? "true" : "false",
             EscapeCsv(formattedAuction),
+            EscapeCsv(alerts ?? ""),
             EscapeCsv(error ?? "")
         );
 

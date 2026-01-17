@@ -183,22 +183,34 @@ public class EPBotService
                 string bidStr = DecodeBid(bidCode);
                 bids.Add(bidStr);
 
-                // Get bid meaning
+                // Broadcast bid to all players FIRST
+                // Partner needs to receive the bid before they can explain what it means
+                for (int j = 0; j < 4; j++)
+                {
+                    players[j].set_bid(currentPos, bidCode);
+                }
+
+                // NOW get bid meaning from PARTNER's perspective (after they've seen the bid)
+                int partnerPos = (currentPos + 2) % 4;
                 string? meaning = null;
-                try { meaning = players[currentPos].get_info_meaning(bidCode); } catch { }
+                bool isAlert = false;
+                try
+                {
+                    isAlert = players[partnerPos].get_info_alerting(currentPos);
+                    if (isAlert)
+                    {
+                        meaning = players[partnerPos].get_info_meaning(currentPos);
+                    }
+                }
+                catch { }
 
                 meanings.Add(new BidMeaning
                 {
                     Position = bids.Count - 1,
                     Bid = bidStr,
-                    Meaning = meaning
+                    Meaning = meaning,
+                    IsAlert = isAlert
                 });
-
-                // Broadcast to all players
-                for (int j = 0; j < 4; j++)
-                {
-                    players[j].set_bid(currentPos, bidCode);
-                }
 
                 // Track passes
                 if (bidStr == "Pass")

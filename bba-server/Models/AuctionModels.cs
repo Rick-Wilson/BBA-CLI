@@ -120,4 +120,9 @@ public class BidMeaning
     /// The meaning/explanation of the bid.
     /// </summary>
     public string? Meaning { get; set; }
+
+    /// <summary>
+    /// Whether this bid should be alerted.
+    /// </summary>
+    public bool IsAlert { get; set; }
 }

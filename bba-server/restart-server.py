@@ -5,12 +5,17 @@ Checks if running, shuts down gracefully, waits for shutdown, starts up,
 monitors for startup evidence, then runs health and test calls.
 
 Also manages the Cloudflare tunnel for public access.
+
+Usage:
+    python3 restart-server.py           # Just restart
+    python3 restart-server.py --rebuild # Rebuild then restart
 """
 import sys
 import os
 import time
 import json
 import subprocess
+import argparse
 from datetime import datetime
 
 # Add the PBS build-scripts-mac to path
@@ -286,6 +291,36 @@ def show_recent_log():
         print("    (no log entries found)")
 
 
+def build_server() -> bool:
+    """Build the server project using dotnet build."""
+    log("Building bba-server...")
+
+    cmd = f'cd /d {WINDOWS_SERVER_PATH} && dotnet build -c Debug'
+    returncode, stdout, stderr = run_windows_command(cmd, check=False, verbose=False)
+
+    if returncode == 0:
+        # Check for build success in output
+        if "Build succeeded" in stdout:
+            log("  Build succeeded")
+            return True
+        elif "0 Error(s)" in stdout:
+            log("  Build succeeded")
+            return True
+        else:
+            log("  Build completed (check output for warnings)")
+            return True
+    else:
+        log("  Build FAILED!")
+        # Show build output for debugging
+        if stdout:
+            for line in stdout.split('\n'):
+                if 'error' in line.lower() or 'failed' in line.lower():
+                    print(f"    {line}")
+        if stderr:
+            print(f"    stderr: {stderr}")
+        return False
+
+
 def is_cloudflared_running() -> bool:
     """Check if cloudflared is running."""
     cmd = 'tasklist | findstr cloudflared'
@@ -349,8 +384,16 @@ def check_public_endpoint() -> bool:
 
 
 def main():
+    parser = argparse.ArgumentParser(description="BBA Server restart script")
+    parser.add_argument("--rebuild", action="store_true",
+                        help="Rebuild the server before restarting")
+    args = parser.parse_args()
+
     print("=" * 60)
-    print("BBA Server Restart Script")
+    if args.rebuild:
+        print("BBA Server Rebuild & Restart Script")
+    else:
+        print("BBA Server Restart Script")
     print("=" * 60)
     print()
 
@@ -379,6 +422,13 @@ def main():
     else:
         log("  Server is not running")
     print()
+
+    # Step 3.5: Build if requested (must be after shutdown so DLL is unlocked)
+    if args.rebuild:
+        if not build_server():
+            log("ERROR: Build failed, not starting server")
+            return 1
+        print()
 
     # Step 4: Start server
     if not start_server_background():

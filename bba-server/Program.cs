@@ -1,6 +1,16 @@
 using BbaServer.Models;
 using BbaServer.Services;
 
+// Helper to format alerts for audit log
+static string FormatAlerts(List<BidMeaning>? meanings)
+{
+    if (meanings == null) return "";
+    var alerts = meanings
+        .Where(m => m.IsAlert && !string.IsNullOrEmpty(m.Meaning))
+        .Select(m => $"{m.Bid}={m.Meaning}");
+    return string.Join("; ", alerts);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add file logging (30-day retention)
@@ -114,7 +124,7 @@ app.MapPost("/api/auction/generate", async (
             auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
                 request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
                 "", "", request.Scenario, request.Deal.Pbn,
-                false, null, errorResponse.Error);
+                false, null, null, errorResponse.Error);
             return Results.BadRequest(errorResponse);
         }
         conventions = conventionService.GetConventionsForScenario(request.Scenario);
@@ -142,7 +152,7 @@ app.MapPost("/api/auction/generate", async (
         auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
             request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
             conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
-            false, null, errorResponse.Error);
+            false, null, null, errorResponse.Error);
         return Results.BadRequest(errorResponse);
     }
     if (!conventionService.ConventionFileExists(conventions.Ew))
@@ -156,7 +166,7 @@ app.MapPost("/api/auction/generate", async (
         auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
             request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
             conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
-            false, null, errorResponse.Error);
+            false, null, null, errorResponse.Error);
         return Results.BadRequest(errorResponse);
     }
 
@@ -168,7 +178,7 @@ app.MapPost("/api/auction/generate", async (
     auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
         request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
         conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
-        response.Success, response.AuctionEncoded, response.Error);
+        response.Success, response.AuctionEncoded, FormatAlerts(response.Meanings), response.Error);
 
     return Results.Ok(response);
 })
