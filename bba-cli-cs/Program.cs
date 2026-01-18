@@ -521,9 +521,19 @@ namespace BbaCli
                     {
                         bot.set_opponent_type(side, intValue);
                     }
+                    else
+                    {
+                        // Treat 0/1 as boolean for convention settings
+                        try
+                        {
+                            bot.set_conventions(side, key, intValue != 0);
+                        }
+                        catch { /* Ignore unknown conventions */ }
+                    }
                 }
                 else if (bool.TryParse(valueStr, out bool boolValue))
                 {
+                    // Also support "True"/"False" string values
                     try
                     {
                         bot.set_conventions(side, key, boolValue);
@@ -606,8 +616,11 @@ namespace BbaCli
                         continue;
                     }
 
-                    // Skip BidSystem tags - we'll generate our own
-                    if (name.StartsWith("BidSystem", StringComparison.OrdinalIgnoreCase))
+                    // Skip tags that we'll regenerate with the new auction
+                    if (name.Equals("Note", StringComparison.OrdinalIgnoreCase) ||
+                        name.Equals("Scoring", StringComparison.OrdinalIgnoreCase) ||
+                        name.Equals("Play", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("BidSystem", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
@@ -652,8 +665,8 @@ namespace BbaCli
                     // Skip existing auction lines
                     continue;
                 }
-                // Other content
-                else if (current != null)
+                // Other content (skip play section placeholders like "*")
+                else if (current != null && trimmed != "*")
                 {
                     current.OtherLines.Add(line);
                 }
