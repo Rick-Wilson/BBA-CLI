@@ -126,7 +126,9 @@ jobs:
         if: steps.version.outputs.exists == 'false'
         run: |
           cd BBA-CLI/bba-cli-cs
-          dotnet build -c Release
+          # Extract version number from tag (remove 'v' prefix)
+          $version = "${{ steps.version.outputs.tag }}".TrimStart('v')
+          dotnet build -c Release -p:Version=$version
 
       - name: Copy EPBot64.dll to C# CLI output
         if: steps.version.outputs.exists == 'false'
@@ -183,6 +185,8 @@ jobs:
 
             ### Usage
             ```
-            bba-cli.exe -i input.pbn -o output.pbn --ns-conventions conv.bbsa --ew-conventions conv.bbsa
+            bba-cli.exe --auto-update -i input.pbn -o output.pbn --ns-conventions conv.bbsa --ew-conventions conv.bbsa
             ```
+
+            The `--auto-update` flag checks for new versions daily (after 7 AM Pacific) and automatically installs updates.
           files: BBA-CLI-${{ steps.version.outputs.tag }}-windows-x64.zip

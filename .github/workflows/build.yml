@@ -41,7 +41,9 @@ jobs:
       - name: Build C# CLI (bba-cli.exe)
         run: |
           cd BBA-CLI/bba-cli-cs
-          dotnet build -c Release
+          # For tagged builds, use the tag as version; otherwise use 0.0.0-dev
+          $version = if ("${{ github.ref }}".StartsWith("refs/tags/v")) { "${{ github.ref_name }}".TrimStart('v') } else { "0.0.0-dev" }
+          dotnet build -c Release -p:Version=$version
 
       - name: Copy EPBot64.dll to C# CLI output
         run: |

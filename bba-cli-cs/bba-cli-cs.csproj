@@ -6,6 +6,9 @@
     <RootNamespace>BbaCli</RootNamespace>
     <AssemblyName>bba-cli</AssemblyName>
     <LangVersion>latest</LangVersion>
+    <!-- Version can be set via -p:Version=X.Y.Z at build time -->
+    <Version>0.0.0</Version>
+    <InformationalVersion>$(Version)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
