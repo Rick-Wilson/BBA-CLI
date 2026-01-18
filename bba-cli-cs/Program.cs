@@ -107,8 +107,8 @@ namespace BbaCli
                     var updateResult = updater.CheckAndUpdate(args);
                     if (updateResult == AutoUpdater.UpdateResult.Updated)
                     {
-                        // Update succeeded and new process was started
-                        return 0;
+                        // Update succeeded and new process completed - return its exit code
+                        return updater.RestartExitCode;
                     }
                     // UpdateResult.NoUpdate or UpdateResult.Error - continue with normal processing
                 }
@@ -1045,9 +1045,14 @@ namespace BbaCli
         public enum UpdateResult
         {
             NoUpdate,   // No update available or check skipped
-            Updated,    // Update installed, new process started
+            Updated,    // Update installed, new process completed
             Error       // Error occurred (silently continue)
         }
+
+        /// <summary>
+        /// Exit code from the restarted process after update (only valid if UpdateResult.Updated)
+        /// </summary>
+        public int RestartExitCode { get; private set; }
 
         /// <summary>
         /// Check for updates and install if available.
@@ -1183,7 +1188,9 @@ namespace BbaCli
                     Arguments = string.Join(" ", newArgs.ConvertAll(QuoteArg)),
                     UseShellExecute = false
                 };
-                Process.Start(startInfo);
+                var process = Process.Start(startInfo);
+                process.WaitForExit();
+                RestartExitCode = process.ExitCode;
 
                 // Clean up temp directory
                 try { Directory.Delete(tempDir, true); } catch { }
