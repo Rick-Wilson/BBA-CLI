@@ -119,25 +119,20 @@ app.MapPost("/api/auction/generate", async (
 
     // Determine convention cards
     ConventionCards conventions;
+    var logger = httpContext.RequestServices.GetRequiredService<ILogger<Program>>();
 
     if (!string.IsNullOrEmpty(request.Scenario))
     {
-        // Look up conventions from scenario
-        if (!conventionService.ScenarioExists(request.Scenario))
+        // Look up conventions from scenario (fall back to defaults if not found)
+        if (conventionService.ScenarioExists(request.Scenario))
         {
-            sw.Stop();
-            var errorResponse = new AuctionResponse
-            {
-                Success = false,
-                Error = $"Scenario not found: {request.Scenario}"
-            };
-            auditLog.LogRequest(requestIP, clientVersion, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
-                request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
-                "", "", request.Scenario, request.Deal.Pbn,
-                false, null, null, errorResponse.Error);
-            return Results.BadRequest(errorResponse);
+            conventions = conventionService.GetConventionsForScenario(request.Scenario);
         }
-        conventions = conventionService.GetConventionsForScenario(request.Scenario);
+        else
+        {
+            logger.LogWarning("Scenario not found: {Scenario}, using default conventions", request.Scenario);
+            conventions = new ConventionCards();
+        }
     }
     else if (request.Conventions != null)
     {
