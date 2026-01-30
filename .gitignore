@@ -66,3 +66,6 @@ auto-updated.txt
 !EPBotARM64.dll
 !EPBot64.tlb
 !EPBot86.tlb
+
+# Private research/notes (not for publishing)
+EPBOT-CROSSPLATFORM-RESEARCH.md

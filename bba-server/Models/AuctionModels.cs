@@ -126,3 +126,14 @@ public class BidMeaning
     /// </summary>
     public bool IsAlert { get; set; }
 }
+
+/// <summary>
+/// Request to record a scenario selection.
+/// </summary>
+public class ScenarioSelectRequest
+{
+    /// <summary>
+    /// The scenario name that was selected.
+    /// </summary>
+    public string? Scenario { get; set; }
+}

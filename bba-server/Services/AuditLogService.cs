@@ -11,8 +11,9 @@ public class AuditLogService
     private readonly string _version;
     private static readonly object _lock = new();
 
-    // CSV header
-    private const string CsvHeader = "Timestamp,RequestIP,DurationMs,Version,EPBotVersion,Dealer,Vulnerability,Scoring,NSConvention,EWConvention,Scenario,PBN,Success,Auction,Alerts,Error";
+    // CSV headers
+    private const string AuctionCsvHeader = "Timestamp,RequestIP,ClientVersion,DurationMs,Version,EPBotVersion,Dealer,Vulnerability,Scoring,NSConvention,EWConvention,Scenario,PBN,Success,Auction,Alerts,Error";
+    private const string ScenarioCsvHeader = "Timestamp,RequestIP,ClientVersion,Version,Scenario";
 
     public AuditLogService(IConfiguration configuration)
     {
@@ -29,6 +30,7 @@ public class AuditLogService
     /// </summary>
     public void LogRequest(
         string? requestIP,
+        string? clientVersion,
         long durationMs,
         int epbotVersion,
         string dealer,
@@ -43,7 +45,7 @@ public class AuditLogService
         string? alerts,
         string? error)
     {
-        var logFile = Path.Combine(_logDirectory, $"audit-{DateTime.Now:yyyy-MM}.csv");
+        var logFile = Path.Combine(_logDirectory, $"audit-auction-{DateTime.Now:yyyy-MM}.csv");
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
         // Format auction for readability
@@ -53,6 +55,7 @@ public class AuditLogService
         var row = string.Join(",",
             EscapeCsv(timestamp),
             EscapeCsv(requestIP ?? "unknown"),
+            EscapeCsv(clientVersion ?? ""),
             durationMs.ToString(),
             EscapeCsv(_version),
             epbotVersion.ToString(),
@@ -76,7 +79,45 @@ public class AuditLogService
                 // Write header if file doesn't exist
                 if (!File.Exists(logFile))
                 {
-                    File.WriteAllText(logFile, CsvHeader + Environment.NewLine);
+                    File.WriteAllText(logFile, AuctionCsvHeader + Environment.NewLine);
+                }
+
+                File.AppendAllText(logFile, row + Environment.NewLine);
+            }
+            catch
+            {
+                // Ignore write errors
+            }
+        }
+    }
+
+    /// <summary>
+    /// Log a scenario selection event.
+    /// </summary>
+    public void LogScenarioSelection(
+        string? requestIP,
+        string? clientVersion,
+        string scenario)
+    {
+        var logFile = Path.Combine(_logDirectory, $"audit-scenario-{DateTime.Now:yyyy-MM}.csv");
+        var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+        var row = string.Join(",",
+            EscapeCsv(timestamp),
+            EscapeCsv(requestIP ?? "unknown"),
+            EscapeCsv(clientVersion ?? ""),
+            EscapeCsv(_version),
+            EscapeCsv(scenario)
+        );
+
+        lock (_lock)
+        {
+            try
+            {
+                // Write header if file doesn't exist
+                if (!File.Exists(logFile))
+                {
+                    File.WriteAllText(logFile, ScenarioCsvHeader + Environment.NewLine);
                 }
 
                 File.AppendAllText(logFile, row + Environment.NewLine);

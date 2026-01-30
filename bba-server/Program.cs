@@ -105,7 +105,17 @@ app.MapPost("/api/auction/generate", async (
     AuditLogService auditLog) =>
 {
     var sw = System.Diagnostics.Stopwatch.StartNew();
-    var requestIP = httpContext.Connection.RemoteIpAddress?.ToString();
+
+    // Get client IP - check Cloudflare/proxy headers first, then fall back to connection IP
+    var rawIP = httpContext.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+        ?? httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
+        ?? httpContext.Connection.RemoteIpAddress?.ToString();
+
+    // Anonymize IP for privacy (generates friendly name like "Alice_Baker")
+    var requestIP = IpAnonymizer.Anonymize(rawIP);
+
+    // Get client version from header
+    var clientVersion = httpContext.Request.Headers["X-Client-Version"].FirstOrDefault();
 
     // Determine convention cards
     ConventionCards conventions;
@@ -121,7 +131,7 @@ app.MapPost("/api/auction/generate", async (
                 Success = false,
                 Error = $"Scenario not found: {request.Scenario}"
             };
-            auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
+            auditLog.LogRequest(requestIP, clientVersion, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
                 request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
                 "", "", request.Scenario, request.Deal.Pbn,
                 false, null, null, errorResponse.Error);
@@ -149,7 +159,7 @@ app.MapPost("/api/auction/generate", async (
             Success = false,
             Error = $"NS convention card not found: {conventions.Ns}"
         };
-        auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
+        auditLog.LogRequest(requestIP, clientVersion, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
             request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
             conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
             false, null, null, errorResponse.Error);
@@ -163,7 +173,7 @@ app.MapPost("/api/auction/generate", async (
             Success = false,
             Error = $"EW convention card not found: {conventions.Ew}"
         };
-        auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
+        auditLog.LogRequest(requestIP, clientVersion, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
             request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
             conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
             false, null, null, errorResponse.Error);
@@ -175,7 +185,7 @@ app.MapPost("/api/auction/generate", async (
     sw.Stop();
 
     // Log to audit CSV
-    auditLog.LogRequest(requestIP, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
+    auditLog.LogRequest(requestIP, clientVersion, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
         request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
         conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
         response.Success, response.AuctionEncoded, FormatAlerts(response.Meanings), response.Error);
@@ -183,6 +193,27 @@ app.MapPost("/api/auction/generate", async (
     return Results.Ok(response);
 })
 .WithName("GenerateAuction");
+
+// Record scenario selection endpoint
+app.MapPost("/api/scenario/select", (
+    HttpContext httpContext,
+    ScenarioSelectRequest request,
+    AuditLogService auditLog) =>
+{
+    // Get client IP - check Cloudflare/proxy headers first
+    var rawIP = httpContext.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+        ?? httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
+        ?? httpContext.Connection.RemoteIpAddress?.ToString();
+
+    var requestIP = IpAnonymizer.Anonymize(rawIP);
+    var clientVersion = httpContext.Request.Headers["X-Client-Version"].FirstOrDefault();
+
+    // Log the scenario selection
+    auditLog.LogScenarioSelection(requestIP, clientVersion, request.Scenario ?? "");
+
+    return Results.Ok(new { success = true });
+})
+.WithName("SelectScenario");
 
 // List available scenarios endpoint
 app.MapGet("/api/scenarios", (ConventionService conventionService, IConfiguration config) =>
