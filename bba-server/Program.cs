@@ -230,20 +230,28 @@ app.MapGet("/api/scenarios", (ConventionService conventionService, IConfiguratio
 })
 .WithName("ListScenarios");
 
-// Helper to check admin access
-static string GetAnonIP(HttpContext ctx)
+// Helper to get IPs for admin access check
+static (string? rawIP, string anonIP) GetIPs(HttpContext ctx)
 {
     var rawIP = ctx.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
         ?? ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
         ?? ctx.Connection.RemoteIpAddress?.ToString();
-    return IpAnonymizer.Anonymize(rawIP);
+    return (rawIP, IpAnonymizer.Anonymize(rawIP));
 }
+
+// Admin: Debug endpoint to check connection info (always accessible)
+app.MapGet("/admin/whoami", (HttpContext ctx, AdminService admin) =>
+{
+    var (rawIP, anonIP) = GetIPs(ctx);
+    return Results.Ok(admin.GetConnectionInfo(rawIP, anonIP));
+})
+.WithName("AdminWhoAmI");
 
 // Admin dashboard (HTML page)
 app.MapGet("/admin", (HttpContext ctx, AdminService admin) =>
 {
-    var anonIP = GetAnonIP(ctx);
-    if (!admin.IsAllowed(anonIP))
+    var (rawIP, anonIP) = GetIPs(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP))
     {
         return Results.Unauthorized();
     }
@@ -254,8 +262,8 @@ app.MapGet("/admin", (HttpContext ctx, AdminService admin) =>
 
 app.MapGet("/admin/dashboard", (HttpContext ctx, AdminService admin) =>
 {
-    var anonIP = GetAnonIP(ctx);
-    if (!admin.IsAllowed(anonIP))
+    var (rawIP, anonIP) = GetIPs(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP))
     {
         return Results.Unauthorized();
     }
@@ -267,8 +275,8 @@ app.MapGet("/admin/dashboard", (HttpContext ctx, AdminService admin) =>
 // Admin API: List log files
 app.MapGet("/admin/api/logs", (HttpContext ctx, AdminService admin) =>
 {
-    var anonIP = GetAnonIP(ctx);
-    if (!admin.IsAllowed(anonIP))
+    var (rawIP, anonIP) = GetIPs(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP))
     {
         return Results.Unauthorized();
     }
@@ -279,8 +287,8 @@ app.MapGet("/admin/api/logs", (HttpContext ctx, AdminService admin) =>
 // Admin API: Get log file content
 app.MapGet("/admin/api/logs/{filename}", (HttpContext ctx, string filename, AdminService admin) =>
 {
-    var anonIP = GetAnonIP(ctx);
-    if (!admin.IsAllowed(anonIP))
+    var (rawIP, anonIP) = GetIPs(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP))
     {
         return Results.Unauthorized();
     }
@@ -305,8 +313,8 @@ app.MapGet("/admin/api/logs/{filename}", (HttpContext ctx, string filename, Admi
 // Admin API: Get statistics
 app.MapGet("/admin/api/stats", (HttpContext ctx, AdminService admin) =>
 {
-    var anonIP = GetAnonIP(ctx);
-    if (!admin.IsAllowed(anonIP))
+    var (rawIP, anonIP) = GetIPs(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP))
     {
         return Results.Unauthorized();
     }

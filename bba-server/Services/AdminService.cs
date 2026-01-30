@@ -8,6 +8,14 @@ public class AdminService
     private readonly string _logDirectory;
     private readonly HashSet<string> _allowedIPs;
 
+    // Raw IPs that are considered "localhost" and always allowed
+    private static readonly HashSet<string> _localhostIPs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "127.0.0.1",
+        "::1",
+        "localhost"
+    };
+
     public AdminService(IConfiguration configuration)
     {
         _logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
@@ -15,18 +23,40 @@ public class AdminService
         // Whitelist of anonymized IPs allowed to access admin
         _allowedIPs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Valerie_Perez",  // David
-            "Travis_Scott"    // Rick
+            "Valerie_Perez",  // David (external)
+            "Travis_Scott",   // Rick (external)
+            "Tom_Martinez"    // Rick (local via Parallels 10.211.55.2)
         };
     }
 
     /// <summary>
-    /// Check if an anonymized IP is allowed admin access.
+    /// Check if access is allowed based on raw IP or anonymized IP.
     /// </summary>
-    public bool IsAllowed(string? anonIP)
+    public bool IsAllowed(string? rawIP, string? anonIP)
     {
-        if (string.IsNullOrEmpty(anonIP)) return false;
-        return _allowedIPs.Contains(anonIP);
+        // Always allow localhost
+        if (!string.IsNullOrEmpty(rawIP) && _localhostIPs.Contains(rawIP))
+            return true;
+
+        // Check anonymized IP whitelist
+        if (!string.IsNullOrEmpty(anonIP) && _allowedIPs.Contains(anonIP))
+            return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Get debug info about the current connection.
+    /// </summary>
+    public object GetConnectionInfo(string? rawIP, string? anonIP)
+    {
+        return new
+        {
+            rawIP = rawIP ?? "unknown",
+            anonymizedIP = anonIP ?? "unknown",
+            isAllowed = IsAllowed(rawIP, anonIP),
+            whitelistedNames = _allowedIPs.ToList()
+        };
     }
 
     /// <summary>
