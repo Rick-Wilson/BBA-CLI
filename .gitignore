@@ -69,3 +69,7 @@ auto-updated.txt
 
 # Private research/notes (not for publishing)
 EPBOT-CROSSPLATFORM-RESEARCH.md
+
+# Local config with secrets (not tracked)
+appsettings.Local.json
+activity-log.json
