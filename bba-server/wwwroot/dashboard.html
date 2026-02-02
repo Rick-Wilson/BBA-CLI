@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBA Server Admin</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        h2 { color: #555; margin-top: 30px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        h3.section-title { color: #444; margin: 25px 0 15px 0; font-size: 16px; }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .filter-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        .filter-control input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .filter-control label {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 { margin: 0 0 8px 0; color: #666; font-size: 13px; font-weight: 500; }
+        .stat-card .value { font-size: 28px; font-weight: bold; color: #333; }
+        .stat-card .subtext { font-size: 12px; color: #888; margin-top: 4px; }
+        .stat-card.highlight { border-left: 4px solid #007bff; }
+        .stat-card.success .value { color: #28a745; }
+        .stat-card.error .value { color: #dc3545; }
+
+        /* Two column layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 20px;
+        }
+        @media (max-width: 900px) {
+            .two-column { grid-template-columns: 1fr; }
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-container h3 {
+            margin: 0 0 15px 0;
+            color: #444;
+            font-size: 15px;
+        }
+        .chart-subtitle {
+            font-size: 12px;
+            color: #888;
+            font-weight: normal;
+            margin-left: 10px;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            height: 180px;
+            gap: 6px;
+            padding: 10px 0 30px 0;
+        }
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #007bff 0%, #0056b3 100%);
+            min-width: 25px;
+            max-width: 60px;
+            position: relative;
+            border-radius: 3px 3px 0 0;
+            transition: background 0.2s;
+        }
+        .bar.visitors {
+            background: linear-gradient(180deg, #28a745 0%, #1e7e34 100%);
+        }
+        .bar.visitors:hover {
+            background: linear-gradient(180deg, #34ce57 0%, #28a745 100%);
+        }
+        .bar:hover { background: linear-gradient(180deg, #3395ff 0%, #007bff 100%); }
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #666;
+            white-space: nowrap;
+        }
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Pie chart */
+        .pie-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .pie-chart {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            position: relative;
+        }
+        .pie-legend {
+            flex: 1;
+            min-width: 200px;
+        }
+        .pie-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 12px;
+        }
+        .pie-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .pie-legend-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pie-legend-value {
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 13px; }
+        td { font-size: 13px; }
+        tr:hover { background: #f8f9fa; }
+        tr:last-child td { border-bottom: none; }
+        .error-row { background: #fff5f5; }
+        .error-row:hover { background: #ffecec; }
+
+        /* History table time column */
+        #requests-table th:first-child,
+        #requests-table td:first-child {
+            min-width: 155px;
+            white-space: nowrap;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: #333; }
+        .tab.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+            font-weight: 500;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Buttons */
+        .refresh-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .refresh-btn:hover { background: #0056b3; }
+
+        /* Misc */
+        .file-link { color: #007bff; cursor: pointer; text-decoration: none; }
+        .file-link:hover { text-decoration: underline; }
+        .muted { color: #888; }
+    </style>
+</head>
+<body>
+    <div class="header-row">
+        <h1 style="margin: 0;">BBA Server Dashboard</h1>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <div class="filter-control">
+                <input type="checkbox" id="filter-admins" autocomplete="off" onchange="onFilterChange()">
+                <label for="filter-admins">Hide admin users</label>
+            </div>
+            <button class="refresh-btn" onclick="loadAll()">Refresh</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('overview')">Usage Overview</button>
+        <button class="tab" onclick="showTab('errors')">Errors</button>
+        <button class="tab" onclick="showTab('history')">Recent History</button>
+        <button class="tab" onclick="showTab('logs')">Log Files</button>
+    </div>
+
+    <!-- Main Usage Overview Tab -->
+    <div id="overview" class="tab-content active">
+        <!-- Key Metrics -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card"><h3>Loading...</h3><div class="value">-</div></div>
+        </div>
+
+        <!-- Charts Row: Visitors and Usage side by side -->
+        <div class="two-column">
+            <div class="chart-container">
+                <h3>Unique Visitors <span class="chart-subtitle" id="visitors-chart-period"></span></h3>
+                <div class="bar-chart" id="visitors-chart"></div>
+            </div>
+            <div class="chart-container">
+                <h3>Usage (Selections) <span class="chart-subtitle" id="usage-chart-period"></span></h3>
+                <div class="bar-chart" id="usage-chart"></div>
+            </div>
+        </div>
+
+        <div class="two-column" style="margin-top: 25px;">
+            <!-- Scenario Popularity Pie Chart -->
+            <div class="chart-container">
+                <h3>Scenario Popularity</h3>
+                <div class="pie-container" id="scenario-pie"></div>
+            </div>
+
+            <!-- User Activity -->
+            <div>
+                <h3 class="section-title" style="margin-top: 0;">Top Users</h3>
+                <div id="user-table"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Errors Tab -->
+    <div id="errors" class="tab-content">
+        <div class="stats-grid" id="error-stats-grid" style="max-width: 400px;">
+            <div class="stat-card error">
+                <h3>Failed Requests</h3>
+                <div class="value" id="error-count">-</div>
+                <div class="subtext" id="error-rate"></div>
+            </div>
+        </div>
+
+        <h3 class="section-title">Recent Errors</h3>
+        <table id="errors-table">
+            <thead><tr><th>Time</th><th>User</th><th>Scenario</th><th>Error</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Recent History Tab -->
+    <div id="history" class="tab-content">
+        <h3 class="section-title">Recent Auction Requests</h3>
+        <table id="requests-table">
+            <thead><tr><th>Time</th><th>User</th><th>Scenario</th><th>NS Conv</th><th>Auction</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Log Files Tab -->
+    <div id="logs" class="tab-content">
+        <h3 class="section-title">Log Files</h3>
+        <table id="files-table">
+            <thead><tr><th>Name</th><th>Size</th><th>Modified</th><th>Type</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Data stores
+        let auctionData = [];      // BBA Compare requests
+        let scenarioData = [];     // Scenario selections
+        let logFiles = [];
+
+        // Pie chart colors
+        const pieColors = [
+            '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8',
+            '#6f42c1', '#fd7e14', '#20c997', '#e83e8c', '#6c757d'
+        ];
+
+        // Admin users to filter
+        const adminUsers = ['Valerie_Perez', 'Travis_Scott', 'Tom_Martinez'];
+
+        function isAdminUser(user) {
+            return adminUsers.includes(user);
+        }
+
+        function isFilterActive() {
+            const cb = document.getElementById('filter-admins');
+            return cb ? cb.checked : false;
+        }
+
+        function onFilterChange() {
+            renderAll();
+        }
+
+        // API helpers
+        function getKeyParam() {
+            return new URLSearchParams(window.location.search).get('key');
+        }
+
+        function apiUrl(path) {
+            const key = getKeyParam();
+            const t = `_t=${Date.now()}`;
+            return key ? `${path}?key=${encodeURIComponent(key)}&${t}` : `${path}?${t}`;
+        }
+
+        // Data loading
+        async function loadAll() {
+            const cb = document.getElementById('filter-admins');
+            if (cb) cb.checked = false;
+
+            await Promise.all([loadAuctionData(), loadScenarioData(), loadLogFiles()]);
+            renderAll();
+        }
+
+        async function loadAuctionData() {
+            try {
+                const res = await fetch(apiUrl('/admin/api/logs'));
+                if (!res.ok) return;
+                const files = await res.json();
+
+                const auctionFiles = files.filter(f => f.name.startsWith('audit-auction-')).sort((a, b) => a.name.localeCompare(b.name));
+                auctionData = [];
+
+                for (const file of auctionFiles) {
+                    const logRes = await fetch(apiUrl('/admin/api/logs/' + file.name));
+                    if (logRes.ok) {
+                        const data = await logRes.json();
+                        if (data.data) auctionData.push(...data.data);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load auction data:', e);
+            }
+        }
+
+        async function loadScenarioData() {
+            try {
+                const res = await fetch(apiUrl('/admin/api/logs'));
+                if (!res.ok) return;
+                const files = await res.json();
+
+                const scenarioFiles = files.filter(f => f.name.startsWith('audit-scenario-')).sort((a, b) => a.name.localeCompare(b.name));
+                scenarioData = [];
+
+                for (const file of scenarioFiles) {
+                    const logRes = await fetch(apiUrl('/admin/api/logs/' + file.name));
+                    if (logRes.ok) {
+                        const data = await logRes.json();
+                        if (data.data) scenarioData.push(...data.data);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load scenario data:', e);
+            }
+        }
+
+        async function loadLogFiles() {
+            try {
+                const res = await fetch(apiUrl('/admin/api/logs'));
+                if (res.ok) logFiles = await res.json();
+            } catch (e) {
+                console.error('Failed to load log files:', e);
+            }
+        }
+
+        // Filtering
+        function getFilteredAuctionData() {
+            if (!isFilterActive()) return auctionData;
+            return auctionData.filter(r => !isAdminUser(r.RequestIP));
+        }
+
+        function getFilteredScenarioData() {
+            if (!isFilterActive()) return scenarioData;
+            return scenarioData.filter(r => !isAdminUser(r.RequestIP));
+        }
+
+        // Rendering
+        function renderAll() {
+            renderStats();
+            renderVisitorsChart();
+            renderUsageChart();
+            renderScenarioPie();
+            renderUserTable();
+            renderErrors();
+            renderHistory();
+            renderLogFiles();
+        }
+
+        function renderStats() {
+            const auctions = getFilteredAuctionData();
+            const scenarios = getFilteredScenarioData();
+
+            // Unique users from both data sources
+            const allUsers = new Set();
+            auctions.forEach(r => r.RequestIP && allUsers.add(r.RequestIP));
+            scenarios.forEach(r => r.RequestIP && allUsers.add(r.RequestIP));
+            const uniqueUsers = allUsers.size;
+
+            const totalSelections = scenarios.length;
+            const totalAuctions = auctions.length;
+            const successfulAuctions = auctions.filter(a => a.Success === 'true').length;
+
+            // Calculate date range
+            let dateRange = '';
+            const allTimestamps = [...auctions, ...scenarios]
+                .map(r => r.Timestamp)
+                .filter(t => t)
+                .sort();
+            if (allTimestamps.length > 0) {
+                const first = allTimestamps[0].split(' ')[0];
+                const last = allTimestamps[allTimestamps.length - 1].split(' ')[0];
+                dateRange = first === last ? `since ${first}` : `${first} to ${last}`;
+            }
+
+            document.getElementById('stats-grid').innerHTML = `
+                <div class="stat-card highlight">
+                    <h3>Unique Users</h3>
+                    <div class="value">${uniqueUsers}</div>
+                    <div class="subtext">all time${dateRange ? ` (${dateRange})` : ''}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Scenario Selections</h3>
+                    <div class="value">${totalSelections.toLocaleString()}</div>
+                    <div class="subtext">PBS button clicks</div>
+                </div>
+                <div class="stat-card">
+                    <h3>BBA Compare Requests</h3>
+                    <div class="value">${totalAuctions.toLocaleString()}</div>
+                    <div class="subtext">${successfulAuctions.toLocaleString()} successful</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Unique Scenarios Used</h3>
+                    <div class="value">${new Set(scenarios.map(s => s.Scenario).filter(s => s)).size}</div>
+                    <div class="subtext">distinct scenarios</div>
+                </div>
+            `;
+        }
+
+        function renderVisitorsChart() {
+            const scenarios = getFilteredScenarioData();
+
+            // Group unique users by date
+            const usersByDate = {};
+            scenarios.forEach(r => {
+                const date = (r.Timestamp || '').split(' ')[0];
+                const user = r.RequestIP;
+                if (date && user) {
+                    if (!usersByDate[date]) usersByDate[date] = new Set();
+                    usersByDate[date].add(user);
+                }
+            });
+
+            const dates = Object.keys(usersByDate).sort();
+            if (dates.length === 0) {
+                document.getElementById('visitors-chart').innerHTML = '<div class="muted">No data yet</div>';
+                document.getElementById('visitors-chart-period').textContent = '';
+                return;
+            }
+
+            // Convert sets to counts
+            const byDate = {};
+            dates.forEach(d => byDate[d] = usersByDate[d].size);
+
+            const { aggregated, periodLabel } = aggregateData(byDate, dates, true);
+            document.getElementById('visitors-chart-period').textContent = `(${periodLabel})`;
+
+            const maxVal = Math.max(...aggregated.map(d => d.value), 1);
+            document.getElementById('visitors-chart').innerHTML = aggregated.map(d => `
+                <div class="bar visitors" style="height: ${(d.value / maxVal) * 100}%">
+                    <span class="bar-value">${d.value}</span>
+                    <span class="bar-label">${d.label}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderUsageChart() {
+            const scenarios = getFilteredScenarioData();
+
+            // Group by date
+            const byDate = {};
+            scenarios.forEach(r => {
+                const date = (r.Timestamp || '').split(' ')[0];
+                if (date) byDate[date] = (byDate[date] || 0) + 1;
+            });
+
+            const dates = Object.keys(byDate).sort();
+            if (dates.length === 0) {
+                document.getElementById('usage-chart').innerHTML = '<div class="muted">No data yet</div>';
+                document.getElementById('usage-chart-period').textContent = '';
+                return;
+            }
+
+            const { aggregated, periodLabel } = aggregateData(byDate, dates, false);
+            document.getElementById('usage-chart-period').textContent = `(${periodLabel})`;
+
+            const maxVal = Math.max(...aggregated.map(d => d.value), 1);
+            document.getElementById('usage-chart').innerHTML = aggregated.map(d => `
+                <div class="bar" style="height: ${(d.value / maxVal) * 100}%">
+                    <span class="bar-value">${d.value}</span>
+                    <span class="bar-label">${d.label}</span>
+                </div>
+            `).join('');
+        }
+
+        function aggregateData(byDate, dates, isVisitors) {
+            const daySpan = dates.length;
+            let aggregated = [];
+            let periodLabel = '';
+
+            if (daySpan <= 12) {
+                periodLabel = 'Daily';
+                aggregated = dates.slice(-12).map(d => ({
+                    label: d.slice(5),
+                    value: byDate[d]
+                }));
+            } else if (daySpan <= 84) {
+                periodLabel = 'Weekly';
+                aggregated = aggregateByWeek(byDate, dates, isVisitors);
+            } else {
+                periodLabel = 'Monthly';
+                aggregated = aggregateByMonth(byDate, dates, isVisitors);
+            }
+
+            return { aggregated, periodLabel };
+        }
+
+        function aggregateByWeek(byDate, dates, isVisitors) {
+            const weeks = {};
+            const weekUsers = {}; // For visitor dedup
+
+            dates.forEach(date => {
+                const d = new Date(date);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                const weekStart = new Date(d.setDate(diff));
+                const weekKey = weekStart.toISOString().slice(0, 10);
+
+                if (isVisitors) {
+                    // For visitors, we sum unique users per day (approximation)
+                    weeks[weekKey] = (weeks[weekKey] || 0) + byDate[date];
+                } else {
+                    weeks[weekKey] = (weeks[weekKey] || 0) + byDate[date];
+                }
+            });
+
+            return Object.entries(weeks)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .slice(-12)
+                .map(([week, count]) => ({
+                    label: week.slice(5),
+                    value: count
+                }));
+        }
+
+        function aggregateByMonth(byDate, dates, isVisitors) {
+            const months = {};
+
+            dates.forEach(date => {
+                const monthKey = date.slice(0, 7);
+                months[monthKey] = (months[monthKey] || 0) + byDate[date];
+            });
+
+            return Object.entries(months)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .slice(-12)
+                .map(([month, count]) => ({
+                    label: month.slice(2).replace('-', '/'),
+                    value: count
+                }));
+        }
+
+        function renderScenarioPie() {
+            const scenarios = getFilteredScenarioData();
+            const byScenario = {};
+            scenarios.forEach(r => {
+                const s = r.Scenario || '(none)';
+                byScenario[s] = (byScenario[s] || 0) + 1;
+            });
+
+            const sorted = Object.entries(byScenario).sort((a, b) => b[1] - a[1]);
+
+            if (sorted.length === 0) {
+                document.getElementById('scenario-pie').innerHTML = '<div class="muted">No data yet</div>';
+                return;
+            }
+
+            // Take top 9 and group rest as "Others"
+            let slices = sorted.slice(0, 9);
+            const others = sorted.slice(9);
+            if (others.length > 0) {
+                const othersTotal = others.reduce((sum, [, count]) => sum + count, 0);
+                slices.push(['Others', othersTotal]);
+            }
+
+            const total = slices.reduce((sum, [, count]) => sum + count, 0);
+
+            // Build conic gradient for pie
+            let gradientStops = [];
+            let currentAngle = 0;
+            slices.forEach(([name, count], i) => {
+                const percent = (count / total) * 100;
+                const color = pieColors[i % pieColors.length];
+                gradientStops.push(`${color} ${currentAngle}% ${currentAngle + percent}%`);
+                currentAngle += percent;
+            });
+
+            const pieHtml = `
+                <div class="pie-chart" style="background: conic-gradient(${gradientStops.join(', ')});"></div>
+                <div class="pie-legend">
+                    ${slices.map(([name, count], i) => `
+                        <div class="pie-legend-item">
+                            <div class="pie-legend-color" style="background: ${pieColors[i % pieColors.length]};"></div>
+                            <span class="pie-legend-label" title="${name}">${name}</span>
+                            <span class="pie-legend-value">${count}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('scenario-pie').innerHTML = pieHtml;
+        }
+
+        function renderUserTable() {
+            const scenarios = getFilteredScenarioData();
+            const byUser = {};
+            scenarios.forEach(r => {
+                const u = r.RequestIP || 'unknown';
+                byUser[u] = (byUser[u] || 0) + 1;
+            });
+
+            const sorted = Object.entries(byUser).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            document.getElementById('user-table').innerHTML = sorted.length === 0
+                ? '<div class="muted">No data yet</div>'
+                : `<table>
+                    <thead><tr><th>User</th><th>Selections</th></tr></thead>
+                    <tbody>${sorted.map(([u, c]) => `<tr><td>${u}</td><td>${c}</td></tr>`).join('')}</tbody>
+                </table>`;
+        }
+
+        function renderErrors() {
+            const auctions = getFilteredAuctionData();
+            // Filter out pre-release errors before 2026-01-30 07:00
+            const errorCutoff = '2026-01-30 07:00';
+            const failed = auctions.filter(a => a.Success === 'false' && (a.Timestamp || '') >= errorCutoff);
+            const total = auctions.filter(a => (a.Timestamp || '') >= errorCutoff).length;
+
+            const errorCountEl = document.getElementById('error-count');
+            errorCountEl.textContent = failed.length;
+            errorCountEl.style.color = failed.length === 0 ? '#28a745' : '#dc3545';
+            document.getElementById('error-rate').textContent = total > 0
+                ? `${((failed.length / total) * 100).toFixed(1)}% of ${total} requests`
+                : '';
+
+            const recentErrors = failed.slice(-20).reverse();
+            const tbody = document.querySelector('#errors-table tbody');
+            tbody.innerHTML = recentErrors.length === 0
+                ? '<tr><td colspan="4" class="muted">No errors</td></tr>'
+                : recentErrors.map(e => `
+                    <tr class="error-row">
+                        <td>${e.Timestamp || '-'}</td>
+                        <td>${e.RequestIP || '-'}</td>
+                        <td>${e.Scenario || '-'}</td>
+                        <td>${e.Error || '-'}</td>
+                    </tr>
+                `).join('');
+        }
+
+        function renderHistory() {
+            const auctions = getFilteredAuctionData();
+            const recent = auctions.slice(-100).reverse();
+
+            const tbody = document.querySelector('#requests-table tbody');
+            tbody.innerHTML = recent.length === 0
+                ? '<tr><td colspan="7" class="muted">No requests yet</td></tr>'
+                : recent.map(r => `
+                    <tr class="${r.Success === 'false' ? 'error-row' : ''}">
+                        <td>${r.Timestamp || '-'}</td>
+                        <td>${r.RequestIP || '-'}</td>
+                        <td>${r.Scenario || '-'}</td>
+                        <td>${r.NSConvention || '-'}</td>
+                        <td>${r.Auction || '-'}</td>
+                        <td>${r.DurationMs ? r.DurationMs + 'ms' : '-'}</td>
+                        <td>${r.Success === 'true' ? '✓' : '✗'}</td>
+                    </tr>
+                `).join('');
+        }
+
+        function renderLogFiles() {
+            const tbody = document.querySelector('#files-table tbody');
+            tbody.innerHTML = logFiles.length === 0
+                ? '<tr><td colspan="4" class="muted">No files</td></tr>'
+                : logFiles.map(f => `
+                    <tr>
+                        <td><a class="file-link" onclick="viewFile('${f.name}')">${f.name}</a></td>
+                        <td>${formatBytes(f.size)}</td>
+                        <td>${new Date(f.lastModified).toLocaleString()}</td>
+                        <td>${f.type}</td>
+                    </tr>
+                `).join('');
+        }
+
+        // Tab switching
+        function showTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(name).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Utilities
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+
+        async function viewFile(filename) {
+            try {
+                const res = await fetch(apiUrl('/admin/api/logs/' + filename));
+                if (!res.ok) throw new Error('Failed to load');
+                const data = await res.json();
+                alert(data.data
+                    ? `CSV file with ${data.rowCount} rows`
+                    : (data.content?.slice(0, 5000) || 'Empty file'));
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // Initialize
+        loadAll();
+        setInterval(loadAll, 60000);
+    </script>
+</body>
+</html>

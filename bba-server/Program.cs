@@ -13,8 +13,13 @@ static string FormatAlerts(List<BidMeaning>? meanings)
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load local config (secrets not tracked in git)
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Add file logging (30-day retention)
-var logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+// Use configured log path, or fall back to logs subdirectory of app base
+var logDirectory = builder.Configuration["Logging:LogPath"]
+    ?? Path.Combine(AppContext.BaseDirectory, "logs");
 builder.Logging.AddFileLogger(logDirectory, retentionDays: 30);
 
 // Add services
@@ -42,6 +47,18 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors("AllowBBO");
+
+// Disable caching for admin API endpoints
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/admin/api"))
+    {
+        context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+        context.Response.Headers["Pragma"] = "no-cache";
+        context.Response.Headers["Expires"] = "0";
+    }
+    await next();
+});
 
 // Request logging middleware
 app.Use(async (context, next) =>
@@ -230,19 +247,20 @@ app.MapGet("/api/scenarios", (ConventionService conventionService, IConfiguratio
 })
 .WithName("ListScenarios");
 
-// Helper to get IPs for admin access check
-static (string? rawIP, string anonIP) GetIPs(HttpContext ctx)
+// Helper to get IPs and admin key for access check
+static (string? rawIP, string anonIP, string? key) GetAdminContext(HttpContext ctx)
 {
     var rawIP = ctx.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
         ?? ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim()
         ?? ctx.Connection.RemoteIpAddress?.ToString();
-    return (rawIP, IpAnonymizer.Anonymize(rawIP));
+    var key = ctx.Request.Query["key"].FirstOrDefault();
+    return (rawIP, IpAnonymizer.Anonymize(rawIP), key);
 }
 
 // Admin: Debug endpoint to check connection info (always accessible)
 app.MapGet("/admin/whoami", (HttpContext ctx, AdminService admin) =>
 {
-    var (rawIP, anonIP) = GetIPs(ctx);
+    var (rawIP, anonIP, _) = GetAdminContext(ctx);
     return Results.Ok(admin.GetConnectionInfo(rawIP, anonIP));
 })
 .WithName("AdminWhoAmI");
@@ -250,23 +268,34 @@ app.MapGet("/admin/whoami", (HttpContext ctx, AdminService admin) =>
 // Admin dashboard (HTML page)
 app.MapGet("/admin", (HttpContext ctx, AdminService admin) =>
 {
-    var (rawIP, anonIP) = GetIPs(ctx);
-    if (!admin.IsAllowed(rawIP, anonIP))
+    var (rawIP, anonIP, key) = GetAdminContext(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP, key))
     {
         return Results.Unauthorized();
     }
-    return Results.Redirect("/admin/dashboard");
+    // Preserve key in redirect if present
+    var redirect = string.IsNullOrEmpty(key) ? "/admin/dashboard" : $"/admin/dashboard?key={key}";
+    return Results.Redirect(redirect);
 })
 .WithName("AdminRoot")
 .ExcludeFromDescription();
 
-app.MapGet("/admin/dashboard", (HttpContext ctx, AdminService admin) =>
+app.MapGet("/admin/dashboard", (HttpContext ctx, AdminService admin, IWebHostEnvironment env) =>
 {
-    var (rawIP, anonIP) = GetIPs(ctx);
-    if (!admin.IsAllowed(rawIP, anonIP))
+    var (rawIP, anonIP, key) = GetAdminContext(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP, key))
     {
         return Results.Unauthorized();
     }
+
+    // Try to load from disk first (enables hot reload during development)
+    var filePath = Path.Combine(env.ContentRootPath, "wwwroot", "dashboard.html");
+    if (File.Exists(filePath))
+    {
+        return Results.Content(File.ReadAllText(filePath), "text/html");
+    }
+
+    // Fall back to embedded HTML
     return Results.Content(AdminDashboard.GetHtml(), "text/html");
 })
 .WithName("AdminDashboard")
@@ -275,8 +304,8 @@ app.MapGet("/admin/dashboard", (HttpContext ctx, AdminService admin) =>
 // Admin API: List log files
 app.MapGet("/admin/api/logs", (HttpContext ctx, AdminService admin) =>
 {
-    var (rawIP, anonIP) = GetIPs(ctx);
-    if (!admin.IsAllowed(rawIP, anonIP))
+    var (rawIP, anonIP, key) = GetAdminContext(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP, key))
     {
         return Results.Unauthorized();
     }
@@ -287,8 +316,8 @@ app.MapGet("/admin/api/logs", (HttpContext ctx, AdminService admin) =>
 // Admin API: Get log file content
 app.MapGet("/admin/api/logs/{filename}", (HttpContext ctx, string filename, AdminService admin) =>
 {
-    var (rawIP, anonIP) = GetIPs(ctx);
-    if (!admin.IsAllowed(rawIP, anonIP))
+    var (rawIP, anonIP, key) = GetAdminContext(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP, key))
     {
         return Results.Unauthorized();
     }
@@ -313,14 +342,26 @@ app.MapGet("/admin/api/logs/{filename}", (HttpContext ctx, string filename, Admi
 // Admin API: Get statistics
 app.MapGet("/admin/api/stats", (HttpContext ctx, AdminService admin) =>
 {
-    var (rawIP, anonIP) = GetIPs(ctx);
-    if (!admin.IsAllowed(rawIP, anonIP))
+    var (rawIP, anonIP, key) = GetAdminContext(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP, key))
     {
         return Results.Unauthorized();
     }
     return Results.Ok(admin.GetStats());
 })
 .WithName("AdminStats");
+
+// Admin API: Get scenario selection statistics
+app.MapGet("/admin/api/scenario-stats", (HttpContext ctx, AdminService admin) =>
+{
+    var (rawIP, anonIP, key) = GetAdminContext(ctx);
+    if (!admin.IsAllowed(rawIP, anonIP, key))
+    {
+        return Results.Unauthorized();
+    }
+    return Results.Ok(admin.GetScenarioStats());
+})
+.WithName("AdminScenarioStats");
 
 app.Run();
 
@@ -375,6 +416,8 @@ static class AdminDashboard
             border-bottom: 1px solid #eee;
         }
         th { background: #f8f9fa; font-weight: 600; color: #555; }
+        #requests-table th, #requests-table td { padding: 6px 10px; }
+        #requests-table th:first-child, #requests-table td:first-child { min-width: 140px; white-space: nowrap; }
         tr:hover { background: #f8f9fa; }
         .file-link { color: #007bff; cursor: pointer; text-decoration: none; }
         .file-link:hover { text-decoration: underline; }
@@ -452,10 +495,41 @@ static class AdminDashboard
         .legend { display: flex; gap: 20px; margin: 10px 0; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; }
         .legend-color { width: 12px; height: 12px; border-radius: 2px; }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .filter-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        .filter-control input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .filter-control label {
+            cursor: pointer;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
-    <h1>🎴 BBA Server Admin Dashboard</h1>
+    <div class="header-row">
+        <h1 style="margin: 0;">🎴 BBA Server Admin Dashboard</h1>
+        <div class="filter-control">
+            <input type="checkbox" id="filter-admins" autocomplete="off" onchange="onFilterChange()">
+            <label for="filter-admins">Hide admin users</label>
+        </div>
+    </div>
 
     <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
 
@@ -464,21 +538,39 @@ static class AdminDashboard
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="showTab('overview')">Overview</button>
+        <button class="tab active" onclick="showTab('overview')">Auction Stats</button>
+        <button class="tab" onclick="showTab('scenarios')">Scenario Selections</button>
         <button class="tab" onclick="showTab('logs')">Log Files</button>
         <button class="tab" onclick="showTab('requests')">Recent Requests</button>
         <button class="tab" onclick="showTab('errors')">Errors</button>
     </div>
 
     <div id="overview" class="tab-content active">
-        <h2>Requests by Day</h2>
+        <h2>Auction Requests by Day</h2>
         <div class="bar-chart" id="daily-chart"></div>
 
-        <h2>Requests by Scenario</h2>
+        <h2>Auction Requests by Scenario</h2>
         <div id="scenario-table"></div>
 
-        <h2>Requests by User</h2>
+        <h2>Auction Requests by User</h2>
         <div id="user-table"></div>
+    </div>
+
+    <div id="scenarios" class="tab-content">
+        <p style="color: #666; margin-bottom: 20px;">Scenario selections track when users click scenario buttons in Practice Bidding Scenarios. This captures all users, not just those with BBA Compare enabled.</p>
+
+        <div class="stats-grid" id="scenario-stats-grid">
+            <div class="stat-card"><h3>Loading...</h3><div class="value">-</div></div>
+        </div>
+
+        <h2>Selections by Day</h2>
+        <div class="bar-chart" id="scenario-daily-chart"></div>
+
+        <h2>Selections by Scenario</h2>
+        <div id="scenario-selection-table"></div>
+
+        <h2>Selections by User</h2>
+        <div id="scenario-user-table"></div>
     </div>
 
     <div id="logs" class="tab-content">
@@ -492,7 +584,7 @@ static class AdminDashboard
     <div id="requests" class="tab-content">
         <h2>Recent Auction Requests</h2>
         <table id="requests-table">
-            <thead><tr><th>Time</th><th>User</th><th>Scenario</th><th>Auction</th><th>Duration</th><th>Status</th></tr></thead>
+            <thead><tr><th>Time</th><th>User</th><th>Scenario</th><th>NS Conv</th><th>Auction</th><th>Duration</th><th>Status</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
@@ -509,14 +601,60 @@ static class AdminDashboard
         let currentStats = null;
         let currentLogs = null;
         let currentAuctionData = null;
+        let currentScenarioStats = null;
+        let currentScenarioData = null;
+
+        // Get key from URL if present (for mobile access)
+        function getKeyParam() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('key');
+        }
+
+        // Build API URL with key if present, plus cache-buster
+        function apiUrl(path) {
+            const key = getKeyParam();
+            const cacheBuster = `_t=${Date.now()}`;
+            if (key) {
+                return `${path}?key=${encodeURIComponent(key)}&${cacheBuster}`;
+            }
+            return `${path}?${cacheBuster}`;
+        }
+
+        // Admin users to filter out when checkbox is checked
+        const adminUsers = ['Valerie_Perez', 'Travis_Scott', 'Tom_Martinez'];
+
+        function isAdminUser(user) {
+            return adminUsers.includes(user);
+        }
+
+        // Always read filter state directly from checkbox to avoid sync issues
+        function isFilterActive() {
+            const checkbox = document.getElementById('filter-admins');
+            return checkbox ? checkbox.checked : false;
+        }
+
+        function onFilterChange() {
+            renderAll();
+        }
+
+        function renderAll() {
+            renderStats();
+            renderCharts();
+            renderRequests();
+            renderScenarioStats();
+        }
 
         async function loadAll() {
-            await Promise.all([loadStats(), loadFiles(), loadAuctionLog()]);
+            // Ensure checkbox is unchecked on fresh load
+            const checkbox = document.getElementById('filter-admins');
+            if (checkbox) checkbox.checked = false;
+
+            await Promise.all([loadStats(), loadFiles(), loadAuctionLog(), loadScenarioStats(), loadScenarioLog()]);
         }
 
         async function loadStats() {
             try {
-                const res = await fetch('/admin/api/stats');
+                const res = await fetch(apiUrl('/admin/api/stats'));
                 if (!res.ok) throw new Error('Unauthorized');
                 currentStats = await res.json();
                 renderStats();
@@ -528,7 +666,7 @@ static class AdminDashboard
 
         async function loadFiles() {
             try {
-                const res = await fetch('/admin/api/logs');
+                const res = await fetch(apiUrl('/admin/api/logs'));
                 if (!res.ok) throw new Error('Unauthorized');
                 currentLogs = await res.json();
                 renderFiles();
@@ -539,13 +677,13 @@ static class AdminDashboard
 
         async function loadAuctionLog() {
             try {
-                const res = await fetch('/admin/api/logs');
+                const res = await fetch(apiUrl('/admin/api/logs'));
                 if (!res.ok) return;
                 const files = await res.json();
                 const auctionLog = files.find(f => f.name.startsWith('audit-auction-'));
                 if (!auctionLog) return;
 
-                const logRes = await fetch('/admin/api/logs/' + auctionLog.name);
+                const logRes = await fetch(apiUrl('/admin/api/logs/' + auctionLog.name));
                 if (!logRes.ok) return;
                 const data = await logRes.json();
                 currentAuctionData = data.data || [];
@@ -555,24 +693,201 @@ static class AdminDashboard
             }
         }
 
+        async function loadScenarioStats() {
+            try {
+                const res = await fetch(apiUrl('/admin/api/scenario-stats'));
+                if (!res.ok) return;
+                currentScenarioStats = await res.json();
+                renderScenarioStats();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadScenarioLog() {
+            try {
+                const res = await fetch(apiUrl('/admin/api/logs'));
+                if (!res.ok) return;
+                const files = await res.json();
+                const scenarioLog = files.find(f => f.name.startsWith('audit-scenario-'));
+                if (!scenarioLog) return;
+
+                const logRes = await fetch(apiUrl('/admin/api/logs/' + scenarioLog.name));
+                if (!logRes.ok) return;
+                const data = await logRes.json();
+                currentScenarioData = data.data || [];
+                renderScenarioStats();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function getFilteredScenarioData() {
+            if (!currentScenarioData) return [];
+            if (!isFilterActive()) return currentScenarioData;
+            return currentScenarioData.filter(r => !isAdminUser(r.RequestIP));
+        }
+
+        function renderScenarioStats() {
+            if (!currentScenarioStats && !currentScenarioData) return;
+
+            const filtered = getFilteredScenarioData();
+            let total, byScenario, byUser, byDay;
+
+            if (isFilterActive() && currentScenarioData) {
+                // Compute from filtered data
+                total = filtered.length;
+                byScenario = {};
+                byUser = {};
+                byDay = {};
+
+                filtered.forEach(r => {
+                    const scenario = r.Scenario || '';
+                    if (scenario) byScenario[scenario] = (byScenario[scenario] || 0) + 1;
+
+                    const user = r.RequestIP || 'unknown';
+                    byUser[user] = (byUser[user] || 0) + 1;
+
+                    const day = (r.Timestamp || '').split(' ')[0];
+                    if (day) byDay[day] = (byDay[day] || 0) + 1;
+                });
+            } else if (currentScenarioStats) {
+                total = currentScenarioStats.totalSelections;
+                byScenario = currentScenarioStats.selectionsByScenario || {};
+                byUser = currentScenarioStats.selectionsByUser || {};
+                byDay = currentScenarioStats.selectionsByDay || {};
+            } else {
+                return;
+            }
+
+            // Stats cards
+            const uniqueUsers = Object.keys(byUser).length;
+            const uniqueScenarios = Object.keys(byScenario).length;
+            const totalAvailable = currentScenarioStats?.totalAvailableScenarios || 0;
+            document.getElementById('scenario-stats-grid').innerHTML = `
+                <div class="stat-card"><h3>Total Selections</h3><div class="value">${total}</div></div>
+                <div class="stat-card"><h3>Unique Users</h3><div class="value">${uniqueUsers}</div></div>
+                <div class="stat-card"><h3>Scenarios Used</h3><div class="value">${uniqueScenarios}${totalAvailable ? ' / ' + totalAvailable : ''}</div></div>
+            `;
+
+            // Daily chart
+            const days = Object.entries(byDay).slice(-14);
+            const maxDaily = Math.max(...days.map(d => d[1]), 1);
+            document.getElementById('scenario-daily-chart').innerHTML = days.map(([day, count]) => `
+                <div class="bar" style="height: ${(count / maxDaily) * 100}%">
+                    <span class="bar-value">${count}</span>
+                    <span class="bar-label">${day.slice(5)}</span>
+                </div>
+            `).join('');
+
+            // Scenario table
+            const scenariosSorted = Object.entries(byScenario).sort((a, b) => b[1] - a[1]);
+            document.getElementById('scenario-selection-table').innerHTML = `<table><thead><tr><th>Scenario</th><th>Count</th></tr></thead><tbody>
+                ${scenariosSorted.map(([s, c]) => `<tr><td>${s || '(none)'}</td><td>${c}</td></tr>`).join('')}
+            </tbody></table>`;
+
+            // User table
+            const usersSorted = Object.entries(byUser).sort((a, b) => b[1] - a[1]);
+            document.getElementById('scenario-user-table').innerHTML = `<table><thead><tr><th>User</th><th>Count</th></tr></thead><tbody>
+                ${usersSorted.map(([u, c]) => `<tr><td>${u}</td><td>${c}</td></tr>`).join('')}
+            </tbody></table>`;
+        }
+
+        function getFilteredData() {
+            if (!currentAuctionData) return [];
+            if (!isFilterActive()) return currentAuctionData;
+            return currentAuctionData.filter(r => !isAdminUser(r.RequestIP));
+        }
+
+        function computeStatsFromData(data) {
+            const total = data.length;
+            const successful = data.filter(d => d.Success === 'true').length;
+            const failed = total - successful;
+            const durations = data.filter(d => d.DurationMs).map(d => parseInt(d.DurationMs)).filter(d => !isNaN(d));
+            const avgDuration = durations.length > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+            const maxDuration = durations.length > 0 ? Math.max(...durations) : 0;
+            const users = [...new Set(data.map(d => d.RequestIP))].filter(u => u);
+            return { total, successful, failed, avgDuration, maxDuration, uniqueUsers: users.length };
+        }
+
         function renderStats() {
-            if (!currentStats) return;
-            const s = currentStats;
+            if (!currentStats && !currentAuctionData) return;
+
+            let s;
+            if (isFilterActive() && currentAuctionData) {
+                // Compute stats from filtered raw data
+                const filtered = getFilteredData();
+                const computed = computeStatsFromData(filtered);
+                s = {
+                    totalRequests: computed.total,
+                    successfulRequests: computed.successful,
+                    failedRequests: computed.failed,
+                    averageDurationMs: computed.avgDuration,
+                    maxDurationMs: computed.maxDuration,
+                    uniqueUsers: computed.uniqueUsers
+                };
+            } else if (currentStats) {
+                s = currentStats;
+                s.uniqueUsers = Object.keys(s.requestsByUser || {}).length;
+            } else {
+                return;
+            }
+
             document.getElementById('stats-grid').innerHTML = `
                 <div class="stat-card"><h3>Total Requests</h3><div class="value">${s.totalRequests}</div></div>
                 <div class="stat-card success"><h3>Successful</h3><div class="value">${s.successfulRequests}</div></div>
                 <div class="stat-card error"><h3>Failed</h3><div class="value">${s.failedRequests}</div></div>
                 <div class="stat-card"><h3>Avg Duration</h3><div class="value">${s.averageDurationMs}ms</div></div>
                 <div class="stat-card"><h3>Max Duration</h3><div class="value">${s.maxDurationMs}ms</div></div>
-                <div class="stat-card"><h3>Unique Users</h3><div class="value">${Object.keys(s.requestsByUser || {}).length}</div></div>
+                <div class="stat-card"><h3>Unique Users</h3><div class="value">${s.uniqueUsers}</div></div>
             `;
         }
 
         function renderCharts() {
-            if (!currentStats) return;
+            if (!currentStats && !currentAuctionData) return;
+
+            const filtered = getFilteredData();
+
+            // Compute aggregations from filtered data
+            let daily, scenarios, users, errors;
+
+            if (isFilterActive() && currentAuctionData) {
+                // Compute from filtered raw data
+                daily = {};
+                scenarios = {};
+                users = {};
+                errors = [];
+
+                filtered.forEach(r => {
+                    // Daily counts
+                    const day = (r.Timestamp || '').split(' ')[0];
+                    if (day) daily[day] = (daily[day] || 0) + 1;
+
+                    // Scenario counts
+                    const scenario = r.Scenario || '';
+                    if (scenario) scenarios[scenario] = (scenarios[scenario] || 0) + 1;
+
+                    // User counts
+                    const user = r.RequestIP || 'unknown';
+                    users[user] = (users[user] || 0) + 1;
+
+                    // Collect errors
+                    if (r.Success === 'false' && r.Error) {
+                        errors.push({ timestamp: r.Timestamp, scenario: r.Scenario, error: r.Error });
+                    }
+                });
+
+                errors = errors.slice(-10);
+            } else if (currentStats) {
+                daily = currentStats.requestsByDay || {};
+                scenarios = currentStats.requestsByScenario || {};
+                users = currentStats.requestsByUser || {};
+                errors = currentStats.recentErrors || [];
+            } else {
+                return;
+            }
 
             // Daily chart
-            const daily = currentStats.requestsByDay || {};
             const days = Object.entries(daily).slice(-14);
             const maxDaily = Math.max(...days.map(d => d[1]), 1);
 
@@ -584,19 +899,18 @@ static class AdminDashboard
             `).join('');
 
             // Scenario table
-            const scenarios = Object.entries(currentStats.requestsByScenario || {}).sort((a, b) => b[1] - a[1]);
+            const scenariosSorted = Object.entries(scenarios).sort((a, b) => b[1] - a[1]);
             document.getElementById('scenario-table').innerHTML = `<table><thead><tr><th>Scenario</th><th>Count</th></tr></thead><tbody>
-                ${scenarios.map(([s, c]) => `<tr><td>${s || '(none)'}</td><td>${c}</td></tr>`).join('')}
+                ${scenariosSorted.map(([s, c]) => `<tr><td>${s || '(none)'}</td><td>${c}</td></tr>`).join('')}
             </tbody></table>`;
 
             // User table
-            const users = Object.entries(currentStats.requestsByUser || {}).sort((a, b) => b[1] - a[1]);
+            const usersSorted = Object.entries(users).sort((a, b) => b[1] - a[1]);
             document.getElementById('user-table').innerHTML = `<table><thead><tr><th>User</th><th>Count</th></tr></thead><tbody>
-                ${users.map(([u, c]) => `<tr><td>${u}</td><td>${c}</td></tr>`).join('')}
+                ${usersSorted.map(([u, c]) => `<tr><td>${u}</td><td>${c}</td></tr>`).join('')}
             </tbody></table>`;
 
             // Errors table
-            const errors = currentStats.recentErrors || [];
             document.getElementById('errors-table').querySelector('tbody').innerHTML = errors.map(e => `
                 <tr class="error-row"><td>${e.timestamp}</td><td>${e.scenario || '-'}</td><td>${e.error}</td></tr>
             `).join('') || '<tr><td colspan="3">No recent errors</td></tr>';
@@ -618,12 +932,14 @@ static class AdminDashboard
         function renderRequests() {
             if (!currentAuctionData) return;
             const tbody = document.querySelector('#requests-table tbody');
-            const recent = currentAuctionData.slice(-100).reverse();
+            const filtered = getFilteredData();
+            const recent = filtered.slice(-100).reverse();
             tbody.innerHTML = recent.map(r => `
                 <tr class="${r.Success === 'false' ? 'error-row' : ''}">
                     <td>${r.Timestamp || '-'}</td>
                     <td>${r.RequestIP || '-'}</td>
                     <td>${r.Scenario || '-'}</td>
+                    <td>${r.NSConvention || '-'}</td>
                     <td>${r.Auction || '-'}</td>
                     <td>${r.DurationMs || '-'}ms</td>
                     <td>${r.Success === 'true' ? '✓' : '✗'}</td>
@@ -633,7 +949,7 @@ static class AdminDashboard
 
         async function viewFile(filename) {
             try {
-                const res = await fetch('/admin/api/logs/' + filename);
+                const res = await fetch(apiUrl('/admin/api/logs/' + filename));
                 if (!res.ok) throw new Error('Failed to load file');
                 const data = await res.json();
 
