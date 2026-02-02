@@ -6,6 +6,8 @@ namespace BbaServer.Services;
 public class AdminService
 {
     private readonly string _logDirectory;
+    private readonly string _dlrPath;
+    private readonly string? _adminKey;
     private readonly HashSet<string> _allowedIPs;
 
     // Raw IPs that are considered "localhost" and always allowed
@@ -18,7 +20,15 @@ public class AdminService
 
     public AdminService(IConfiguration configuration)
     {
-        _logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+        // Use configured log path, or fall back to logs subdirectory of app base
+        _logDirectory = configuration["Logging:LogPath"]
+            ?? Path.Combine(AppContext.BaseDirectory, "logs");
+
+        // Path to scenario DLR files
+        _dlrPath = configuration["Pbs:DlrPath"] ?? @"P:\dlr";
+
+        // Admin key for remote access (from appsettings.Local.json)
+        _adminKey = configuration["Admin:Key"];
 
         // Whitelist of anonymized IPs allowed to access admin
         _allowedIPs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -30,9 +40,9 @@ public class AdminService
     }
 
     /// <summary>
-    /// Check if access is allowed based on raw IP or anonymized IP.
+    /// Check if access is allowed based on raw IP, anonymized IP, or admin key.
     /// </summary>
-    public bool IsAllowed(string? rawIP, string? anonIP)
+    public bool IsAllowed(string? rawIP, string? anonIP, string? key = null)
     {
         // Always allow localhost
         if (!string.IsNullOrEmpty(rawIP) && _localhostIPs.Contains(rawIP))
@@ -40,6 +50,10 @@ public class AdminService
 
         // Check anonymized IP whitelist
         if (!string.IsNullOrEmpty(anonIP) && _allowedIPs.Contains(anonIP))
+            return true;
+
+        // Check admin key (from query string ?key=xxx)
+        if (!string.IsNullOrEmpty(_adminKey) && !string.IsNullOrEmpty(key) && key == _adminKey)
             return true;
 
         return false;
@@ -178,12 +192,81 @@ public class AdminService
         return stats;
     }
 
+    /// <summary>
+    /// Get parsed CSV data for scenario selection logs.
+    /// </summary>
+    public List<Dictionary<string, string>> GetScenarioLogData(string? filename = null)
+    {
+        var targetFile = filename ?? GetLatestScenarioLog();
+        if (targetFile == null) return new List<Dictionary<string, string>>();
+
+        var safeName = Path.GetFileName(targetFile);
+        var filePath = Path.Combine(_logDirectory, safeName);
+
+        if (!File.Exists(filePath))
+            return new List<Dictionary<string, string>>();
+
+        return ParseCsv(filePath);
+    }
+
+    /// <summary>
+    /// Get scenario selection statistics.
+    /// </summary>
+    public ScenarioStats GetScenarioStats()
+    {
+        var stats = new ScenarioStats();
+
+        // Count available scenarios from DLR directory
+        if (Directory.Exists(_dlrPath))
+        {
+            stats.TotalAvailableScenarios = Directory.GetFiles(_dlrPath, "*.dlr").Length;
+        }
+
+        var latestLog = GetLatestScenarioLog();
+
+        if (latestLog == null)
+            return stats;
+
+        var data = GetScenarioLogData(latestLog);
+
+        stats.TotalSelections = data.Count;
+
+        // Selections by scenario
+        stats.SelectionsByScenario = data
+            .Where(d => !string.IsNullOrEmpty(d.GetValueOrDefault("Scenario")))
+            .GroupBy(d => d.GetValueOrDefault("Scenario") ?? "")
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Selections by user
+        stats.SelectionsByUser = data
+            .GroupBy(d => d.GetValueOrDefault("RequestIP") ?? "unknown")
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Selections by day
+        stats.SelectionsByDay = data
+            .Where(d => d.ContainsKey("Timestamp"))
+            .GroupBy(d => d["Timestamp"].Split(' ')[0])
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return stats;
+    }
+
     private string? GetLatestAuctionLog()
     {
         if (!Directory.Exists(_logDirectory))
             return null;
 
         return Directory.GetFiles(_logDirectory, "audit-auction-*.csv")
+            .OrderByDescending(f => f)
+            .FirstOrDefault();
+    }
+
+    private string? GetLatestScenarioLog()
+    {
+        if (!Directory.Exists(_logDirectory))
+            return null;
+
+        return Directory.GetFiles(_logDirectory, "audit-scenario-*.csv")
             .OrderByDescending(f => f)
             .FirstOrDefault();
     }
@@ -286,4 +369,13 @@ public class ErrorInfo
     public string Timestamp { get; set; } = "";
     public string Error { get; set; } = "";
     public string Scenario { get; set; } = "";
+}
+
+public class ScenarioStats
+{
+    public int TotalSelections { get; set; }
+    public int TotalAvailableScenarios { get; set; }
+    public Dictionary<string, int> SelectionsByScenario { get; set; } = new();
+    public Dictionary<string, int> SelectionsByUser { get; set; } = new();
+    public Dictionary<string, int> SelectionsByDay { get; set; } = new();
 }

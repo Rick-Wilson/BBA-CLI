@@ -94,6 +94,67 @@ Response:
 }
 ```
 
+### Record Scenario Selection
+
+```bash
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"scenario": "Smolen"}' \
+  https://bba.harmonicsystems.com/api/scenario/select
+```
+
+Records when a user selects a practice scenario (for analytics).
+
+## Admin Dashboard
+
+The admin dashboard provides log viewing and usage statistics. Access is restricted by IP whitelist.
+
+### Admin URLs
+
+| Endpoint | Description |
+|----------|-------------|
+| `/admin/dashboard` | Main dashboard with stats, charts, and request history |
+| `/admin/whoami` | Debug endpoint showing your detected IP and access status |
+| `/admin/api/stats` | JSON statistics data |
+| `/admin/api/logs` | List of available log files |
+| `/admin/api/logs/{filename}` | Get specific log file content |
+
+**Dashboard URL**: https://bba.harmonicsystems.com/admin/dashboard
+
+### Access Control
+
+Admin access is controlled by:
+1. **Localhost** - Always allowed (127.0.0.1, ::1)
+2. **IP Whitelist** - Anonymized IP names that are allowed:
+   - `Valerie_Perez` - David (external)
+   - `Travis_Scott` - Rick (external)
+   - `Tom_Martinez` - Rick (local via Parallels)
+
+To check your access status, visit `/admin/whoami`:
+```bash
+curl https://bba.harmonicsystems.com/admin/whoami
+```
+
+Response:
+```json
+{
+  "rawIP": "1.2.3.4",
+  "anonymizedIP": "Travis_Scott",
+  "isAllowed": true,
+  "whitelistedNames": ["Valerie_Perez", "Travis_Scott", "Tom_Martinez"]
+}
+```
+
+### Dashboard Features
+
+- **Stats Cards** - Total requests, success/failure counts, average/max duration, unique users
+- **Daily Chart** - Bar chart of requests per day (last 14 days)
+- **Scenario Table** - Request counts by scenario
+- **User Table** - Request counts by anonymized user
+- **Recent Requests** - Last 100 auction requests with details
+- **Errors** - Recent error messages
+- **Hide Admin Users** - Checkbox (top right) to filter out admin traffic from all views
+
 ## Server Management
 
 The server runs on a Windows VM (Parallels on Mac) and is managed via SSH.
@@ -227,24 +288,46 @@ python3 restart-server.py
 ssh rick@10.211.55.5 "tasklist | findstr cloudflared"
 ```
 
+**Quick Restart via ssh_runner (Python):**
+```python
+import os, sys
+os.environ['WINDOWS_HOST'] = '10.211.55.5'
+os.environ['WINDOWS_USER'] = 'Rick'
+sys.path.insert(0, '/Users/rick/Development/GitHub/Practice-Bidding-Scenarios/build-scripts-mac')
+from ssh_runner import run_windows_command
+
+# Stop, build, and restart
+run_windows_command('taskkill /IM bba-server.exe /F', check=False)
+run_windows_command(r'cd /d G:\BBA-CLI\bba-server && dotnet build -c Release -o G:\BBA-CLI\dist\bba-server')
+run_windows_command(r'schtasks /Create /TN "StartBBAServer" /TR "G:\BBA-CLI\dist\bba-server\bba-server.exe" /SC ONCE /ST 00:00 /F && schtasks /Run /TN "StartBBAServer"')
+```
+
 ## Logging
 
 ### Application Logs
 
-Log files are in `G:\BBA-CLI\bba-server\bin\Debug\net8.0-windows\logs\`:
-- `log-YYYY-MM-DD.txt` - Daily log files (30-day retention)
+Log files are in `G:\BBA-CLI\dist\bba-server\logs\`:
+- `bba-server-YYYY-MM-DD.log` - Daily log files (30-day retention)
 
 ### Audit Logs (CSV)
 
-Audit logs track all API requests:
-- `audit-YYYY-MM.csv` - Monthly CSV files (30-day retention)
+Audit logs track all API requests (30-day retention):
 
-**CSV Columns:**
+**Auction Requests** (`audit-auction-YYYY-MM.csv`):
 ```
-Timestamp, RequestIP, DurationMs, Version, EPBotVersion, Dealer,
-Vulnerability, Scoring, NSConvention, EWConvention, Scenario,
-PBN, Success, Auction, Error
+Timestamp, RequestIP, ClientVersion, DurationMs, Version, EPBotVersion,
+Dealer, Vulnerability, Scoring, NSConvention, EWConvention, Scenario,
+PBN, Success, Auction, Alerts, Error
 ```
+
+**Scenario Selections** (`audit-scenario-YYYY-MM.csv`):
+```
+Timestamp, RequestIP, ClientVersion, Version, Scenario
+```
+
+### IP Anonymization
+
+For privacy, all client IPs are anonymized to friendly names like "Alice_Baker" using a deterministic hash. The same IP always maps to the same name, but the original IP cannot be recovered. This allows tracking usage patterns without storing personal data.
 
 ## Convention Card Data Flow
 
@@ -289,11 +372,13 @@ dotnet build
 
 ```
 bba-server/
-├── Program.cs              # Main entry, endpoints, middleware
+├── Program.cs              # Main entry, endpoints, middleware, admin dashboard HTML
 ├── Services/
 │   ├── EPBotService.cs     # EPBot COM wrapper
 │   ├── ConventionService.cs # Convention card lookup
-│   └── AuditLogService.cs  # CSV audit logging
+│   ├── AuditLogService.cs  # CSV audit logging
+│   ├── AdminService.cs     # Admin dashboard logic and IP whitelist
+│   └── IpAnonymizer.cs     # Privacy-preserving IP hashing
 ├── Models/
 │   └── AuctionModels.cs    # Request/response DTOs
 ├── Logging/

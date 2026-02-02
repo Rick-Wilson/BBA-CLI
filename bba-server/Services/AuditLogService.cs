@@ -17,7 +17,9 @@ public class AuditLogService
 
     public AuditLogService(IConfiguration configuration)
     {
-        _logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+        // Use configured log path, or fall back to logs subdirectory of app base
+        _logDirectory = configuration["Logging:LogPath"]
+            ?? Path.Combine(AppContext.BaseDirectory, "logs");
         _retentionDays = 30;
         _version = configuration["Version"] ?? "1.0.0";
 
