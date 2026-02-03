@@ -183,7 +183,7 @@
             overflow: hidden;
         }
         th, td {
-            padding: 10px 12px;
+            padding: 6px 10px;
             text-align: left;
             border-bottom: 1px solid #eee;
         }
@@ -262,7 +262,8 @@
     <div class="tabs">
         <button class="tab active" onclick="showTab('overview')">Usage Overview</button>
         <button class="tab" onclick="showTab('errors')">Errors</button>
-        <button class="tab" onclick="showTab('history')">Recent History</button>
+        <button class="tab" onclick="showTab('scenarios')">Scenario History</button>
+        <button class="tab" onclick="showTab('auctions')">BBA Compare History</button>
         <button class="tab" onclick="showTab('logs')">Log Files</button>
     </div>
 
@@ -317,9 +318,18 @@
         </table>
     </div>
 
-    <!-- Recent History Tab -->
-    <div id="history" class="tab-content">
-        <h3 class="section-title">Recent Auction Requests</h3>
+    <!-- Scenario History Tab -->
+    <div id="scenarios" class="tab-content">
+        <h3 class="section-title">Recent Scenario Selections</h3>
+        <table id="scenario-table">
+            <thead><tr><th>Time</th><th>User</th><th>Scenario</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- BBA Compare History Tab -->
+    <div id="auctions" class="tab-content">
+        <h3 class="section-title">Recent BBA Compare Requests</h3>
         <table id="requests-table">
             <thead><tr><th>Time</th><th>User</th><th>Scenario</th><th>NS Conv</th><th>Auction</th><th>Duration</th><th>Status</th></tr></thead>
             <tbody></tbody>
@@ -348,7 +358,7 @@
         ];
 
         // Admin users to filter
-        const adminUsers = ['Valerie_Perez', 'Travis_Scott', 'Tom_Martinez'];
+        const adminUsers = ['Valerie_Perez', 'Travis_Scott', 'Tom_Martinez', 'Carol_Jordan', 'Joe_Evans', 'Rebecca_Coleman'];
 
         function isAdminUser(user) {
             return adminUsers.includes(user);
@@ -453,6 +463,7 @@
             renderScenarioPie();
             renderUserTable();
             renderErrors();
+            renderScenarioHistory();
             renderHistory();
             renderLogFiles();
         }
@@ -737,9 +748,25 @@
                 `).join('');
         }
 
+        function renderScenarioHistory() {
+            const scenarios = getFilteredScenarioData();
+            const recent = scenarios.slice(-500).reverse();
+
+            const tbody = document.querySelector('#scenario-table tbody');
+            tbody.innerHTML = recent.length === 0
+                ? '<tr><td colspan="3" class="muted">No selections yet</td></tr>'
+                : recent.map(r => `
+                    <tr>
+                        <td>${r.Timestamp || '-'}</td>
+                        <td>${r.RequestIP || '-'}</td>
+                        <td>${r.Scenario || '-'}</td>
+                    </tr>
+                `).join('');
+        }
+
         function renderHistory() {
             const auctions = getFilteredAuctionData();
-            const recent = auctions.slice(-100).reverse();
+            const recent = auctions.slice(-500).reverse();
 
             const tbody = document.querySelector('#requests-table tbody');
             tbody.innerHTML = recent.length === 0
