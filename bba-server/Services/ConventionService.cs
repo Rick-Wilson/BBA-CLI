@@ -4,35 +4,33 @@ using BbaServer.Models;
 namespace BbaServer.Services;
 
 /// <summary>
-/// Service for looking up convention cards from scenario .dlr files.
+/// Service for looking up convention cards from GitHub.
+/// Fetches .bbsa files from raw.githubusercontent.com and .pbs files for scenario convention lookups.
 /// </summary>
 public class ConventionService
 {
     private readonly ILogger<ConventionService> _logger;
-    private readonly string _dlrPath;
-    private readonly string _bbsaPath;
+    private readonly HttpClient _httpClient = new();
     private readonly string _defaultNsCard;
     private readonly string _defaultEwCard;
+    private readonly string _githubRawBaseUrl;
 
     public ConventionService(ILogger<ConventionService> logger, IConfiguration configuration)
     {
         _logger = logger;
 
-        // Read paths from configuration
-        _dlrPath = configuration["Pbs:DlrPath"] ?? @"P:\dlr";
-        _bbsaPath = configuration["Pbs:BbsaPath"] ?? @"P:\bbsa";
         _defaultNsCard = configuration["Pbs:DefaultNsCard"] ?? "21GF-DEFAULT";
         _defaultEwCard = configuration["Pbs:DefaultEwCard"] ?? "21GF-GIB";
+        _githubRawBaseUrl = configuration["GitHub:RawBaseUrl"]
+            ?? "https://raw.githubusercontent.com/ADavidBailey/Practice-Bidding-Scenarios/main";
     }
 
     /// <summary>
-    /// Get convention cards for a scenario.
+    /// Get convention cards for a scenario by fetching its .pbs file from GitHub.
     /// </summary>
-    /// <param name="scenario">Scenario name (e.g., "Smolen")</param>
-    /// <returns>Convention cards for NS and EW</returns>
-    public ConventionCards GetConventionsForScenario(string scenario)
+    public async Task<ConventionCards> GetConventionsForScenarioAsync(string scenario)
     {
-        var nsCard = GetConventionCardFromDlr(scenario) ?? _defaultNsCard;
+        var nsCard = await GetConventionCardFromPbs(scenario) ?? _defaultNsCard;
         return new ConventionCards
         {
             Ns = nsCard,
@@ -41,48 +39,55 @@ public class ConventionService
     }
 
     /// <summary>
-    /// Get the full path to a convention card file.
+    /// Fetch a .bbsa convention card file from GitHub and return its lines.
     /// </summary>
-    public string GetConventionFilePath(string cardName)
+    public async Task<string[]> GetBbsaContentAsync(string cardName)
     {
-        return Path.Combine(_bbsaPath, $"{cardName}.bbsa");
+        var url = $"{_githubRawBaseUrl}/bbsa/{cardName}.bbsa";
+        _logger.LogInformation("Fetching convention card from GitHub: {Url}", url);
+
+        var response = await _httpClient.GetAsync(url);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"Convention card not found on GitHub: {cardName} (HTTP {(int)response.StatusCode})");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        return content.Split('\n');
     }
 
     /// <summary>
-    /// Read the convention-card property from a .dlr file.
+    /// Fetch a scenario's .pbs file from GitHub and extract the convention-card property.
     /// </summary>
-    private string? GetConventionCardFromDlr(string scenario)
+    private async Task<string?> GetConventionCardFromPbs(string scenario)
     {
-        var dlrFile = Path.Combine(_dlrPath, $"{scenario}.dlr");
-
-        if (!File.Exists(dlrFile))
-        {
-            _logger.LogWarning("DLR file not found: {DlrFile}", dlrFile);
-            return null;
-        }
+        var url = $"{_githubRawBaseUrl}/pbs-release/{scenario}.pbs";
 
         try
         {
-            // Pattern to match: # convention-card: value
-            var pattern = new Regex(@"^#?\s*convention-card:\s*(.+)$", RegexOptions.IgnoreCase);
-
-            foreach (var line in File.ReadLines(dlrFile))
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
             {
-                var match = pattern.Match(line.Trim());
-                if (match.Success)
+                _logger.LogWarning("PBS file not found on GitHub: {Scenario} (HTTP {StatusCode})", scenario, (int)response.StatusCode);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var pattern = new Regex(@"^#?\s*convention-card:\s*(.+)$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var match = pattern.Match(content);
+            if (match.Success)
+            {
+                var value = match.Groups[1].Value.Trim();
+                if (!string.IsNullOrEmpty(value))
                 {
-                    var value = match.Groups[1].Value.Trim();
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        _logger.LogInformation("Found convention card '{Card}' for scenario '{Scenario}'", value, scenario);
-                        return value;
-                    }
+                    _logger.LogInformation("Found convention card '{Card}' for scenario '{Scenario}' from GitHub", value, scenario);
+                    return value;
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error reading DLR file: {DlrFile}", dlrFile);
+            _logger.LogError(ex, "Error fetching PBS file from GitHub for scenario: {Scenario}", scenario);
         }
 
         _logger.LogInformation("No convention card specified for scenario '{Scenario}', using default", scenario);
@@ -90,19 +95,37 @@ public class ConventionService
     }
 
     /// <summary>
-    /// Check if a scenario exists.
+    /// Get the list of available scenarios from GitHub's pbs-release folder.
     /// </summary>
-    public bool ScenarioExists(string scenario)
+    public async Task<List<string>> GetScenarioListAsync()
     {
-        var dlrFile = Path.Combine(_dlrPath, $"{scenario}.dlr");
-        return File.Exists(dlrFile);
+        var url = "https://api.github.com/repos/ADavidBailey/Practice-Bidding-Scenarios/contents/pbs-release";
+        _logger.LogInformation("Fetching scenario list from GitHub API");
+
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("User-Agent", "BBA-Server");
+
+        var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("Failed to fetch scenario list from GitHub (HTTP {StatusCode})", (int)response.StatusCode);
+            return new List<string>();
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+        var items = System.Text.Json.JsonSerializer.Deserialize<List<GitHubContentItem>>(json);
+        if (items == null) return new List<string>();
+
+        return items
+            .Where(i => i.name?.EndsWith(".pbs") == true)
+            .Select(i => Path.GetFileNameWithoutExtension(i.name!))
+            .OrderBy(s => s)
+            .ToList();
     }
 
-    /// <summary>
-    /// Check if a convention card file exists.
-    /// </summary>
-    public bool ConventionFileExists(string cardName)
+    private class GitHubContentItem
     {
-        return File.Exists(GetConventionFilePath(cardName));
+        public string? name { get; set; }
+        public string? type { get; set; }
     }
 }

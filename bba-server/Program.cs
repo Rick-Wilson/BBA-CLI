@@ -67,14 +67,18 @@ app.Use(async (context, next) =>
     var path = context.Request.Path;
     var method = context.Request.Method;
 
-    logger.LogInformation("Request: {Method} {Path}", method, path);
+    var isAdminApi = path.StartsWithSegments("/admin/api");
+
+    if (!isAdminApi)
+        logger.LogInformation("Request: {Method} {Path}", method, path);
 
     var sw = System.Diagnostics.Stopwatch.StartNew();
     await next();
     sw.Stop();
 
-    logger.LogInformation("Response: {Method} {Path} - {StatusCode} ({ElapsedMs}ms)",
-        method, path, context.Response.StatusCode, sw.ElapsedMilliseconds);
+    if (!isAdminApi)
+        logger.LogInformation("Response: {Method} {Path} - {StatusCode} ({ElapsedMs}ms)",
+            method, path, context.Response.StatusCode, sw.ElapsedMilliseconds);
 });
 
 // API Key validation middleware
@@ -140,58 +144,20 @@ app.MapPost("/api/auction/generate", async (
     ConventionCards conventions;
     var logger = httpContext.RequestServices.GetRequiredService<ILogger<Program>>();
 
-    if (!string.IsNullOrEmpty(request.Scenario))
+    if (request.Conventions != null)
     {
-        // Look up conventions from scenario (fall back to defaults if not found)
-        if (conventionService.ScenarioExists(request.Scenario))
-        {
-            conventions = conventionService.GetConventionsForScenario(request.Scenario);
-        }
-        else
-        {
-            logger.LogWarning("Scenario not found: {Scenario}, using default conventions", request.Scenario);
-            conventions = new ConventionCards();
-        }
-    }
-    else if (request.Conventions != null)
-    {
-        // Use explicit conventions
+        // Use explicit conventions (new client flow)
         conventions = request.Conventions;
+    }
+    else if (!string.IsNullOrEmpty(request.Scenario))
+    {
+        // Look up conventions from scenario's .pbs file on GitHub
+        conventions = await conventionService.GetConventionsForScenarioAsync(request.Scenario);
     }
     else
     {
         // Use defaults
         conventions = new ConventionCards();
-    }
-
-    // Validate convention files exist
-    if (!conventionService.ConventionFileExists(conventions.Ns))
-    {
-        sw.Stop();
-        var errorResponse = new AuctionResponse
-        {
-            Success = false,
-            Error = $"NS convention card not found: {conventions.Ns}"
-        };
-        auditLog.LogRequest(requestIP, clientVersion, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
-            request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
-            conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
-            false, null, null, errorResponse.Error);
-        return Results.BadRequest(errorResponse);
-    }
-    if (!conventionService.ConventionFileExists(conventions.Ew))
-    {
-        sw.Stop();
-        var errorResponse = new AuctionResponse
-        {
-            Success = false,
-            Error = $"EW convention card not found: {conventions.Ew}"
-        };
-        auditLog.LogRequest(requestIP, clientVersion, sw.ElapsedMilliseconds, epbotService.EPBotVersion,
-            request.Deal.Dealer, request.Deal.Vulnerability, request.Deal.Scoring,
-            conventions.Ns, conventions.Ew, request.Scenario, request.Deal.Pbn,
-            false, null, null, errorResponse.Error);
-        return Results.BadRequest(errorResponse);
     }
 
     // Generate auction
@@ -229,21 +195,18 @@ app.MapPost("/api/scenario/select", (
 })
 .WithName("SelectScenario");
 
-// List available scenarios endpoint
-app.MapGet("/api/scenarios", (ConventionService conventionService, IConfiguration config) =>
+// List available scenarios endpoint (fetches from GitHub)
+app.MapGet("/api/scenarios", async (ConventionService conventionService) =>
 {
-    var dlrPath = config["Pbs:DlrPath"] ?? @"P:\dlr";
-    if (!Directory.Exists(dlrPath))
+    try
     {
-        return Results.Ok(new { scenarios = Array.Empty<string>(), error = "DLR directory not found" });
+        var scenarios = await conventionService.GetScenarioListAsync();
+        return Results.Ok(new { scenarios });
     }
-
-    var scenarios = Directory.GetFiles(dlrPath, "*.dlr")
-        .Select(f => Path.GetFileNameWithoutExtension(f))
-        .OrderBy(s => s)
-        .ToList();
-
-    return Results.Ok(new { scenarios });
+    catch (Exception ex)
+    {
+        return Results.Ok(new { scenarios = Array.Empty<string>(), error = ex.Message });
+    }
 })
 .WithName("ListScenarios");
 

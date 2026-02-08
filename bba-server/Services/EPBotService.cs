@@ -95,10 +95,26 @@ public class EPBotService
     /// </summary>
     public async Task<AuctionResponse> GenerateAuctionAsync(DealInfo deal, ConventionCards conventions)
     {
+        // Fetch convention card content from GitHub before entering semaphore
+        string[] nsConvLines, ewConvLines;
+        try
+        {
+            nsConvLines = await _conventionService.GetBbsaContentAsync(conventions.Ns);
+            ewConvLines = await _conventionService.GetBbsaContentAsync(conventions.Ew);
+        }
+        catch (Exception ex)
+        {
+            return new AuctionResponse
+            {
+                ConventionsUsed = conventions,
+                Error = ex.Message
+            };
+        }
+
         await _semaphore.WaitAsync();
         try
         {
-            return await Task.Run(() => GenerateAuction(deal, conventions));
+            return await Task.Run(() => GenerateAuction(deal, conventions, nsConvLines, ewConvLines));
         }
         finally
         {
@@ -106,7 +122,7 @@ public class EPBotService
         }
     }
 
-    private AuctionResponse GenerateAuction(DealInfo deal, ConventionCards conventions)
+    private AuctionResponse GenerateAuction(DealInfo deal, ConventionCards conventions, string[] nsConvLines, string[] ewConvLines)
     {
         var response = new AuctionResponse
         {
@@ -121,22 +137,6 @@ public class EPBotService
             var vul = ParseVulnerability(deal.Vulnerability);
             var scoring = ParseScoring(deal.Scoring);
 
-            // Get convention file paths
-            var nsConvPath = _conventionService.GetConventionFilePath(conventions.Ns);
-            var ewConvPath = _conventionService.GetConventionFilePath(conventions.Ew);
-
-            // Verify convention files exist
-            if (!File.Exists(nsConvPath))
-            {
-                response.Error = $"NS convention file not found: {conventions.Ns}";
-                return response;
-            }
-            if (!File.Exists(ewConvPath))
-            {
-                response.Error = $"EW convention file not found: {conventions.Ew}";
-                return response;
-            }
-
             // Create 4 EPBot instances
             dynamic[] players = new dynamic[4];
             string[] posNames = { "N", "E", "S", "W" };
@@ -149,8 +149,8 @@ public class EPBotService
                 players[i].scoring = scoring; // 0 = MP, 1 = IMP
 
                 // Load conventions
-                LoadConventions(players[i], nsConvPath, 0);
-                LoadConventions(players[i], ewConvPath, 1);
+                LoadConventions(players[i], nsConvLines, 0);
+                LoadConventions(players[i], ewConvLines, 1);
 
                 // Debug: verify key conventions loaded
                 if (i == 0)
@@ -260,11 +260,11 @@ public class EPBotService
     }
 
     /// <summary>
-    /// Load conventions from a .bbsa file.
+    /// Load conventions from .bbsa content lines.
     /// </summary>
-    private void LoadConventions(dynamic bot, string filePath, int side)
+    private void LoadConventions(dynamic bot, string[] lines, int side)
     {
-        foreach (var line in File.ReadAllLines(filePath))
+        foreach (var line in lines)
         {
             if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#") || line.StartsWith(";"))
                 continue;

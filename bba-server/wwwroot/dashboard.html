@@ -358,7 +358,7 @@
         ];
 
         // Admin users to filter
-        const adminUsers = ['Valerie_Perez', 'Travis_Scott', 'Tom_Martinez', 'Carol_Jordan', 'Joe_Evans', 'Rebecca_Coleman'];
+        const adminUsers = ['Valerie_Perez', 'Travis_Scott', 'Tom_Martinez', 'Carol_Jordan', 'Joe_Evans', 'Rebecca_Coleman', 'Timothy_Carter'];
 
         function isAdminUser(user) {
             return adminUsers.includes(user);
@@ -386,9 +386,6 @@
 
         // Data loading
         async function loadAll() {
-            const cb = document.getElementById('filter-admins');
-            if (cb) cb.checked = false;
-
             await Promise.all([loadAuctionData(), loadScenarioData(), loadLogFiles()]);
             renderAll();
         }
@@ -828,7 +825,7 @@
 
         // Initialize
         loadAll();
-        setInterval(loadAll, 60000);
+        setInterval(loadAll, 300000);
     </script>
 </body>
 </html>
