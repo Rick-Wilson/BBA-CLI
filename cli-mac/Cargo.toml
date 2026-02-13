@@ -1,0 +1,37 @@
+[package]
+name = "bba-cli-mac"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rick Wilson"]
+description = "Bridge Bidding Analyzer CLI for macOS - uses native EPBotWrapper.dylib"
+license = "MIT"
+
+[dependencies]
+# Bridge types and PBN handling from DEALER3
+dealer-core = { path = "../../dealer3/dealer-core" }
+dealer-pbn = { path = "../../dealer3/dealer-pbn" }
+
+# CLI argument parsing
+clap = { version = "4.4", features = ["derive"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+log = "0.4"
+env_logger = "0.10"
+
+# JSON for output compatibility with Windows version
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[[bin]]
+name = "bba-cli-mac"
+path = "src/main.rs"

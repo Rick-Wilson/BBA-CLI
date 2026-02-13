@@ -6,6 +6,7 @@ obj/
 
 # Rust
 /cli/target/
+/cli-mac/target/
 **/*.rs.bk
 Cargo.lock
 
@@ -42,6 +43,10 @@ inspect-*.ps1
 *.swp
 *.swo
 *~
+
+# Python
+__pycache__/
+*.pyc
 
 # OS
 .DS_Store
