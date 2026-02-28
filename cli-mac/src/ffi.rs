@@ -40,6 +40,15 @@ extern "C" {
     pub fn epbot_clear_auction(instance: *mut c_void) -> c_int;
     pub fn epbot_is_auction_complete(instance: *mut c_void, is_complete: *mut u8) -> c_int;
 
+    // Bid meaning
+    pub fn epbot_get_bid_meaning(
+        instance: *mut c_void,
+        bid_code: c_int,
+        position: c_int,
+        buffer: *mut c_char,
+        buffer_size: c_int,
+    ) -> c_int;
+
     // Convention configuration
     pub fn epbot_load_conventions(
         instance: *mut c_void,

@@ -11,7 +11,7 @@ mod batch;
 mod epbot;
 mod error;
 
-use batch::process_pbn_file;
+use batch::{process_pbn_file_with_config, OutputConfig};
 
 /// Bridge Bidding Analyzer CLI
 ///
@@ -39,6 +39,18 @@ struct Args {
     /// Path to epbot-wrapper.exe (default: look in same directory as bba.exe)
     #[arg(long = "wrapper", value_name = "FILE")]
     wrapper_path: Option<PathBuf>,
+
+    /// Event name for PBN output
+    #[arg(long, default_value = "")]
+    event: String,
+
+    /// Convention system name for N-S (for BidSystemNS tag)
+    #[arg(long = "ns-system-name", default_value = "2/1GF - 2/1 Game Force")]
+    ns_system_name: String,
+
+    /// Convention system name for E-W (for BidSystemEW tag)
+    #[arg(long = "ew-system-name", default_value = "2/1GF - 2/1 Game Force")]
+    ew_system_name: String,
 
     /// Enable verbose logging (use -vv for debug output)
     #[arg(short, long, action = clap::ArgAction::Count)]
@@ -113,10 +125,19 @@ fn main() -> Result<()> {
 
     debug!("Wrapper: {:?}", wrapper_path);
 
+    // Build output config
+    let config = OutputConfig {
+        event: args.event,
+        ns_system_name: args.ns_system_name,
+        ew_system_name: args.ew_system_name,
+        ns_conventions_path: args.ns_conventions.display().to_string(),
+        ew_conventions_path: args.ew_conventions.display().to_string(),
+    };
+
     // Process the PBN file
     info!("Processing {:?}...", args.input);
 
-    let stats = process_pbn_file(
+    let stats = process_pbn_file_with_config(
         &args.input,
         &args.output,
         &args.ns_conventions,
@@ -124,6 +145,7 @@ fn main() -> Result<()> {
         &wrapper_path,
         args.threads,
         args.dry_run,
+        &config,
     )
     .context("Failed to process PBN file")?;
 

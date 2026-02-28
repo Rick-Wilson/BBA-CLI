@@ -12,7 +12,7 @@ mod batch;
 mod engine;
 mod ffi;
 
-use batch::process_pbn_file;
+use batch::{process_pbn_file, OutputConfig};
 
 /// Bridge Bidding Analyzer CLI (macOS native)
 ///
@@ -36,6 +36,18 @@ struct Args {
     /// Convention file (.bbsa) for East-West partnership
     #[arg(long = "ew-conventions", value_name = "FILE")]
     ew_conventions: PathBuf,
+
+    /// Event name for PBN output
+    #[arg(long, default_value = "")]
+    event: String,
+
+    /// Convention system name for N-S (for BidSystemNS tag)
+    #[arg(long = "ns-system-name", default_value = "2/1GF - 2/1 Game Force")]
+    ns_system_name: String,
+
+    /// Convention system name for E-W (for BidSystemEW tag)
+    #[arg(long = "ew-system-name", default_value = "2/1GF - 2/1 Game Force")]
+    ew_system_name: String,
 
     /// Enable verbose logging (use -vv for debug output)
     #[arg(short, long, action = clap::ArgAction::Count)]
@@ -86,6 +98,15 @@ fn main() -> Result<()> {
         anyhow::bail!("EW conventions file not found: {:?}", args.ew_conventions);
     }
 
+    // Build output config
+    let config = OutputConfig {
+        event: args.event,
+        ns_system_name: args.ns_system_name,
+        ew_system_name: args.ew_system_name,
+        ns_conventions_path: args.ns_conventions.display().to_string(),
+        ew_conventions_path: args.ew_conventions.display().to_string(),
+    };
+
     // Process
     info!("Processing {:?}...", args.input);
 
@@ -96,6 +117,7 @@ fn main() -> Result<()> {
         &args.ew_conventions,
         args.threads,
         args.dry_run,
+        &config,
     )
     .context("Failed to process PBN file")?;
 

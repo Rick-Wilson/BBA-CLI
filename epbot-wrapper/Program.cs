@@ -553,6 +553,7 @@ namespace EPBotWrapper
 
                 // Generate auction
                 var bids = new List<string>();
+                var bidMeanings = new List<string>();
                 int currentPos = dealer;
                 int passCount = 0;
                 bool hasBid = false;
@@ -563,8 +564,37 @@ namespace EPBotWrapper
                 {
                     // Get bid from current player
                     int bidCode = players[currentPos].get_bid();
+
+                    // Capture bid meaning immediately after get_bid(), before set_bid().
+                    // EPBot stores convention meanings at Item[14] (primary) and Item[12] (alternate).
+                    // Only include meanings where feature[314]==1 (alert flag), which indicates
+                    // a convention bid (e.g. Stayman, Gerber) rather than a generic description.
+                    string capturedMeaning = "";
+                    try
+                    {
+                        int[] f14 = players[currentPos].get_info_feature(14);
+                        int[] f12 = players[currentPos].get_info_feature(12);
+                        bool alert14 = f14 != null && f14.Length > 314 && f14[314] == 1;
+                        bool alert12 = f12 != null && f12.Length > 314 && f12[314] == 1;
+
+                        if (alert14)
+                        {
+                            string m = players[currentPos].get_info_meaning(14);
+                            if (!string.IsNullOrEmpty(m))
+                                capturedMeaning = m;
+                        }
+                        else if (alert12)
+                        {
+                            string m = players[currentPos].get_info_meaning(12);
+                            if (!string.IsNullOrEmpty(m))
+                                capturedMeaning = m;
+                        }
+                    }
+                    catch { }
+
                     string bidStr = DecodeBid(bidCode);
                     bids.Add(bidStr);
+                    bidMeanings.Add(capturedMeaning);
 
                     // Broadcast this bid to ALL players using set_bid(position, bid)
                     // Note: Edward's code uses 2 params, not 3
@@ -573,14 +603,8 @@ namespace EPBotWrapper
                         players[i].set_bid(currentPos, bidCode);
                     }
 
-                    // Get bid meaning and extended meaning
-                    string bidMeaning = "";
-                    string extMeaning = "";
-                    try { bidMeaning = players[currentPos].get_info_meaning(bidCode); } catch { }
-                    try { extMeaning = players[currentPos].get_info_meaning_extended(currentPos); } catch { }
                     Console.Error.WriteLine($"{positions[currentPos]}: {bidStr}");
-                    Console.Error.WriteLine($"  meaning: \"{bidMeaning}\"");
-                    Console.Error.WriteLine($"  extended: \"{extMeaning}\"");
+                    Console.Error.WriteLine($"  meaning: \"{capturedMeaning}\"");
 
                     // Track passes for auction end detection
                     if (bidStr == "Pass" || bidStr == "P")
@@ -604,6 +628,7 @@ namespace EPBotWrapper
                 }
 
                 result.auction = bids;
+                result.bid_meanings = bidMeanings;
                 result.success = true;
             }
             catch (Exception ex)
@@ -677,7 +702,7 @@ namespace EPBotWrapper
                 int adjustedCode = code - 5;
                 int level = adjustedCode / 5 + 1;
                 int suit = adjustedCode % 5;
-                string[] suits = { "C", "D", "H", "S", "NT" };
+                string[] suits = { "C", "D", "H", "S", "N" };
                 return $"{level}{suits[suit]}";
             }
 
@@ -989,6 +1014,7 @@ namespace EPBotWrapper
     {
         public string deal { get; set; }
         public List<string> auction { get; set; }
+        public List<string> bid_meanings { get; set; }
         public bool success { get; set; }
         public string error { get; set; }
     }

@@ -1,9 +1,10 @@
 //! Batch processor for PBN files
 //!
 //! Handles reading PBN files, generating auctions for each deal,
-//! and writing the results to an output file.
+//! and writing the results to an output file with rich PBN formatting
+//! matching BBA.exe output.
 
-use crate::epbot::{DealSpec, EPBot, Side, Vulnerability};
+use crate::epbot::{DealResult, DealSpec, EPBot, Side, Vulnerability};
 use crate::error::{BbaError, BbaResult};
 use dealer_core::Position;
 use dealer_pbn::{format_deal_tag, parse_deal_tag, PbnDeal};
@@ -18,6 +19,27 @@ pub struct ProcessingStats {
     pub deals_processed: usize,
     pub auctions_generated: usize,
     pub errors: usize,
+}
+
+/// Configuration for PBN output formatting
+pub struct OutputConfig {
+    pub event: String,
+    pub ns_system_name: String,
+    pub ew_system_name: String,
+    pub ns_conventions_path: String,
+    pub ew_conventions_path: String,
+}
+
+impl Default for OutputConfig {
+    fn default() -> Self {
+        Self {
+            event: String::new(),
+            ns_system_name: "2/1GF - 2/1 Game Force".to_string(),
+            ew_system_name: "2/1GF - 2/1 Game Force".to_string(),
+            ns_conventions_path: String::new(),
+            ew_conventions_path: String::new(),
+        }
+    }
 }
 
 /// A parsed PBN game with its tags
@@ -48,19 +70,6 @@ impl PbnGame {
             .map(|(_, v)| v.as_str())
     }
 
-    /// Set or update a tag value
-    fn set_tag(&mut self, name: &str, value: &str) {
-        if let Some(pos) = self
-            .tags
-            .iter()
-            .position(|(n, _)| n.eq_ignore_ascii_case(name))
-        {
-            self.tags[pos].1 = value.to_string();
-        } else {
-            self.tags.push((name.to_string(), value.to_string()));
-        }
-    }
-
     /// Get dealer position from Dealer tag
     fn dealer(&self) -> Option<Position> {
         self.get_tag("Dealer").and_then(|s| match s.trim() {
@@ -80,20 +89,6 @@ impl PbnGame {
 }
 
 /// Process a PBN file, generating auctions for each deal
-///
-/// # Arguments
-///
-/// * `input_path` - Path to input PBN file
-/// * `output_path` - Path to output PBN file
-/// * `ns_conventions` - Path to NS convention file (.bbsa)
-/// * `ew_conventions` - Path to EW convention file (.bbsa)
-/// * `wrapper_path` - Path to epbot-wrapper.exe
-/// * `threads` - Number of worker threads (currently unused, reserved for future)
-/// * `dry_run` - If true, don't write output file
-///
-/// # Returns
-///
-/// Processing statistics including number of deals processed and errors.
 pub fn process_pbn_file(
     input_path: &Path,
     output_path: &Path,
@@ -102,6 +97,29 @@ pub fn process_pbn_file(
     wrapper_path: &Path,
     _threads: usize,
     dry_run: bool,
+) -> BbaResult<ProcessingStats> {
+    process_pbn_file_with_config(
+        input_path,
+        output_path,
+        ns_conventions,
+        ew_conventions,
+        wrapper_path,
+        _threads,
+        dry_run,
+        &OutputConfig::default(),
+    )
+}
+
+/// Process a PBN file with output configuration
+pub fn process_pbn_file_with_config(
+    input_path: &Path,
+    output_path: &Path,
+    ns_conventions: &Path,
+    ew_conventions: &Path,
+    wrapper_path: &Path,
+    _threads: usize,
+    dry_run: bool,
+    config: &OutputConfig,
 ) -> BbaResult<ProcessingStats> {
     let mut stats = ProcessingStats::default();
 
@@ -122,14 +140,13 @@ pub fn process_pbn_file(
 
     // Collect all deals to process in batch
     let mut deal_specs: Vec<DealSpec> = Vec::new();
-    let mut game_indices: Vec<usize> = Vec::new(); // Track which games have deals
+    let mut game_indices: Vec<usize> = Vec::new();
 
     for (idx, game) in games.iter().enumerate() {
         if let Some(deal) = &game.deal {
             let dealer = game.dealer().unwrap_or(Position::North);
             let vulnerability = game.vulnerability().unwrap_or(Vulnerability::None);
 
-            // Get PBN deal content
             let deal_str = format_deal_tag(&deal.deal, deal.first_seat);
             let deal_content = deal_str
                 .strip_prefix("[Deal \"")
@@ -152,49 +169,276 @@ pub fn process_pbn_file(
     // Generate all auctions in one call to the wrapper
     let results = engine.generate_auctions(deal_specs)?;
 
-    // Apply results back to games
-    let mut processed_games = games;
-
-    for (result_idx, result) in results.iter().enumerate() {
-        let game_idx = game_indices[result_idx];
-        let game = &mut processed_games[game_idx];
-
-        if result.success {
-            if let Some(ref bids) = result.auction {
+    // Write rich PBN output
+    if !dry_run {
+        info!("Writing output to {:?}", output_path);
+        write_rich_pbn(output_path, &games, &results, &game_indices, config, &mut stats)?;
+    } else {
+        for result in &results {
+            if result.success && result.auction.is_some() {
                 stats.auctions_generated += 1;
-
-                let dealer = game.dealer().unwrap_or(Position::North);
-                let auction_str = format_auction(bids, dealer);
-
-                // Add Auction tag
-                let dealer_char = match dealer {
-                    Position::North => "N",
-                    Position::East => "E",
-                    Position::South => "S",
-                    Position::West => "W",
-                };
-                game.set_tag("Auction", dealer_char);
-                game.other_lines.push(auction_str);
-
-                debug!("Game {}: Generated auction with {} bids", game_idx + 1, bids.len());
+            } else if !result.success {
+                stats.errors += 1;
             }
-        } else {
-            stats.errors += 1;
-            error!(
-                "Game {}: {}",
-                game_idx + 1,
-                result.error.as_deref().unwrap_or("Unknown error")
-            );
         }
     }
 
-    // Write output file
-    if !dry_run {
-        info!("Writing output to {:?}", output_path);
-        write_pbn_file(output_path, &processed_games)?;
+    Ok(stats)
+}
+
+/// Write the rich PBN output file matching BBA.exe format
+fn write_rich_pbn(
+    path: &Path,
+    games: &[PbnGame],
+    results: &[DealResult],
+    game_indices: &[usize],
+    config: &OutputConfig,
+    stats: &mut ProcessingStats,
+) -> BbaResult<()> {
+    let file = File::create(path)?;
+    let mut writer = BufWriter::new(file);
+
+    let today = chrono_date();
+
+    // Write PBN header
+    writeln!(writer, "% PBN 2.1")?;
+    writeln!(writer, "% Generated by bba-cli")?;
+    if !config.ns_conventions_path.is_empty() {
+        writeln!(writer, "% CC1 - {}", config.ns_conventions_path)?;
+    }
+    if !config.ew_conventions_path.is_empty() {
+        writeln!(writer, "% CC2 - {}", config.ew_conventions_path)?;
     }
 
-    Ok(stats)
+    // Build a map from game index -> result index
+    let mut result_map: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();
+    for (result_idx, &game_idx) in game_indices.iter().enumerate() {
+        result_map.insert(game_idx, result_idx);
+    }
+
+    let mut first_game = true;
+    for (game_idx, game) in games.iter().enumerate() {
+        if !first_game {
+            writeln!(writer)?;
+        }
+        first_game = false;
+
+        let result = result_map.get(&game_idx).map(|&ri| &results[ri]);
+        let has_auction = result.map_or(false, |r| r.success && r.auction.is_some());
+
+        if has_auction {
+            stats.auctions_generated += 1;
+        }
+        if result.map_or(false, |r| !r.success) {
+            stats.errors += 1;
+            if let Some(r) = result {
+                error!(
+                    "Game {}: {}",
+                    game_idx + 1,
+                    r.error.as_deref().unwrap_or("Unknown error")
+                );
+            }
+        }
+
+        let dealer = game.dealer().unwrap_or(Position::North);
+        let vulnerability = game.vulnerability().unwrap_or(Vulnerability::None);
+        let board_num = game
+            .get_tag("Board")
+            .unwrap_or(&(game_idx + 1).to_string())
+            .to_string();
+        let deal_value = game.get_tag("Deal").unwrap_or("").to_string();
+
+        // Write tags in BBA.exe order
+        writeln!(writer, "[Event \"{}\"]", config.event)?;
+        writeln!(writer, "[Site \"\"]")?;
+        writeln!(writer, "[Date \"{}\"]", today)?;
+        writeln!(writer, "[Board \"{}\"]", board_num)?;
+        writeln!(writer, "[North \"EPBot\"]")?;
+        writeln!(writer, "[East \"EPBot\"]")?;
+        writeln!(writer, "[South \"EPBot\"]")?;
+        writeln!(writer, "[West \"EPBot\"]")?;
+        writeln!(writer, "[Dealer \"{}\"]", position_char(dealer))?;
+        writeln!(writer, "[Vulnerable \"{}\"]", vulnerability.to_pbn())?;
+        writeln!(writer, "[Deal \"{}\"]", deal_value)?;
+
+        // Write Shape/HCP/Losers from parsed deal
+        if let Some(deal) = &game.deal {
+            write_hand_analysis(&mut writer, &deal.deal)?;
+        }
+
+        // Derive contract/declarer from auction
+        let bids = result.and_then(|r| r.auction.as_ref());
+        let meanings = result.and_then(|r| r.bid_meanings.as_ref());
+
+        if has_auction {
+            if let Some(bids) = bids {
+                let (contract, declarer) = derive_contract_declarer(bids, dealer);
+                writeln!(writer, "[Declarer \"{}\"]", declarer)?;
+                writeln!(writer, "[Contract \"{}\"]", contract)?;
+            }
+        }
+
+        // Write auction with annotations
+        if has_auction {
+            if let Some(bids) = bids {
+                writeln!(writer, "[Auction \"{}\"]", position_char(dealer))?;
+                write_annotated_auction(&mut writer, bids, meanings)?;
+            }
+        }
+
+        // BidSystem tags
+        writeln!(writer, "[BidSystemEW \"{}\"]", config.ew_system_name)?;
+        writeln!(writer, "[BidSystemNS \"{}\"]", config.ns_system_name)?;
+
+        debug!("Game {}: written", game_idx + 1);
+    }
+
+    writer.flush()?;
+    Ok(())
+}
+
+/// Write {Shape}, {HCP}, {Losers} comments from the parsed deal
+fn write_hand_analysis(writer: &mut impl Write, deal: &dealer_core::Deal) -> BbaResult<()> {
+    let positions = [Position::North, Position::East, Position::South, Position::West];
+
+    // Shape: suit lengths as digits (SHDC) for each hand in N E S W order
+    let shapes: Vec<String> = positions
+        .iter()
+        .map(|&pos| {
+            let lengths = deal.hand(pos).suit_lengths(); // [S, H, D, C]
+            format!("{}{}{}{}", lengths[0], lengths[1], lengths[2], lengths[3])
+        })
+        .collect();
+    writeln!(writer, "{{Shape {} {} {} {}}}", shapes[0], shapes[1], shapes[2], shapes[3])?;
+
+    // HCP
+    let hcps: Vec<u8> = positions.iter().map(|&pos| deal.hand(pos).hcp()).collect();
+    writeln!(writer, "{{HCP {} {} {} {}}}", hcps[0], hcps[1], hcps[2], hcps[3])?;
+
+    // Losers
+    let losers: Vec<u8> = positions.iter().map(|&pos| deal.hand(pos).losers()).collect();
+    writeln!(
+        writer,
+        "{{Losers {} {} {} {}}}",
+        losers[0], losers[1], losers[2], losers[3]
+    )?;
+
+    Ok(())
+}
+
+/// Derive contract and declarer from the auction
+fn derive_contract_declarer(bids: &[String], dealer: Position) -> (String, String) {
+    let mut last_contract_bid = None;
+    let mut last_contract_idx = 0;
+    let mut doubled = false;
+    let mut redoubled = false;
+
+    for (i, bid) in bids.iter().enumerate() {
+        match bid.as_str() {
+            "Pass" | "P" => {}
+            "X" => {
+                doubled = true;
+                redoubled = false;
+            }
+            "XX" => {
+                redoubled = true;
+                doubled = false;
+            }
+            _ => {
+                last_contract_bid = Some(bid.as_str());
+                last_contract_idx = i;
+                doubled = false;
+                redoubled = false;
+            }
+        }
+    }
+
+    let contract_bid = match last_contract_bid {
+        Some(bid) => bid,
+        None => return ("Pass".to_string(), "?".to_string()),
+    };
+
+    let contract = if redoubled {
+        format!("{}XX", contract_bid)
+    } else if doubled {
+        format!("{}X", contract_bid)
+    } else {
+        contract_bid.to_string()
+    };
+
+    let positions = [Position::North, Position::East, Position::South, Position::West];
+    let declaring_pos = positions[(dealer as usize + last_contract_idx) % 4];
+    let declaring_side_is_ns = matches!(declaring_pos, Position::North | Position::South);
+
+    // Extract strain from contract bid (everything after the level digit)
+    let strain = &contract_bid[1..];
+
+    // Find the first player on the declaring side who bid this strain
+    let mut declarer = declaring_pos;
+    for (i, bid) in bids.iter().enumerate() {
+        let bidder = positions[(dealer as usize + i) % 4];
+        let bidder_is_ns = matches!(bidder, Position::North | Position::South);
+        if bidder_is_ns != declaring_side_is_ns {
+            continue;
+        }
+        if bid.len() > 1 && &bid[1..] == strain {
+            declarer = bidder;
+            break;
+        }
+    }
+
+    (contract, position_char(declarer).to_string())
+}
+
+/// Write auction with column alignment and =N= annotations
+fn write_annotated_auction(
+    writer: &mut impl Write,
+    bids: &[String],
+    meanings: Option<&Vec<String>>,
+) -> BbaResult<()> {
+    let mut notes: Vec<(usize, String)> = Vec::new();
+    let mut entries: Vec<String> = Vec::new();
+
+    for (i, bid) in bids.iter().enumerate() {
+        let meaning = meanings
+            .and_then(|m| m.get(i))
+            .map(|s| s.as_str())
+            .unwrap_or("");
+
+        if !meaning.is_empty() {
+            let note_num = notes.len() + 1;
+            notes.push((note_num, meaning.to_string()));
+            entries.push(format!("{} ={}=", bid, note_num));
+        } else {
+            entries.push(bid.clone());
+        }
+    }
+
+    // Write auction lines, 4 entries per line, column-aligned
+    for chunk in entries.chunks(4) {
+        let mut line = String::new();
+        for (j, entry) in chunk.iter().enumerate() {
+            let is_last = j == chunk.len() - 1;
+            if is_last {
+                line.push_str(entry);
+            } else {
+                let width = if entry.len() <= 4 {
+                    6 // Standard column width
+                } else {
+                    entry.len() + 4 // Wider for annotated bids
+                };
+                line.push_str(&format!("{:<width$}", entry, width = width));
+            }
+        }
+        writeln!(writer, "{}", line.trim_end())?;
+    }
+
+    // Write Note tags
+    for (num, meaning) in &notes {
+        writeln!(writer, "[Note \"{}:{}\"]", num, meaning)?;
+    }
+
+    Ok(())
 }
 
 /// Read and parse a PBN file into games
@@ -209,7 +453,6 @@ fn read_pbn_file(path: &Path) -> BbaResult<Vec<PbnGame>> {
         let line = line?;
         let trimmed = line.trim();
 
-        // Empty line may separate games
         if trimmed.is_empty() {
             if let Some(game) = current_game.take() {
                 if !game.tags.is_empty() {
@@ -219,23 +462,11 @@ fn read_pbn_file(path: &Path) -> BbaResult<Vec<PbnGame>> {
             continue;
         }
 
-        // Escape lines (start with %)
-        if trimmed.starts_with('%') {
-            if let Some(ref mut game) = current_game {
-                game.other_lines.push(line.clone());
-            }
+        // Skip header/comment lines from input — we write our own
+        if trimmed.starts_with('%') || trimmed.starts_with(';') {
             continue;
         }
 
-        // Comments (start with ;)
-        if trimmed.starts_with(';') {
-            if let Some(ref mut game) = current_game {
-                game.other_lines.push(line.clone());
-            }
-            continue;
-        }
-
-        // Tag pairs: [Name "Value"]
         if trimmed.starts_with('[') && trimmed.ends_with(']') {
             if current_game.is_none() {
                 current_game = Some(PbnGame::new());
@@ -245,7 +476,6 @@ fn read_pbn_file(path: &Path) -> BbaResult<Vec<PbnGame>> {
                 if let Some(ref mut game) = current_game {
                     game.tags.push((name.clone(), value.clone()));
 
-                    // If this is a Deal tag, also parse it
                     if name.eq_ignore_ascii_case("Deal") {
                         let deal_tag = format!("[Deal \"{}\"]", value);
                         match parse_deal_tag(&deal_tag) {
@@ -258,14 +488,12 @@ fn read_pbn_file(path: &Path) -> BbaResult<Vec<PbnGame>> {
                 }
             }
         } else {
-            // Other lines (auction data, etc.)
             if let Some(ref mut game) = current_game {
                 game.other_lines.push(line.clone());
             }
         }
     }
 
-    // Don't forget the last game
     if let Some(game) = current_game {
         if !game.tags.is_empty() {
             games.push(game);
@@ -284,58 +512,55 @@ fn parse_tag_pair(line: &str) -> Option<(String, String)> {
     Some((name, value))
 }
 
-/// Format an auction as PBN auction content
-fn format_auction(bids: &[String], _dealer: Position) -> String {
-    // PBN auction format: bids listed with proper column alignment
-    // Each line has up to 4 bids (one for each player)
+/// Get today's date in PBN format (YYYY.MM.DD)
+fn chrono_date() -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let days = now / 86400;
+    let mut year = 1970i64;
+    let mut remaining_days = days as i64;
 
-    let mut result = String::new();
-    let mut line_bids = Vec::new();
-
-    for bid in bids {
-        line_bids.push(bid.as_str());
-
-        // After 4 bids, start a new line
-        if line_bids.len() == 4 {
-            result.push_str(&line_bids.join(" "));
-            result.push('\n');
-            line_bids.clear();
+    loop {
+        let days_in_year = if is_leap_year(year) { 366 } else { 365 };
+        if remaining_days < days_in_year {
+            break;
         }
+        remaining_days -= days_in_year;
+        year += 1;
     }
 
-    // Handle remaining bids
-    if !line_bids.is_empty() {
-        result.push_str(&line_bids.join(" "));
-        result.push('\n');
-    }
+    let days_in_months = if is_leap_year(year) {
+        [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    } else {
+        [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    };
 
-    result
+    let mut month = 1;
+    for &dim in &days_in_months {
+        if remaining_days < dim {
+            break;
+        }
+        remaining_days -= dim;
+        month += 1;
+    }
+    let day = remaining_days + 1;
+
+    format!("{:04}.{:02}.{:02}", year, month, day)
 }
 
-/// Write processed games to a PBN file
-fn write_pbn_file(path: &Path, games: &[PbnGame]) -> BbaResult<()> {
-    let file = File::create(path)?;
-    let mut writer = BufWriter::new(file);
+fn is_leap_year(year: i64) -> bool {
+    (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
+}
 
-    for (idx, game) in games.iter().enumerate() {
-        // Blank line between games (except before first)
-        if idx > 0 {
-            writeln!(writer)?;
-        }
-
-        // Write tags
-        for (name, value) in &game.tags {
-            writeln!(writer, "[{} \"{}\"]", name, value)?;
-        }
-
-        // Write other lines (auction content, comments, etc.)
-        for line in &game.other_lines {
-            writeln!(writer, "{}", line)?;
-        }
+fn position_char(pos: Position) -> &'static str {
+    match pos {
+        Position::North => "N",
+        Position::East => "E",
+        Position::South => "S",
+        Position::West => "W",
     }
-
-    writer.flush()?;
-    Ok(())
 }
 
 #[cfg(test)]
@@ -354,17 +579,49 @@ mod tests {
     }
 
     #[test]
-    fn test_format_auction() {
+    fn test_derive_contract_declarer() {
         let bids = vec![
-            "1H".to_string(),
+            "1N".to_string(),
             "Pass".to_string(),
-            "2H".to_string(),
+            "2C".to_string(),
+            "Pass".to_string(),
+            "2S".to_string(),
+            "Pass".to_string(),
+            "3N".to_string(),
             "Pass".to_string(),
             "Pass".to_string(),
             "Pass".to_string(),
         ];
-        let formatted = format_auction(&bids, Position::North);
-        assert!(formatted.contains("1H Pass 2H Pass"));
-        assert!(formatted.contains("Pass Pass"));
+        let (contract, declarer) = derive_contract_declarer(&bids, Position::South);
+        assert_eq!(contract, "3N");
+        assert_eq!(declarer, "S");
+
+        let bids = vec![
+            "Pass".to_string(),
+            "Pass".to_string(),
+            "Pass".to_string(),
+            "Pass".to_string(),
+        ];
+        let (contract, _) = derive_contract_declarer(&bids, Position::North);
+        assert_eq!(contract, "Pass");
+
+        let bids = vec![
+            "1H".to_string(),
+            "X".to_string(),
+            "Pass".to_string(),
+            "Pass".to_string(),
+            "Pass".to_string(),
+        ];
+        let (contract, declarer) = derive_contract_declarer(&bids, Position::North);
+        assert_eq!(contract, "1HX");
+        assert_eq!(declarer, "N");
+    }
+
+    #[test]
+    fn test_chrono_date() {
+        let date = chrono_date();
+        assert_eq!(date.len(), 10);
+        assert_eq!(&date[4..5], ".");
+        assert_eq!(&date[7..8], ".");
     }
 }

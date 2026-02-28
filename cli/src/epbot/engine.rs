@@ -36,6 +36,7 @@ struct BatchResponse {
 pub struct DealResult {
     pub deal: Option<String>,
     pub auction: Option<Vec<String>>,
+    pub bid_meanings: Option<Vec<String>>,
     pub success: bool,
     pub error: Option<String>,
 }
@@ -197,13 +198,13 @@ impl Vulnerability {
         }
     }
 
-    /// Convert to PBN string
+    /// Convert to PBN string (matches BBA.exe format)
     pub fn to_pbn(self) -> &'static str {
         match self {
             Vulnerability::None => "None",
             Vulnerability::NorthSouth => "NS",
             Vulnerability::EastWest => "EW",
-            Vulnerability::Both => "Both",
+            Vulnerability::Both => "All",
         }
     }
 }
@@ -248,6 +249,6 @@ mod tests {
         assert_eq!(Vulnerability::None.to_pbn(), "None");
         assert_eq!(Vulnerability::NorthSouth.to_pbn(), "NS");
         assert_eq!(Vulnerability::EastWest.to_pbn(), "EW");
-        assert_eq!(Vulnerability::Both.to_pbn(), "Both");
+        assert_eq!(Vulnerability::Both.to_pbn(), "All");
     }
 }

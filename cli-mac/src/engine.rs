@@ -22,6 +22,7 @@ const ERR_AUCTION_COMPLETE: i32 = -9;
 pub struct DealResult {
     pub deal: Option<String>,
     pub auction: Option<Vec<String>>,
+    pub bid_meanings: Option<Vec<String>>,
     pub success: bool,
     pub error: Option<String>,
 }
@@ -55,13 +56,13 @@ impl Vulnerability {
         }
     }
 
-    /// Convert to PBN string
+    /// Convert to PBN string (matches BBA.exe format)
     pub fn to_pbn(self) -> &'static str {
         match self {
             Vulnerability::None => "None",
             Vulnerability::NorthSouth => "NS",
             Vulnerability::EastWest => "EW",
-            Vulnerability::Both => "Both",
+            Vulnerability::Both => "All",
         }
     }
 
@@ -178,6 +179,7 @@ impl EPBot {
             return DealResult {
                 deal: Some(deal.pbn.clone()),
                 auction: None,
+                bid_meanings: None,
                 success: false,
                 error: Some("Failed to create EPBot instance".to_string()),
             };
@@ -198,6 +200,7 @@ impl EPBot {
                 return DealResult {
                     deal: Some(deal.pbn.clone()),
                     auction: None,
+                    bid_meanings: None,
                     success: false,
                     error: Some(format!("Invalid PBN string: {}", e)),
                 }
@@ -247,7 +250,10 @@ impl EPBot {
 
         // Run auction
         let mut bids = Vec::new();
+        let mut meanings = Vec::new();
         let mut bid_buf = [0i8; 32];
+        let mut meaning_buf = [0i8; 256];
+        let mut current_pos = dealer_int;
 
         for _ in 0..100 {
             let rc = unsafe {
@@ -267,7 +273,41 @@ impl EPBot {
                     .unwrap_or("?")
                     .to_string()
             };
+
+            // Get bid meaning from EPBot — ask the PARTNER of the bidder,
+            // who interprets the bid's meaning (e.g., "Stayman" for 2C)
+            let bid_code = encode_bid(&bid_str);
+            let partner_pos = (current_pos + 2) % 4;
+            let meaning = if bid_code >= 5 {
+                // Only get meanings for actual bids (not Pass/X/XX)
+                meaning_buf.fill(0);
+                let rc = unsafe {
+                    ffi::epbot_get_bid_meaning(
+                        inst,
+                        bid_code,
+                        partner_pos,
+                        meaning_buf.as_mut_ptr(),
+                        meaning_buf.len() as i32,
+                    )
+                };
+                if rc == OK {
+                    let s = unsafe {
+                        CStr::from_ptr(meaning_buf.as_ptr())
+                            .to_str()
+                            .unwrap_or("")
+                            .to_string()
+                    };
+                    if s.is_empty() { String::new() } else { s }
+                } else {
+                    String::new()
+                }
+            } else {
+                String::new()
+            };
+
             bids.push(bid_str);
+            meanings.push(meaning);
+            current_pos = (current_pos + 1) % 4;
 
             // Check if auction is complete
             let mut is_done: u8 = 0;
@@ -283,8 +323,41 @@ impl EPBot {
         DealResult {
             deal: Some(deal.pbn.clone()),
             auction: Some(bids),
+            bid_meanings: Some(meanings),
             success: true,
             error: None,
+        }
+    }
+}
+
+/// Encode a bid string to EPBot bid code.
+/// Pass=0, X=1, XX=2, 1C=5, 1D=6, 1H=7, 1S=8, 1N=9, ... 7N=39
+pub fn encode_bid(bid: &str) -> i32 {
+    match bid {
+        "Pass" | "P" | "pass" => 0,
+        "X" => 1,
+        "XX" => 2,
+        _ => {
+            let bytes = bid.as_bytes();
+            if bytes.len() >= 2 && bytes[0].is_ascii_digit() {
+                let level = (bytes[0] - b'0') as i32;
+                let suit_str = &bid[1..];
+                let suit = match suit_str {
+                    "C" => 0,
+                    "D" => 1,
+                    "H" => 2,
+                    "S" => 3,
+                    "N" | "NT" => 4,
+                    _ => return 0,
+                };
+                if (1..=7).contains(&level) {
+                    5 + (level - 1) * 5 + suit
+                } else {
+                    0
+                }
+            } else {
+                0
+            }
         }
     }
 }
@@ -306,6 +379,7 @@ fn error_result(pbn: &str, _inst: *mut c_void, op: &str, code: i32) -> DealResul
     DealResult {
         deal: Some(pbn.to_string()),
         auction: None,
+        bid_meanings: None,
         success: false,
         error: Some(err_msg),
     }
@@ -342,5 +416,21 @@ mod tests {
         assert_eq!(Vulnerability::NorthSouth.to_ffi(), 1);
         assert_eq!(Vulnerability::EastWest.to_ffi(), 2);
         assert_eq!(Vulnerability::Both.to_ffi(), 3);
+    }
+
+    #[test]
+    fn test_encode_bid() {
+        assert_eq!(encode_bid("Pass"), 0);
+        assert_eq!(encode_bid("X"), 1);
+        assert_eq!(encode_bid("XX"), 2);
+        assert_eq!(encode_bid("1C"), 5);
+        assert_eq!(encode_bid("1D"), 6);
+        assert_eq!(encode_bid("1H"), 7);
+        assert_eq!(encode_bid("1S"), 8);
+        assert_eq!(encode_bid("1N"), 9);
+        assert_eq!(encode_bid("1NT"), 9);
+        assert_eq!(encode_bid("2C"), 10);
+        assert_eq!(encode_bid("3N"), 19);
+        assert_eq!(encode_bid("7N"), 39);
     }
 }
