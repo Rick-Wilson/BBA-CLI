@@ -94,9 +94,11 @@ The bba-server is an ASP.NET Core API that wraps EPBot to generate bridge auctio
 - `GET /admin/dashboard` - Stats, charts, request history (IP whitelist protected)
 - `GET /admin/whoami` - Debug endpoint showing detected IP and access status
 
-Admin access requires IP to be in whitelist: `Valerie_Perez`, `Travis_Scott`, `Tom_Martinez`
+Admin access requires IP to be in whitelist: `Valerie_Perez`, `Travis_Scott`, `Tom_Martinez`, `Carol_Jordan`, `Joe_Evans`, `Rebecca_Coleman`, `Timothy_Carter`
 
 ### Server Management
+
+The server runs as a Windows service (`BBAServer`) installed at `C:\BBAServer\`. It auto-starts on boot and auto-restarts on failure.
 
 All commands require ssh_runner setup:
 
@@ -110,7 +112,7 @@ from ssh_runner import run_windows_command
 
 **Stop server:**
 ```python
-run_windows_command('taskkill /IM bba-server.exe /F', check=False)
+run_windows_command('sc stop BBAServer', check=False)
 ```
 
 **Build server:**
@@ -118,16 +120,27 @@ run_windows_command('taskkill /IM bba-server.exe /F', check=False)
 run_windows_command(r'cd /d G:\BBA-CLI\bba-server && dotnet publish -c Release -o G:\BBA-CLI\dist\bba-server')
 ```
 
-**Start server** (must use scheduled task - SSH can't start interactive processes):
+**Deploy to service directory:**
 ```python
-run_windows_command(r'schtasks /Create /TN "StartBBAServer" /TR "G:\BBA-CLI\dist\bba-server\bba-server.exe" /SC ONCE /ST 00:00 /F && schtasks /Run /TN "StartBBAServer"')
+run_windows_command(r'xcopy /E /Y /Q "G:\BBA-CLI\dist\bba-server" "C:\BBAServer\"', check=False)
 ```
 
-**Restart server** (stop, build, start):
+**Start server:**
 ```python
-run_windows_command('taskkill /IM bba-server.exe /F', check=False)
+run_windows_command('sc start BBAServer', check=False)
+```
+
+**Restart server** (stop, build, deploy, start):
+```python
+run_windows_command('sc stop BBAServer', check=False)
 run_windows_command(r'cd /d G:\BBA-CLI\bba-server && dotnet publish -c Release -o G:\BBA-CLI\dist\bba-server')
-run_windows_command(r'schtasks /Create /TN "StartBBAServer" /TR "G:\BBA-CLI\dist\bba-server\bba-server.exe" /SC ONCE /ST 00:00 /F && schtasks /Run /TN "StartBBAServer"')
+run_windows_command(r'xcopy /E /Y /Q "G:\BBA-CLI\dist\bba-server" "C:\BBAServer\"', check=False)
+run_windows_command('sc start BBAServer', check=False)
+```
+
+**Check service status:**
+```python
+run_windows_command('sc query BBAServer', check=False)
 ```
 
 **Verify running:**
@@ -135,17 +148,23 @@ run_windows_command(r'schtasks /Create /TN "StartBBAServer" /TR "G:\BBA-CLI\dist
 curl http://10.211.55.5:5000/health
 ```
 
+**Note:** The service config at `C:\BBAServer\appsettings.json` has `LogPath` set to `C:\BBAServer\logs`. The source `appsettings.json` uses `G:\` paths which won't work for the service (LocalSystem can't access mapped drives). Don't overwrite `appsettings.json` during deploy if it has been customized, or update it afterward.
+
 ### Configuration
 
-Server config is in `bba-server/appsettings.json`:
-- `Pbs:DlrPath` - Path to scenario DLR files (`P:\dlr`)
-- `Pbs:BbsaPath` - Path to convention card files (`P:\bbsa`)
+Source config is in `bba-server/appsettings.json`. Deployed service config is at `C:\BBAServer\appsettings.json`.
+
+Key settings:
 - `Pbs:DefaultNsCard` - Default NS convention (`21GF-DEFAULT`)
 - `Pbs:DefaultEwCard` - Default EW convention (`21GF-GIB`)
+- `GitHub:RawBaseUrl` - Base URL for fetching convention cards and scenarios from GitHub
+- `Logging:LogPath` - Log directory (service uses `C:\BBAServer\logs`)
+
+Convention cards (.bbsa) and scenario files (.pbs) are fetched from GitHub raw at runtime, not from local P: drive.
 
 ### Logs
 
-Logs are in `G:\BBA-CLI\dist\bba-server\logs\`:
+Logs are in `C:\BBAServer\logs\`:
 - `bba-server-YYYY-MM-DD.log` - Application logs
 - `audit-auction-YYYY-MM.csv` - Auction request audit log
 - `audit-scenario-YYYY-MM.csv` - Scenario selection audit log

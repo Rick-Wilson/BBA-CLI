@@ -12,6 +12,7 @@ static string FormatAlerts(List<BidMeaning>? meanings)
 }
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseWindowsService();
 
 // Load local config (secrets not tracked in git)
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);

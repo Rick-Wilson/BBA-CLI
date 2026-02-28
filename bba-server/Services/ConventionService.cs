@@ -30,11 +30,11 @@ public class ConventionService
     /// </summary>
     public async Task<ConventionCards> GetConventionsForScenarioAsync(string scenario)
     {
-        var nsCard = await GetConventionCardFromPbs(scenario) ?? _defaultNsCard;
+        var (nsCard, ewCard) = await GetConventionCardsFromPbs(scenario);
         return new ConventionCards
         {
-            Ns = nsCard,
-            Ew = _defaultEwCard
+            Ns = nsCard ?? _defaultNsCard,
+            Ew = ewCard ?? _defaultEwCard
         };
     }
 
@@ -57,9 +57,10 @@ public class ConventionService
     }
 
     /// <summary>
-    /// Fetch a scenario's .pbs file from GitHub and extract the convention-card property.
+    /// Fetch a scenario's .pbs file from GitHub and extract convention card properties.
+    /// Supports both new format (convention-card-ns/ew) and old format (convention-card).
     /// </summary>
-    private async Task<string?> GetConventionCardFromPbs(string scenario)
+    private async Task<(string? ns, string? ew)> GetConventionCardsFromPbs(string scenario)
     {
         var url = $"{_githubRawBaseUrl}/pbs-release/{scenario}.pbs";
 
@@ -69,19 +70,36 @@ public class ConventionService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("PBS file not found on GitHub: {Scenario} (HTTP {StatusCode})", scenario, (int)response.StatusCode);
-                return null;
+                return (null, null);
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            var pattern = new Regex(@"^#?\s*convention-card:\s*(.+)$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
-            var match = pattern.Match(content);
-            if (match.Success)
+
+            // Try new format first: convention-card-ns and convention-card-ew
+            var nsPattern = new Regex(@"^convention-card-ns:\s*(.+)$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var ewPattern = new Regex(@"^convention-card-ew:\s*(.+)$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var nsMatch = nsPattern.Match(content);
+            var ewMatch = ewPattern.Match(content);
+
+            if (nsMatch.Success || ewMatch.Success)
             {
-                var value = match.Groups[1].Value.Trim();
+                var ns = nsMatch.Success ? nsMatch.Groups[1].Value.Trim() : null;
+                var ew = ewMatch.Success ? ewMatch.Groups[1].Value.Trim() : null;
+                _logger.LogInformation("Found convention cards NS='{Ns}', EW='{Ew}' for scenario '{Scenario}'",
+                    ns ?? "(default)", ew ?? "(default)", scenario);
+                return (ns, ew);
+            }
+
+            // Fall back to old format: convention-card (NS only)
+            var oldPattern = new Regex(@"^#?\s*convention-card:\s*(.+)$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            var oldMatch = oldPattern.Match(content);
+            if (oldMatch.Success)
+            {
+                var value = oldMatch.Groups[1].Value.Trim();
                 if (!string.IsNullOrEmpty(value))
                 {
-                    _logger.LogInformation("Found convention card '{Card}' for scenario '{Scenario}' from GitHub", value, scenario);
-                    return value;
+                    _logger.LogInformation("Found convention card '{Card}' (old format) for scenario '{Scenario}'", value, scenario);
+                    return (value, null);
                 }
             }
         }
@@ -90,8 +108,8 @@ public class ConventionService
             _logger.LogError(ex, "Error fetching PBS file from GitHub for scenario: {Scenario}", scenario);
         }
 
-        _logger.LogInformation("No convention card specified for scenario '{Scenario}', using default", scenario);
-        return null;
+        _logger.LogInformation("No convention card specified for scenario '{Scenario}', using defaults", scenario);
+        return (null, null);
     }
 
     /// <summary>
