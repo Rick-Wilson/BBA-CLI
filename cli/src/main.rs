@@ -1,6 +1,7 @@
 //! BBA-CLI: Bridge Bidding Analyzer Command Line Interface
 //!
-//! Processes PBN files using the EPBot bidding engine to generate auctions.
+//! Generates bridge auctions for deals in PBN files using the native EPBot engine.
+//! Cross-platform: macOS, Linux, and Windows.
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -8,10 +9,8 @@ use log::{debug, error, info};
 use std::path::PathBuf;
 
 mod batch;
-mod epbot;
-mod error;
 
-use batch::{process_pbn_file_with_config, OutputConfig};
+use batch::{process_pbn_file, OutputConfig};
 
 /// Bridge Bidding Analyzer CLI
 ///
@@ -36,10 +35,6 @@ struct Args {
     #[arg(long = "ew-conventions", value_name = "FILE")]
     ew_conventions: PathBuf,
 
-    /// Path to epbot-wrapper.exe (default: look in same directory as bba.exe)
-    #[arg(long = "wrapper", value_name = "FILE")]
-    wrapper_path: Option<PathBuf>,
-
     /// Event name for PBN output
     #[arg(long, default_value = "")]
     event: String,
@@ -56,10 +51,6 @@ struct Args {
     #[arg(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
 
-    /// Number of worker threads for parallel processing (future feature)
-    #[arg(short = 'j', long, default_value_t = 1, value_name = "N")]
-    threads: usize,
-
     /// Dry run - parse input but don't write output
     #[arg(long, default_value_t = false)]
     dry_run: bool,
@@ -68,7 +59,6 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    // Initialize logging based on verbosity level
     let log_level = match args.verbose {
         0 => "info",
         1 => "debug",
@@ -79,53 +69,28 @@ fn main() -> Result<()> {
         .format_timestamp_millis()
         .init();
 
-    info!("BBA-CLI v{}", env!("CARGO_PKG_VERSION"));
+    // Show version info
+    match epbot_core::version() {
+        Ok(v) => info!("BBA-CLI v{} (EPBot {})", env!("CARGO_PKG_VERSION"), v),
+        Err(_) => info!("BBA-CLI v{}", env!("CARGO_PKG_VERSION")),
+    }
+
     debug!("Input: {:?}", args.input);
     debug!("Output: {:?}", args.output);
     debug!("NS Conventions: {:?}", args.ns_conventions);
     debug!("EW Conventions: {:?}", args.ew_conventions);
-    debug!("Threads: {}", args.threads);
 
-    // Validate input files exist
+    // Validate input files
     if !args.input.exists() {
-        error!("Input file not found: {:?}", args.input);
         anyhow::bail!("Input file not found: {:?}", args.input);
     }
-
     if !args.ns_conventions.exists() {
-        error!("NS conventions file not found: {:?}", args.ns_conventions);
         anyhow::bail!("NS conventions file not found: {:?}", args.ns_conventions);
     }
-
     if !args.ew_conventions.exists() {
-        error!("EW conventions file not found: {:?}", args.ew_conventions);
         anyhow::bail!("EW conventions file not found: {:?}", args.ew_conventions);
     }
 
-    // Find wrapper executable
-    let wrapper_path = match args.wrapper_path {
-        Some(p) => p,
-        None => {
-            // Look for epbot-wrapper.exe in the same directory as bba.exe
-            let exe_dir = std::env::current_exe()
-                .ok()
-                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                .unwrap_or_else(|| PathBuf::from("."));
-            exe_dir.join("epbot-wrapper.exe")
-        }
-    };
-
-    if !wrapper_path.exists() {
-        error!("EPBot wrapper not found: {:?}", wrapper_path);
-        anyhow::bail!(
-            "EPBot wrapper not found: {:?}. Use --wrapper to specify the path.",
-            wrapper_path
-        );
-    }
-
-    debug!("Wrapper: {:?}", wrapper_path);
-
-    // Build output config
     let config = OutputConfig {
         event: args.event,
         ns_system_name: args.ns_system_name,
@@ -134,16 +99,13 @@ fn main() -> Result<()> {
         ew_conventions_path: args.ew_conventions.display().to_string(),
     };
 
-    // Process the PBN file
     info!("Processing {:?}...", args.input);
 
-    let stats = process_pbn_file_with_config(
+    let stats = process_pbn_file(
         &args.input,
         &args.output,
         &args.ns_conventions,
         &args.ew_conventions,
-        &wrapper_path,
-        args.threads,
         args.dry_run,
         &config,
     )

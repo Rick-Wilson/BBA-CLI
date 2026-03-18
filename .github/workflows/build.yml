@@ -4,94 +4,212 @@ on:
   push:
     branches: [main]
     tags:
-      - 'v*'  # Trigger on version tags
+      - 'v*'
   pull_request:
     branches: [main]
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-
+  build-linux-x64:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout BBA-CLI
         uses: actions/checkout@v4
         with:
           path: BBA-CLI
 
-      - name: Checkout dealer3 (for Rust dependencies)
+      - name: Checkout Bridge-Parsers (for CLI PBN/hand analysis)
         uses: actions/checkout@v4
         with:
-          repository: rick-wilson/dealer3
-          path: dealer3
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+          repository: rick-wilson/Bridge-Parsers
+          path: Bridge-Parsers
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Build C# EPBot Wrapper
-        run: |
-          cd BBA-CLI/epbot-wrapper
-          dotnet build -c Release
-
-      - name: Build C# CLI (bba-cli.exe)
-        run: |
-          cd BBA-CLI/bba-cli-cs
-          # For tagged builds, use the tag as version; otherwise use 0.0.0-dev
-          $version = if ("${{ github.ref }}".StartsWith("refs/tags/v")) { "${{ github.ref_name }}".TrimStart('v') } else { "0.0.0-dev" }
-          dotnet build -c Release -p:Version=$version
-
-      - name: Copy EPBot64.dll to C# CLI output
-        run: |
-          copy BBA-CLI\epbot-wrapper\EPBot-8734\EPBot64.dll BBA-CLI\bba-cli-cs\bin\Release\net48\
-
-      - name: Build Rust CLI (bba-cli-rust.exe)
+      - name: Build bba-cli
         run: |
           cd BBA-CLI/cli
           cargo build --release
 
-      - name: Upload C# CLI
-        uses: actions/upload-artifact@v4
-        with:
-          name: bba-cli-cs
-          path: |
-            BBA-CLI/bba-cli-cs/bin/Release/net48/
-
-      - name: Upload Rust CLI
-        uses: actions/upload-artifact@v4
-        with:
-          name: bba-cli-rust
-          path: BBA-CLI/cli/target/release/bba-cli.exe
-
-      - name: Upload EPBot Wrapper
-        uses: actions/upload-artifact@v4
-        with:
-          name: epbot-wrapper
-          path: |
-            BBA-CLI/epbot-wrapper/bin/Release/net48/
-
-      - name: Create Release Zip
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Build bba-server
         run: |
-          mkdir BBA-CLI-Release
-          # C# CLI as primary bba-cli.exe
-          copy BBA-CLI\bba-cli-cs\bin\Release\net48\bba-cli.exe BBA-CLI-Release\
-          copy BBA-CLI\bba-cli-cs\bin\Release\net48\*.dll BBA-CLI-Release\
-          copy BBA-CLI\bba-cli-cs\bin\Release\net48\*.config BBA-CLI-Release\
-          # Rust CLI as bba-cli-rust.exe
-          copy BBA-CLI\cli\target\release\bba-cli.exe BBA-CLI-Release\bba-cli-rust.exe
-          # EPBot wrapper (for Rust CLI compatibility)
-          copy BBA-CLI\epbot-wrapper\bin\Release\net48\epbot-wrapper.exe BBA-CLI-Release\
-          copy BBA-CLI\epbot-wrapper\bin\Release\net48\epbot-wrapper.exe.config BBA-CLI-Release\
-          Compress-Archive -Path BBA-CLI-Release\* -DestinationPath BBA-CLI-${{ github.ref_name }}-windows-x64.zip
+          cd BBA-CLI/bba-server-rs
+          cargo build --release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bba-linux-x64
+          path: |
+            BBA-CLI/cli/target/release/bba-cli
+            BBA-CLI/bba-server-rs/target/release/bba-server
+            BBA-CLI/epbot-libs/linux/x64/libEPBot.so
+
+  build-linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout BBA-CLI
+        uses: actions/checkout@v4
+        with:
+          path: BBA-CLI
+
+      - name: Checkout Bridge-Parsers
+        uses: actions/checkout@v4
+        with:
+          repository: rick-wilson/Bridge-Parsers
+          path: Bridge-Parsers
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build bba-cli
+        run: |
+          cd BBA-CLI/cli
+          cargo build --release
+
+      - name: Build bba-server
+        run: |
+          cd BBA-CLI/bba-server-rs
+          cargo build --release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bba-linux-arm64
+          path: |
+            BBA-CLI/cli/target/release/bba-cli
+            BBA-CLI/bba-server-rs/target/release/bba-server
+            BBA-CLI/epbot-libs/linux/arm64/libEPBot.so
+
+  build-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout BBA-CLI
+        uses: actions/checkout@v4
+        with:
+          path: BBA-CLI
+
+      - name: Checkout Bridge-Parsers
+        uses: actions/checkout@v4
+        with:
+          repository: rick-wilson/Bridge-Parsers
+          path: Bridge-Parsers
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build bba-cli
+        run: |
+          cd BBA-CLI/cli
+          cargo build --release
+
+      - name: Build bba-server
+        run: |
+          cd BBA-CLI/bba-server-rs
+          cargo build --release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bba-macos-arm64
+          path: |
+            BBA-CLI/cli/target/release/bba-cli
+            BBA-CLI/bba-server-rs/target/release/bba-server
+            BBA-CLI/epbot-libs/macos/arm64/libEPBot.dylib
+
+  build-windows-x64:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout BBA-CLI
+        uses: actions/checkout@v4
+        with:
+          path: BBA-CLI
+
+      - name: Checkout Bridge-Parsers
+        uses: actions/checkout@v4
+        with:
+          repository: rick-wilson/Bridge-Parsers
+          path: Bridge-Parsers
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build bba-cli
+        run: |
+          cd BBA-CLI/cli
+          cargo build --release
+
+      - name: Build bba-server
+        run: |
+          cd BBA-CLI/bba-server-rs
+          cargo build --release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bba-windows-x64
+          path: |
+            BBA-CLI/cli/target/release/bba-cli.exe
+            BBA-CLI/bba-server-rs/target/release/bba-server.exe
+            BBA-CLI/epbot-libs/windows/x64/EPBot.dll
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-linux-x64, build-linux-arm64, build-macos-arm64, build-windows-x64]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package releases
+        run: |
+          cd artifacts
+
+          # Each artifact preserves the directory structure from the upload paths.
+          # Flatten into release directories.
+
+          # Linux x64
+          mkdir -p release-linux-x64
+          find bba-linux-x64 -name 'bba-cli' -exec cp {} release-linux-x64/ \;
+          find bba-linux-x64 -name 'bba-server' -exec cp {} release-linux-x64/ \;
+          find bba-linux-x64 -name 'libEPBot.so' -exec cp {} release-linux-x64/ \;
+          chmod +x release-linux-x64/bba-cli release-linux-x64/bba-server
+          tar czf bba-${{ github.ref_name }}-linux-x64.tar.gz -C release-linux-x64 .
+
+          # Linux arm64
+          mkdir -p release-linux-arm64
+          find bba-linux-arm64 -name 'bba-cli' -exec cp {} release-linux-arm64/ \;
+          find bba-linux-arm64 -name 'bba-server' -exec cp {} release-linux-arm64/ \;
+          find bba-linux-arm64 -name 'libEPBot.so' -exec cp {} release-linux-arm64/ \;
+          chmod +x release-linux-arm64/bba-cli release-linux-arm64/bba-server
+          tar czf bba-${{ github.ref_name }}-linux-arm64.tar.gz -C release-linux-arm64 .
+
+          # macOS arm64
+          mkdir -p release-macos-arm64
+          find bba-macos-arm64 -name 'bba-cli' -exec cp {} release-macos-arm64/ \;
+          find bba-macos-arm64 -name 'bba-server' -exec cp {} release-macos-arm64/ \;
+          find bba-macos-arm64 -name 'libEPBot.dylib' -exec cp {} release-macos-arm64/ \;
+          chmod +x release-macos-arm64/bba-cli release-macos-arm64/bba-server
+          tar czf bba-${{ github.ref_name }}-macos-arm64.tar.gz -C release-macos-arm64 .
+
+          # Windows x64
+          mkdir -p release-windows-x64
+          find bba-windows-x64 -name 'bba-cli.exe' -exec cp {} release-windows-x64/ \;
+          find bba-windows-x64 -name 'bba-server.exe' -exec cp {} release-windows-x64/ \;
+          find bba-windows-x64 -name 'EPBot.dll' -exec cp {} release-windows-x64/ \;
+          cd release-windows-x64 && zip ../bba-${{ github.ref_name }}-windows-x64.zip * && cd ..
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: BBA-CLI-${{ github.ref_name }}-windows-x64.zip
+          files: |
+            artifacts/bba-${{ github.ref_name }}-linux-x64.tar.gz
+            artifacts/bba-${{ github.ref_name }}-linux-arm64.tar.gz
+            artifacts/bba-${{ github.ref_name }}-macos-arm64.tar.gz
+            artifacts/bba-${{ github.ref_name }}-windows-x64.zip
           generate_release_notes: true

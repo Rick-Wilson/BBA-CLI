@@ -7,6 +7,8 @@ obj/
 # Rust
 /cli/target/
 /cli-mac/target/
+/epbot-core/target/
+/bba-server-rs/target/
 **/*.rs.bk
 Cargo.lock
 
@@ -57,6 +59,7 @@ Thumbs.db
 
 # Logs
 *.log
+bba-server-rs/logs/
 
 # Generated PDFs (created by GitHub Actions)
 CLI-README.pdf
@@ -71,6 +74,11 @@ auto-updated.txt
 !EPBotARM64.dll
 !EPBot64.tlb
 !EPBot86.tlb
+
+# Don't ignore native EPBot libraries
+!epbot-libs/**/*.dll
+!epbot-libs/**/*.so
+!epbot-libs/**/*.dylib
 
 # Private research/notes (not for publishing)
 EPBOT-CROSSPLATFORM-RESEARCH.md
