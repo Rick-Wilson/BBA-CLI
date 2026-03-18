@@ -6,7 +6,7 @@
 pub mod ffi;
 
 use std::ffi::{CStr, CString};
-use std::os::raw::c_void;
+use std::os::raw::{c_char, c_void};
 use thiserror::Error;
 
 // Re-export FFI constants
@@ -260,7 +260,7 @@ pub fn copyright() -> Result<String, EPBotError> {
     if inst.is_null() {
         return Err(EPBotError::CreateFailed);
     }
-    let mut buf = [0i8; 512];
+    let mut buf = [0 as c_char; 512];
     let rc = unsafe { ffi::epbot_copyright(inst, buf.as_mut_ptr(), buf.len() as i32) };
     unsafe { ffi::epbot_destroy(inst) };
 
@@ -464,7 +464,7 @@ fn run_auction(
         let alert_rc = unsafe { ffi::epbot_get_info_alerting(players[partner_pos as usize], current_pos) };
         if alert_rc == 1 {
             is_alert = true;
-            let mut buf = [0i8; 1024];
+            let mut buf = [0 as c_char; 1024];
             let meaning_rc = unsafe {
                 ffi::epbot_get_info_meaning(
                     players[partner_pos as usize],
