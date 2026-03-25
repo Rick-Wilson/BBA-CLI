@@ -125,9 +125,9 @@ pub async fn get_log(
     Path(filename): Path<String>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
-    ConnectInfo(conn): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
+    let dummy_addr: SocketAddr = "0.0.0.0:0".parse().unwrap();
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &dummy_addr);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
