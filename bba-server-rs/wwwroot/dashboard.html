@@ -70,6 +70,7 @@
         }
         @media (max-width: 900px) {
             .two-column { grid-template-columns: 1fr; }
+            .three-column { grid-template-columns: 1fr; }
         }
 
         /* Charts */
@@ -106,13 +107,37 @@
             border-radius: 3px 3px 0 0;
             transition: background 0.2s;
         }
-        .bar.visitors {
-            background: linear-gradient(180deg, #28a745 0%, #1e7e34 100%);
-        }
-        .bar.visitors:hover {
-            background: linear-gradient(180deg, #34ce57 0%, #28a745 100%);
-        }
         .bar:hover { background: linear-gradient(180deg, #3395ff 0%, #007bff 100%); }
+        .stacked-bar {
+            flex: 1;
+            min-width: 25px;
+            max-width: 60px;
+            position: relative;
+            height: 100%;
+        }
+        .stacked-bar .bar-inner {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .stacked-bar .segment {
+            width: 100%;
+        }
+        .stacked-bar .segment.new-user {
+            background: #007bff;
+        }
+        .stacked-bar .segment.first-month {
+            background: #ffc107;
+        }
+        .stacked-bar .segment.recurring-user {
+            background: #28a745;
+        }
+        .stacked-bar .segment:last-child {
+            border-radius: 3px 3px 0 0;
+        }
         .bar-label {
             position: absolute;
             bottom: -25px;
@@ -130,6 +155,22 @@
             font-size: 11px;
             font-weight: 600;
             color: #333;
+        }
+        .chart-legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+            font-size: 12px;
+        }
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .chart-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
         }
 
         /* Pie chart */
@@ -264,6 +305,16 @@
         .file-link:hover { text-decoration: underline; }
         .muted { color: #888; }
         .text-right { text-align: right; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+        .badge.new { background: #e3f2fd; color: #1565c0; }
+        .badge.first-month { background: #fff8e1; color: #f57f17; }
+        .badge.recurring { background: #e8f5e9; color: #2e7d32; }
+        .badge.lost { background: #fce4ec; color: #c62828; }
+        th.sortable { cursor: pointer; user-select: none; position: relative; padding-right: 18px; }
+        th.sortable:hover { background: #e9ecef; }
+        th.sortable::after { content: '⇅'; position: absolute; right: 4px; opacity: 0.3; font-size: 11px; }
+        th.sortable.asc::after { content: '↑'; opacity: 0.8; }
+        th.sortable.desc::after { content: '↓'; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -280,6 +331,7 @@
 
     <div class="tabs">
         <button class="tab active" onclick="showTab('overview')">Usage Overview</button>
+        <button class="tab" onclick="showTab('environment')">Environment</button>
         <button class="tab" onclick="showTab('errors')">Errors</button>
         <button class="tab" onclick="showTab('scenarios')">Scenario History</button>
         <button class="tab" onclick="showTab('auctions')">BBA Compare History</button>
@@ -296,12 +348,22 @@
         <!-- Charts Row: Visitors and Usage side by side -->
         <div class="two-column">
             <div class="chart-container">
-                <h3>Unique Visitors <span class="chart-subtitle" id="visitors-chart-period"></span></h3>
+                <h3>Visitors <span class="chart-subtitle" id="visitors-chart-period"></span></h3>
                 <div class="bar-chart" id="visitors-chart"></div>
+                <div class="chart-legend">
+                    <div class="chart-legend-item"><div class="chart-legend-color" style="background: #007bff;"></div> New</div>
+                    <div class="chart-legend-item"><div class="chart-legend-color" style="background: #ffc107;"></div> First Month</div>
+                    <div class="chart-legend-item"><div class="chart-legend-color" style="background: #28a745;"></div> Recurring</div>
+                </div>
             </div>
             <div class="chart-container">
                 <h3>Usage (Selections) <span class="chart-subtitle" id="usage-chart-period"></span></h3>
                 <div class="bar-chart" id="usage-chart"></div>
+                <div class="chart-legend">
+                    <div class="chart-legend-item"><div class="chart-legend-color" style="background: #007bff;"></div> New</div>
+                    <div class="chart-legend-item"><div class="chart-legend-color" style="background: #ffc107;"></div> First Month</div>
+                    <div class="chart-legend-item"><div class="chart-legend-color" style="background: #28a745;"></div> Recurring</div>
+                </div>
             </div>
         </div>
 
@@ -328,6 +390,25 @@
             <div>
                 <h3 class="section-title" style="margin-top: 0;">Top Users by Selections</h3>
                 <div id="user-table"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Environment Tab -->
+    <div id="environment" class="tab-content">
+        <div class="three-column" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; margin-top: 15px;">
+            <div class="chart-container">
+                <h3>Extension</h3>
+                <div class="pie-container" id="env-extension-pie"></div>
+            </div>
+            <div class="chart-container">
+                <h3>Browser</h3>
+                <div class="pie-container" id="env-browser-pie"></div>
+            </div>
+            <div class="chart-container">
+                <h3>OS</h3>
+                <div class="pie-container" id="env-os-pie"></div>
             </div>
         </div>
     </div>
@@ -567,7 +648,9 @@
                     sessions,
                     scenarios: scenarioSet.size,
                     auctions: auctionCount,
-                    totalET  // in milliseconds
+                    totalET,  // in milliseconds
+                    firstSeen: events[0].ts,
+                    lastSeen: events[events.length - 1].ts,
                 });
             }
 
@@ -580,6 +663,30 @@
             return (ms / 3600000).toFixed(1) + ' hrs';
         }
 
+        // Sort state for tables
+        const sortState = {
+            userSummary: { col: 'totalET', dir: 'desc' },
+            scenarioSummary: { col: 'auctions', dir: 'desc' }
+        };
+
+        function toggleSort(table, col) {
+            const s = sortState[table];
+            if (s.col === col) {
+                s.dir = s.dir === 'desc' ? 'asc' : 'desc';
+            } else {
+                s.col = col;
+                s.dir = 'desc';
+            }
+            if (table === 'userSummary') renderUserSummary();
+            if (table === 'scenarioSummary') renderScenarioSummary();
+        }
+
+        function sortIndicator(table, col) {
+            const s = sortState[table];
+            if (s.col === col) return s.dir;
+            return '';
+        }
+
         // Rendering
         function renderAll() {
             renderStats();
@@ -589,6 +696,7 @@
             renderUserTable();
             renderUserSummary();
             renderScenarioSummary();
+            renderEnvironment();
             renderErrors();
             renderScenarioHistory();
             renderHistory();
@@ -645,67 +753,145 @@
             `;
         }
 
-        function renderVisitorsChart() {
-            const scenarios = getFilteredScenarioData();
-
-            const usersByDate = {};
+        // Compute first-seen date for each user across all scenario data
+        function getFirstSeen(scenarios) {
+            const firstSeen = {};
             scenarios.forEach(r => {
                 const date = (r.Timestamp || '').split(' ')[0];
                 const user = r.RequestIP;
-                if (date && user) {
+                if (date && user && (!firstSeen[user] || date < firstSeen[user])) {
+                    firstSeen[user] = date;
+                }
+            });
+            return firstSeen;
+        }
+
+        // Classify a user for a given period:
+        //   - "new": first seen within [periodStart, periodEnd]
+        //   - "firstMonth": first seen within 30 days before periodStart
+        //   - "returning": first seen more than 30 days before periodStart
+        function classifyUser(user, periodStart, firstSeen) {
+            const fs = firstSeen[user];
+            if (!fs) return 'returning';
+            if (fs >= periodStart) return 'new';
+            const fsDate = new Date(fs);
+            const psDate = new Date(periodStart);
+            const daysDiff = (psDate - fsDate) / (1000 * 60 * 60 * 24);
+            return daysDiff <= 30 ? 'firstMonth' : 'recurring';
+        }
+
+        // Get period boundaries based on aggregation level
+        function getPeriods(dates) {
+            const daySpan = dates.length;
+            if (daySpan <= 12) {
+                return { type: 'daily', periods: dates.slice(-12).map(d => ({ start: d, end: d, label: d.slice(5) })) };
+            } else if (daySpan <= 84) {
+                const weeks = {};
+                dates.forEach(date => {
+                    const d = new Date(date);
+                    const day = d.getDay();
+                    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                    const ws = new Date(d.setDate(diff)).toISOString().slice(0, 10);
+                    if (!weeks[ws]) weeks[ws] = [];
+                    weeks[ws].push(date);
+                });
+                return { type: 'weekly', periods: Object.keys(weeks).sort().slice(-12).map(w => ({
+                    start: w, end: weeks[w][weeks[w].length - 1], label: w.slice(5), dates: weeks[w]
+                }))};
+            } else {
+                const months = {};
+                dates.forEach(date => {
+                    const mk = date.slice(0, 7);
+                    if (!months[mk]) months[mk] = [];
+                    months[mk].push(date);
+                });
+                return { type: 'monthly', periods: Object.keys(months).sort().slice(-12).map(m => ({
+                    start: m + '-01', end: months[m][months[m].length - 1], label: m.slice(2).replace('-', '/'), dates: months[m]
+                }))};
+            }
+        }
+
+        function renderStackedChart(elementId, periodId, scenarios, firstSeen, mode) {
+            // mode: 'visitors' (unique users) or 'usage' (selection counts)
+            const usersByDate = {};
+            const countByDate = {};
+            scenarios.forEach(r => {
+                const date = (r.Timestamp || '').split(' ')[0];
+                const user = r.RequestIP;
+                if (!date) return;
+                countByDate[date] = (countByDate[date] || 0) + 1;
+                if (user) {
                     if (!usersByDate[date]) usersByDate[date] = new Set();
                     usersByDate[date].add(user);
                 }
             });
 
-            const dates = Object.keys(usersByDate).sort();
+            const dates = Object.keys(countByDate).sort();
             if (dates.length === 0) {
-                document.getElementById('visitors-chart').innerHTML = '<div class="muted">No data yet</div>';
-                document.getElementById('visitors-chart-period').textContent = '';
+                document.getElementById(elementId).innerHTML = '<div class="muted">No data yet</div>';
+                document.getElementById(periodId).textContent = '';
                 return;
             }
 
-            const byDate = {};
-            dates.forEach(d => byDate[d] = usersByDate[d].size);
+            const { type, periods } = getPeriods(dates);
+            document.getElementById(periodId).textContent = `(${type.charAt(0).toUpperCase() + type.slice(1)})`;
 
-            const { aggregated, periodLabel } = aggregateData(byDate, dates, true);
-            document.getElementById('visitors-chart-period').textContent = `(${periodLabel})`;
+            // Compute stacked values per period
+            const bars = periods.map(p => {
+                const pDates = p.dates || [p.start];
+                if (mode === 'visitors') {
+                    // Unique users in this period, classified
+                    const periodUsers = new Set();
+                    pDates.forEach(d => { if (usersByDate[d]) usersByDate[d].forEach(u => periodUsers.add(u)); });
+                    let nw = 0, fm = 0, rc = 0;
+                    periodUsers.forEach(u => {
+                        const cls = classifyUser(u, p.start, firstSeen);
+                        if (cls === 'new') nw++;
+                        else if (cls === 'firstMonth') fm++;
+                        else rc++;
+                    });
+                    return { label: p.label, nw, fm, rc, total: nw + fm + rc };
+                } else {
+                    // Selection counts, classified by the user who made them
+                    let nw = 0, fm = 0, rc = 0;
+                    scenarios.forEach(r => {
+                        const date = (r.Timestamp || '').split(' ')[0];
+                        if (!pDates.includes(date)) return;
+                        const cls = classifyUser(r.RequestIP, p.start, firstSeen);
+                        if (cls === 'new') nw++;
+                        else if (cls === 'firstMonth') fm++;
+                        else rc++;
+                    });
+                    return { label: p.label, nw, fm, rc, total: nw + fm + rc };
+                }
+            });
 
-            const maxVal = Math.max(...aggregated.map(d => d.value), 1);
-            document.getElementById('visitors-chart').innerHTML = aggregated.map(d => `
-                <div class="bar visitors" style="height: ${(d.value / maxVal) * 100}%">
-                    <span class="bar-value">${d.value}</span>
-                    <span class="bar-label">${d.label}</span>
-                </div>
-            `).join('');
+            const maxVal = Math.max(...bars.map(b => b.total), 1);
+            document.getElementById(elementId).innerHTML = bars.map(b => {
+                const totalPct = (b.total / maxVal) * 100;
+                const pct = v => b.total > 0 ? (v / b.total) * 100 : 0;
+                return `<div class="stacked-bar" title="New: ${b.nw}, First Month: ${b.fm}, Recurring: ${b.rc}">
+                    <div class="bar-inner" style="height: ${totalPct}%;">
+                        <span class="bar-value" style="top: -20px; position: absolute; left: 50%; transform: translateX(-50%);">${b.total}</span>
+                        ${b.nw > 0 ? `<div class="segment new-user" style="height: ${pct(b.nw)}%;"></div>` : ''}
+                        ${b.fm > 0 ? `<div class="segment first-month" style="height: ${pct(b.fm)}%;"></div>` : ''}
+                        ${b.rc > 0 ? `<div class="segment recurring-user" style="height: ${pct(b.rc)}%;"></div>` : ''}
+                    </div>
+                    <span class="bar-label">${b.label}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function renderVisitorsChart() {
+            const scenarios = getFilteredScenarioData();
+            const firstSeen = getFirstSeen(scenarios);
+            renderStackedChart('visitors-chart', 'visitors-chart-period', scenarios, firstSeen, 'visitors');
         }
 
         function renderUsageChart() {
             const scenarios = getFilteredScenarioData();
-
-            const byDate = {};
-            scenarios.forEach(r => {
-                const date = (r.Timestamp || '').split(' ')[0];
-                if (date) byDate[date] = (byDate[date] || 0) + 1;
-            });
-
-            const dates = Object.keys(byDate).sort();
-            if (dates.length === 0) {
-                document.getElementById('usage-chart').innerHTML = '<div class="muted">No data yet</div>';
-                document.getElementById('usage-chart-period').textContent = '';
-                return;
-            }
-
-            const { aggregated, periodLabel } = aggregateData(byDate, dates, false);
-            document.getElementById('usage-chart-period').textContent = `(${periodLabel})`;
-
-            const maxVal = Math.max(...aggregated.map(d => d.value), 1);
-            document.getElementById('usage-chart').innerHTML = aggregated.map(d => `
-                <div class="bar" style="height: ${(d.value / maxVal) * 100}%">
-                    <span class="bar-value">${d.value}</span>
-                    <span class="bar-label">${d.label}</span>
-                </div>
-            `).join('');
+            const firstSeen = getFirstSeen(scenarios);
+            renderStackedChart('usage-chart', 'usage-chart-period', scenarios, firstSeen, 'usage');
         }
 
         function aggregateData(byDate, dates, isVisitors) {
@@ -775,44 +961,7 @@
                 const s = r.Scenario || '(none)';
                 byScenario[s] = (byScenario[s] || 0) + 1;
             });
-
-            const sorted = Object.entries(byScenario).sort((a, b) => b[1] - a[1]);
-
-            if (sorted.length === 0) {
-                document.getElementById('scenario-pie').innerHTML = '<div class="muted">No data yet</div>';
-                return;
-            }
-
-            let slices = sorted.slice(0, 9);
-            const others = sorted.slice(9);
-            if (others.length > 0) {
-                const othersTotal = others.reduce((sum, [, count]) => sum + count, 0);
-                slices.push(['Others', othersTotal]);
-            }
-
-            const total = slices.reduce((sum, [, count]) => sum + count, 0);
-
-            let gradientStops = [];
-            let currentAngle = 0;
-            slices.forEach(([name, count], i) => {
-                const percent = (count / total) * 100;
-                const color = pieColors[i % pieColors.length];
-                gradientStops.push(`${color} ${currentAngle}% ${currentAngle + percent}%`);
-                currentAngle += percent;
-            });
-
-            document.getElementById('scenario-pie').innerHTML = `
-                <div class="pie-chart" style="background: conic-gradient(${gradientStops.join(', ')});"></div>
-                <div class="pie-legend">
-                    ${slices.map(([name, count], i) => `
-                        <div class="pie-legend-item">
-                            <div class="pie-legend-color" style="background: ${pieColors[i % pieColors.length]};"></div>
-                            <span class="pie-legend-label" title="${name}">${name}</span>
-                            <span class="pie-legend-value">${count}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            renderPieToElement('scenario-pie', byScenario);
         }
 
         function renderUserTable() {
@@ -833,35 +982,76 @@
                 </table>`;
         }
 
+        // Classify user status relative to today:
+        //   First Week: first seen within last 7 days
+        //   First Month: first seen within last 30 days (but not last 7)
+        //   Recurring: first seen >30 days ago AND last seen within last 30 days
+        //   Lost: first seen >30 days ago AND last seen >30 days ago
+        const STATUS_ORDER = { 'Recurring': 0, 'First Month': 1, 'First Week': 2, 'Lost': 3 };
+
+        function classifyUserStatus(firstSeen, lastSeen) {
+            const now = new Date();
+            const daysSinceFirst = (now - firstSeen) / (1000 * 60 * 60 * 24);
+            const daysSinceLast = (now - lastSeen) / (1000 * 60 * 60 * 24);
+            if (daysSinceFirst <= 7) return 'First Week';
+            if (daysSinceFirst <= 30) return 'First Month';
+            if (daysSinceLast <= 30) return 'Recurring';
+            return 'Lost';
+        }
+
+        function statusBadge(status) {
+            const cls = status === 'First Week' ? 'new' : status === 'First Month' ? 'first-month' : status === 'Recurring' ? 'recurring' : 'lost';
+            return `<span class="badge ${cls}">${status}</span>`;
+        }
+
         function renderUserSummary() {
             const scenarios = getFilteredScenarioData();
             const auctions = getFilteredAuctionData();
             const userStats = computeUserSessions(scenarios, auctions);
-
-            // Sort by total ET descending
-            userStats.sort((a, b) => b.totalET - a.totalET);
 
             if (userStats.length === 0) {
                 document.getElementById('user-summary-table').innerHTML = '<div class="muted">No data yet</div>';
                 return;
             }
 
-            const totalSessions = userStats.reduce((s, u) => s + u.sessions, 0);
-            const totalAuctions = userStats.reduce((s, u) => s + u.auctions, 0);
-            const totalET = userStats.reduce((s, u) => s + u.totalET, 0);
+            // Add status to each user
+            userStats.forEach(u => {
+                u.status = classifyUserStatus(u.firstSeen, u.lastSeen);
+                u.statusOrder = STATUS_ORDER[u.status];
+            });
+
+            // Apply current sort
+            const s = sortState.userSummary;
+            const cmp = s.col === 'user'
+                ? (a, b) => a.user.localeCompare(b.user)
+                : s.col === 'status'
+                ? (a, b) => a.statusOrder - b.statusOrder
+                : (a, b) => a[s.col] - b[s.col];
+            userStats.sort((a, b) => s.dir === 'desc' ? -cmp(a, b) : cmp(a, b));
+
+            const totalSessions = userStats.reduce((sum, u) => sum + u.sessions, 0);
+            const totalAuctions = userStats.reduce((sum, u) => sum + u.auctions, 0);
+            const totalET = userStats.reduce((sum, u) => sum + u.totalET, 0);
+
+            function th(label, col, cls) {
+                const si = sortIndicator('userSummary', col);
+                return `<th class="sortable ${cls || ''} ${si}" onclick="toggleSort('userSummary','${col}')">${label}</th>`;
+            }
 
             document.getElementById('user-summary-table').innerHTML = `
                 <table>
                     <thead><tr>
-                        <th>User</th>
-                        <th class="text-right">Sessions</th>
-                        <th class="text-right">Scenarios</th>
-                        <th class="text-right">Auctions</th>
-                        <th class="text-right">Total ET</th>
+                        ${th('User', 'user')}
+                        ${th('Status', 'status')}
+                        ${th('Sessions', 'sessions', 'text-right')}
+                        ${th('Scenarios', 'scenarios', 'text-right')}
+                        ${th('Auctions', 'auctions', 'text-right')}
+                        ${th('Total ET', 'totalET', 'text-right')}
                     </tr></thead>
                     <tbody>
                         ${userStats.map(u => `<tr>
                             <td>${u.user}</td>
+                            <td>${statusBadge(u.status)}</td>
                             <td class="text-right">${u.sessions}</td>
                             <td class="text-right">${u.scenarios}</td>
                             <td class="text-right">${u.auctions}</td>
@@ -869,6 +1059,7 @@
                         </tr>`).join('')}
                         <tr style="font-weight: 600; border-top: 2px solid #ddd;">
                             <td>Total (${userStats.length} users)</td>
+                            <td></td>
                             <td class="text-right">${totalSessions}</td>
                             <td class="text-right"></td>
                             <td class="text-right">${totalAuctions}</td>
@@ -888,13 +1079,14 @@
             scenarios.forEach(r => {
                 const s = r.Scenario || '(empty/unset)';
                 const u = r.RequestIP;
-                if (!scenarioStats[s]) scenarioStats[s] = { users: new Set(), auctions: 0 };
+                if (!scenarioStats[s]) scenarioStats[s] = { users: new Set(), uses: 0, auctions: 0 };
                 if (u) scenarioStats[s].users.add(u);
+                scenarioStats[s].uses++;
             });
 
             auctions.forEach(r => {
                 const s = r.Scenario || '(empty/unset)';
-                if (!scenarioStats[s]) scenarioStats[s] = { users: new Set(), auctions: 0 };
+                if (!scenarioStats[s]) scenarioStats[s] = { users: new Set(), uses: 0, auctions: 0 };
                 scenarioStats[s].auctions++;
             });
 
@@ -902,6 +1094,7 @@
                 .map(([scenario, stats]) => ({
                     scenario,
                     users: stats.users.size,
+                    uses: stats.uses,
                     auctions: stats.auctions
                 }))
                 .sort((a, b) => b.auctions - a.auctions || b.users - a.users);
@@ -911,21 +1104,93 @@
                 return;
             }
 
+            // Apply current sort
+            const ss = sortState.scenarioSummary;
+            const scmp = ss.col === 'scenario'
+                ? (a, b) => a.scenario.localeCompare(b.scenario)
+                : (a, b) => a[ss.col] - b[ss.col];
+            sorted.sort((a, b) => ss.dir === 'desc' ? -scmp(a, b) : scmp(a, b));
+
+            function sth(label, col, cls) {
+                const si = sortIndicator('scenarioSummary', col);
+                return `<th class="sortable ${cls || ''} ${si}" onclick="toggleSort('scenarioSummary','${col}')">${label}</th>`;
+            }
+
             document.getElementById('scenario-summary-table').innerHTML = `
                 <table>
                     <thead><tr>
-                        <th>Scenario</th>
-                        <th class="text-right">Users</th>
-                        <th class="text-right">Auctions</th>
+                        ${sth('Scenario', 'scenario')}
+                        ${sth('Users', 'users', 'text-right')}
+                        ${sth('Uses', 'uses', 'text-right')}
+                        ${sth('Auctions', 'auctions', 'text-right')}
                     </tr></thead>
                     <tbody>
                         ${sorted.map(s => `<tr>
                             <td title="${s.scenario}">${s.scenario}</td>
                             <td class="text-right">${s.users}</td>
+                            <td class="text-right">${s.uses}</td>
                             <td class="text-right">${s.auctions}</td>
                         </tr>`).join('')}
                     </tbody>
                 </table>`;
+        }
+
+        function renderPieToElement(elementId, counts) {
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            if (sorted.length === 0 || sorted.every(([k]) => !k)) {
+                document.getElementById(elementId).innerHTML = '<div class="muted">No data yet</div>';
+                return;
+            }
+
+            let slices = sorted.slice(0, 9);
+            const others = sorted.slice(9);
+            if (others.length > 0) {
+                slices.push(['Others', others.reduce((s, [, c]) => s + c, 0)]);
+            }
+
+            const total = slices.reduce((s, [, c]) => s + c, 0);
+            let currentAngle = 0;
+            const gradientStops = slices.map(([, count], i) => {
+                const pct = (count / total) * 100;
+                const stop = `${pieColors[i % pieColors.length]} ${currentAngle}% ${currentAngle + pct}%`;
+                currentAngle += pct;
+                return stop;
+            });
+
+            document.getElementById(elementId).innerHTML = `
+                <div class="pie-chart" style="background: conic-gradient(${gradientStops.join(', ')});"></div>
+                <div class="pie-legend">
+                    ${slices.map(([name, count], i) => `
+                        <div class="pie-legend-item">
+                            <div class="pie-legend-color" style="background: ${pieColors[i % pieColors.length]};"></div>
+                            <span class="pie-legend-label" title="${name}">${name || '(unknown)'}</span>
+                            <span class="pie-legend-value">${count}</span>
+                        </div>
+                    `).join('')}
+                </div>`;
+        }
+
+        function renderEnvironment() {
+            const scenarios = getFilteredScenarioData();
+            const auctions = getFilteredAuctionData();
+            const allRows = [...scenarios, ...auctions];
+
+            const extCounts = {};
+            const browserCounts = {};
+            const osCounts = {};
+
+            allRows.forEach(r => {
+                const ext = r.Extension || '';
+                const browser = r.Browser || '';
+                const os = r.OS || '';
+                if (ext) extCounts[ext] = (extCounts[ext] || 0) + 1;
+                if (browser) browserCounts[browser] = (browserCounts[browser] || 0) + 1;
+                if (os) osCounts[os] = (osCounts[os] || 0) + 1;
+            });
+
+            renderPieToElement('env-extension-pie', extCounts);
+            renderPieToElement('env-browser-pie', browserCounts);
+            renderPieToElement('env-os-pie', osCounts);
         }
 
         function renderErrors() {

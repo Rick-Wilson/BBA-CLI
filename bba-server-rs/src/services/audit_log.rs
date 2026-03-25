@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tracing::warn;
 
-const AUCTION_CSV_HEADER: &str = "Timestamp,RequestIP,ClientVersion,DurationMs,Version,EPBotVersion,Dealer,Vulnerability,Scoring,NSConvention,EWConvention,Scenario,PBN,Success,Auction,Alerts,Error";
-const SCENARIO_CSV_HEADER: &str = "Timestamp,RequestIP,ClientVersion,Version,Scenario";
+const AUCTION_CSV_HEADER: &str = "Timestamp,RequestIP,ClientVersion,Extension,Browser,OS,DurationMs,Version,EPBotVersion,Dealer,Vulnerability,Scoring,NSConvention,EWConvention,Scenario,PBN,Success,Auction,Alerts,Error";
+const SCENARIO_CSV_HEADER: &str = "Timestamp,RequestIP,ClientVersion,Extension,Browser,OS,Version,Scenario";
 
 pub struct AuditLogService {
     log_directory: PathBuf,
@@ -32,6 +32,9 @@ impl AuditLogService {
         &self,
         request_ip: &str,
         client_version: &str,
+        extension: &str,
+        browser: &str,
+        os: &str,
         duration_ms: u64,
         epbot_version: i32,
         dealer: &str,
@@ -53,10 +56,13 @@ impl AuditLogService {
         let timestamp = now.format("%Y-%m-%d %H:%M:%S").to_string();
 
         let row = format!(
-            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
             escape_csv(&timestamp),
             escape_csv(request_ip),
             escape_csv(client_version),
+            escape_csv(extension),
+            escape_csv(browser),
+            escape_csv(os),
             duration_ms,
             escape_csv(&self.version),
             epbot_version,
@@ -80,6 +86,9 @@ impl AuditLogService {
         &self,
         request_ip: &str,
         client_version: &str,
+        extension: &str,
+        browser: &str,
+        os: &str,
         scenario: &str,
     ) {
         let now = chrono::Local::now();
@@ -89,10 +98,13 @@ impl AuditLogService {
         let timestamp = now.format("%Y-%m-%d %H:%M:%S").to_string();
 
         let row = format!(
-            "{},{},{},{},{}",
+            "{},{},{},{},{},{},{},{}",
             escape_csv(&timestamp),
             escape_csv(request_ip),
             escape_csv(client_version),
+            escape_csv(extension),
+            escape_csv(browser),
+            escape_csv(os),
             escape_csv(&self.version),
             escape_csv(scenario),
         );

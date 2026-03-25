@@ -28,6 +28,38 @@ fn get_client_version(headers: &HeaderMap) -> String {
         .to_string()
 }
 
+/// Parse X-Client-Info header: "ext=BBOAlert; browser=Chrome; os=macOS"
+pub struct ClientInfo {
+    pub extension: String,
+    pub browser: String,
+    pub os: String,
+}
+
+fn get_client_info(headers: &HeaderMap) -> ClientInfo {
+    let raw = headers
+        .get("X-Client-Info")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+
+    let mut extension = String::new();
+    let mut browser = String::new();
+    let mut os = String::new();
+
+    for part in raw.split(';') {
+        let part = part.trim();
+        if let Some((key, val)) = part.split_once('=') {
+            match key.trim() {
+                "ext" => extension = val.trim().to_string(),
+                "browser" => browser = val.trim().to_string(),
+                "os" => os = val.trim().to_string(),
+                _ => {}
+            }
+        }
+    }
+
+    ClientInfo { extension, browser, os }
+}
+
 /// POST /api/auction/generate
 pub async fn generate_auction(
     State(state): State<AppState>,
@@ -39,6 +71,7 @@ pub async fn generate_auction(
     let raw_ip = get_client_ip(&headers, &conn);
     let anon_ip = ip_anonymizer::anonymize(raw_ip.as_deref());
     let client_version = get_client_version(&headers);
+    let client_info = get_client_info(&headers);
 
     // Determine convention cards
     let conventions = if let Some(ref conv) = request.conventions {
@@ -122,6 +155,9 @@ pub async fn generate_auction(
                 state.audit_log.log_request(
                     &anon_ip,
                     &client_version,
+                    &client_info.extension,
+                    &client_info.browser,
+                    &client_info.os,
                     duration,
                     state.epbot_version,
                     &deal_dealer,
@@ -152,6 +188,9 @@ pub async fn generate_auction(
                 state.audit_log.log_request(
                     &anon_ip,
                     &client_version,
+                    &client_info.extension,
+                    &client_info.browser,
+                    &client_info.os,
                     duration,
                     state.epbot_version,
                     &deal_dealer,
@@ -200,10 +239,14 @@ pub async fn select_scenario(
     let raw_ip = get_client_ip(&headers, &conn);
     let anon_ip = ip_anonymizer::anonymize(raw_ip.as_deref());
     let client_version = get_client_version(&headers);
+    let client_info = get_client_info(&headers);
 
     state.audit_log.log_scenario_selection(
         &anon_ip,
         &client_version,
+        &client_info.extension,
+        &client_info.browser,
+        &client_info.os,
         request.scenario.as_deref().unwrap_or(""),
     );
 
