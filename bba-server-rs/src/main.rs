@@ -99,7 +99,7 @@ async fn main() {
         .route("/admin/dashboard", get(routes::admin::dashboard))
         .route("/admin/whoami", get(routes::admin::whoami))
         .route("/admin/api/logs", get(routes::admin::list_logs))
-        .route("/admin/api/logs/{filename}", get(routes::admin::get_log))
+        .route("/admin/api/logs/:filename", get(routes::admin::get_log))
         .route("/admin/api/stats", get(routes::admin::stats))
         .route("/admin/api/scenario-stats", get(routes::admin::scenario_stats))
         // Middleware
