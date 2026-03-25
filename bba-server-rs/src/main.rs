@@ -86,7 +86,12 @@ async fn main() {
             "http://localhost:3000".parse().unwrap(),
         ]))
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
-        .allow_headers(tower_http::cors::Any);
+        .allow_headers([
+            "content-type".parse().unwrap(),
+            "x-client-version".parse().unwrap(),
+            "x-client-info".parse().unwrap(),
+            "x-api-key".parse().unwrap(),
+        ]);
 
     let app = Router::new()
         // Public endpoints
