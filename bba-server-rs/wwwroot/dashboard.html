@@ -194,6 +194,24 @@
         .error-row { background: #fff5f5; }
         .error-row:hover { background: #ffecec; }
 
+        /* Sortable headers */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 20px;
+        }
+        th.sortable:hover { background: #e9ecef; }
+        th.sortable::after {
+            content: '\u2195';
+            position: absolute;
+            right: 6px;
+            color: #bbb;
+            font-size: 11px;
+        }
+        th.sortable.sort-asc::after { content: '\u25B2'; color: #007bff; }
+        th.sortable.sort-desc::after { content: '\u25BC'; color: #007bff; }
+
         /* History table time column */
         #requests-table th:first-child,
         #requests-table td:first-child {
@@ -245,6 +263,7 @@
         .file-link { color: #007bff; cursor: pointer; text-decoration: none; }
         .file-link:hover { text-decoration: underline; }
         .muted { color: #888; }
+        .text-right { text-align: right; }
     </style>
 </head>
 <body>
@@ -252,7 +271,7 @@
         <h1 style="margin: 0;">BBA Server Dashboard</h1>
         <div style="display: flex; gap: 15px; align-items: center;">
             <div class="filter-control">
-                <input type="checkbox" id="filter-admins" autocomplete="off" onchange="onFilterChange()">
+                <input type="checkbox" id="filter-admins" autocomplete="off" checked onchange="onFilterChange()">
                 <label for="filter-admins">Hide admin users</label>
             </div>
             <button class="refresh-btn" onclick="loadAll()">Refresh</button>
@@ -286,6 +305,18 @@
             </div>
         </div>
 
+        <!-- User Summary and Scenario Summary side by side -->
+        <div class="two-column" style="margin-top: 25px;">
+            <div>
+                <h3 class="section-title" style="margin-top: 0;">User Summary</h3>
+                <div id="user-summary-table"></div>
+            </div>
+            <div>
+                <h3 class="section-title" style="margin-top: 0;">Scenario Summary</h3>
+                <div id="scenario-summary-table"></div>
+            </div>
+        </div>
+
         <div class="two-column" style="margin-top: 25px;">
             <!-- Scenario Popularity Pie Chart -->
             <div class="chart-container">
@@ -293,9 +324,9 @@
                 <div class="pie-container" id="scenario-pie"></div>
             </div>
 
-            <!-- User Activity -->
+            <!-- Top Users (simple count) -->
             <div>
-                <h3 class="section-title" style="margin-top: 0;">Top Users</h3>
+                <h3 class="section-title" style="margin-top: 0;">Top Users by Selections</h3>
                 <div id="user-table"></div>
             </div>
         </div>
@@ -322,7 +353,11 @@
     <div id="scenarios" class="tab-content">
         <h3 class="section-title">Recent Scenario Selections</h3>
         <table id="scenario-table">
-            <thead><tr><th>Time</th><th>User</th><th>Scenario</th></tr></thead>
+            <thead><tr>
+                <th>Time</th>
+                <th class="sortable" onclick="sortHistoryTable('scenario-table', 1, this)">User</th>
+                <th class="sortable" onclick="sortHistoryTable('scenario-table', 2, this)">Scenario</th>
+            </tr></thead>
             <tbody></tbody>
         </table>
     </div>
@@ -331,7 +366,15 @@
     <div id="auctions" class="tab-content">
         <h3 class="section-title">Recent BBA Compare Requests</h3>
         <table id="requests-table">
-            <thead><tr><th>Time</th><th>User</th><th>Scenario</th><th>NS Conv</th><th>Auction</th><th>Duration</th><th>Status</th></tr></thead>
+            <thead><tr>
+                <th>Time</th>
+                <th class="sortable" onclick="sortHistoryTable('requests-table', 1, this)">User</th>
+                <th class="sortable" onclick="sortHistoryTable('requests-table', 2, this)">Scenario</th>
+                <th>NS Conv</th>
+                <th>Auction</th>
+                <th>Duration</th>
+                <th>Status</th>
+            </tr></thead>
             <tbody></tbody>
         </table>
     </div>
@@ -452,6 +495,91 @@
             return scenarioData.filter(r => !isAdminUser(r.RequestIP));
         }
 
+        // Session computation (5-minute gap threshold)
+        const SESSION_GAP_MS = 5 * 60 * 1000;
+
+        function parseTimestamp(ts) {
+            if (!ts) return null;
+            // Format: "2026-01-30 07:15:23" or similar
+            return new Date(ts.replace(' ', 'T'));
+        }
+
+        function computeUserSessions(scenarioRows, auctionRows) {
+            // Merge all events by user with timestamps
+            const userEvents = {};
+
+            scenarioRows.forEach(r => {
+                const user = r.RequestIP;
+                const ts = parseTimestamp(r.Timestamp);
+                const scenario = r.Scenario || '';
+                if (user && ts) {
+                    if (!userEvents[user]) userEvents[user] = [];
+                    userEvents[user].push({ ts, type: 'scenario', scenario });
+                }
+            });
+
+            auctionRows.forEach(r => {
+                const user = r.RequestIP;
+                const ts = parseTimestamp(r.Timestamp);
+                if (user && ts) {
+                    if (!userEvents[user]) userEvents[user] = [];
+                    userEvents[user].push({ ts, type: 'auction' });
+                }
+            });
+
+            const results = [];
+
+            for (const [user, events] of Object.entries(userEvents)) {
+                events.sort((a, b) => a.ts - b.ts);
+
+                let sessions = 0;
+                let totalET = 0;
+                let sessionStart = null;
+                let sessionEnd = null;
+                let auctionCount = 0;
+                const scenarioSet = new Set();
+
+                for (const evt of events) {
+                    if (evt.type === 'auction') auctionCount++;
+                    if (evt.scenario) scenarioSet.add(evt.scenario);
+
+                    if (sessionStart === null) {
+                        sessionStart = evt.ts;
+                        sessionEnd = evt.ts;
+                        sessions++;
+                    } else if (evt.ts - sessionEnd > SESSION_GAP_MS) {
+                        // End previous session, start new one
+                        totalET += sessionEnd - sessionStart;
+                        sessionStart = evt.ts;
+                        sessionEnd = evt.ts;
+                        sessions++;
+                    } else {
+                        sessionEnd = evt.ts;
+                    }
+                }
+                // Close last session
+                if (sessionStart !== null) {
+                    totalET += sessionEnd - sessionStart;
+                }
+
+                results.push({
+                    user,
+                    sessions,
+                    scenarios: scenarioSet.size,
+                    auctions: auctionCount,
+                    totalET  // in milliseconds
+                });
+            }
+
+            return results;
+        }
+
+        function formatDuration(ms) {
+            if (ms < 60000) return (ms / 1000).toFixed(0) + 's';
+            if (ms < 3600000) return (ms / 60000).toFixed(1) + ' min';
+            return (ms / 3600000).toFixed(1) + ' hrs';
+        }
+
         // Rendering
         function renderAll() {
             renderStats();
@@ -459,6 +587,8 @@
             renderUsageChart();
             renderScenarioPie();
             renderUserTable();
+            renderUserSummary();
+            renderScenarioSummary();
             renderErrors();
             renderScenarioHistory();
             renderHistory();
@@ -518,7 +648,6 @@
         function renderVisitorsChart() {
             const scenarios = getFilteredScenarioData();
 
-            // Group unique users by date
             const usersByDate = {};
             scenarios.forEach(r => {
                 const date = (r.Timestamp || '').split(' ')[0];
@@ -536,7 +665,6 @@
                 return;
             }
 
-            // Convert sets to counts
             const byDate = {};
             dates.forEach(d => byDate[d] = usersByDate[d].size);
 
@@ -555,7 +683,6 @@
         function renderUsageChart() {
             const scenarios = getFilteredScenarioData();
 
-            // Group by date
             const byDate = {};
             scenarios.forEach(r => {
                 const date = (r.Timestamp || '').split(' ')[0];
@@ -605,7 +732,6 @@
 
         function aggregateByWeek(byDate, dates, isVisitors) {
             const weeks = {};
-            const weekUsers = {}; // For visitor dedup
 
             dates.forEach(date => {
                 const d = new Date(date);
@@ -613,13 +739,7 @@
                 const diff = d.getDate() - day + (day === 0 ? -6 : 1);
                 const weekStart = new Date(d.setDate(diff));
                 const weekKey = weekStart.toISOString().slice(0, 10);
-
-                if (isVisitors) {
-                    // For visitors, we sum unique users per day (approximation)
-                    weeks[weekKey] = (weeks[weekKey] || 0) + byDate[date];
-                } else {
-                    weeks[weekKey] = (weeks[weekKey] || 0) + byDate[date];
-                }
+                weeks[weekKey] = (weeks[weekKey] || 0) + byDate[date];
             });
 
             return Object.entries(weeks)
@@ -663,7 +783,6 @@
                 return;
             }
 
-            // Take top 9 and group rest as "Others"
             let slices = sorted.slice(0, 9);
             const others = sorted.slice(9);
             if (others.length > 0) {
@@ -673,7 +792,6 @@
 
             const total = slices.reduce((sum, [, count]) => sum + count, 0);
 
-            // Build conic gradient for pie
             let gradientStops = [];
             let currentAngle = 0;
             slices.forEach(([name, count], i) => {
@@ -683,7 +801,7 @@
                 currentAngle += percent;
             });
 
-            const pieHtml = `
+            document.getElementById('scenario-pie').innerHTML = `
                 <div class="pie-chart" style="background: conic-gradient(${gradientStops.join(', ')});"></div>
                 <div class="pie-legend">
                     ${slices.map(([name, count], i) => `
@@ -695,8 +813,6 @@
                     `).join('')}
                 </div>
             `;
-
-            document.getElementById('scenario-pie').innerHTML = pieHtml;
         }
 
         function renderUserTable() {
@@ -717,9 +833,103 @@
                 </table>`;
         }
 
+        function renderUserSummary() {
+            const scenarios = getFilteredScenarioData();
+            const auctions = getFilteredAuctionData();
+            const userStats = computeUserSessions(scenarios, auctions);
+
+            // Sort by total ET descending
+            userStats.sort((a, b) => b.totalET - a.totalET);
+
+            if (userStats.length === 0) {
+                document.getElementById('user-summary-table').innerHTML = '<div class="muted">No data yet</div>';
+                return;
+            }
+
+            const totalSessions = userStats.reduce((s, u) => s + u.sessions, 0);
+            const totalAuctions = userStats.reduce((s, u) => s + u.auctions, 0);
+            const totalET = userStats.reduce((s, u) => s + u.totalET, 0);
+
+            document.getElementById('user-summary-table').innerHTML = `
+                <table>
+                    <thead><tr>
+                        <th>User</th>
+                        <th class="text-right">Sessions</th>
+                        <th class="text-right">Scenarios</th>
+                        <th class="text-right">Auctions</th>
+                        <th class="text-right">Total ET</th>
+                    </tr></thead>
+                    <tbody>
+                        ${userStats.map(u => `<tr>
+                            <td>${u.user}</td>
+                            <td class="text-right">${u.sessions}</td>
+                            <td class="text-right">${u.scenarios}</td>
+                            <td class="text-right">${u.auctions}</td>
+                            <td class="text-right">${formatDuration(u.totalET)}</td>
+                        </tr>`).join('')}
+                        <tr style="font-weight: 600; border-top: 2px solid #ddd;">
+                            <td>Total (${userStats.length} users)</td>
+                            <td class="text-right">${totalSessions}</td>
+                            <td class="text-right"></td>
+                            <td class="text-right">${totalAuctions}</td>
+                            <td class="text-right">${formatDuration(totalET)}</td>
+                        </tr>
+                    </tbody>
+                </table>`;
+        }
+
+        function renderScenarioSummary() {
+            const scenarios = getFilteredScenarioData();
+            const auctions = getFilteredAuctionData();
+
+            // Count unique users and auctions per scenario
+            const scenarioStats = {};
+
+            scenarios.forEach(r => {
+                const s = r.Scenario || '(empty/unset)';
+                const u = r.RequestIP;
+                if (!scenarioStats[s]) scenarioStats[s] = { users: new Set(), auctions: 0 };
+                if (u) scenarioStats[s].users.add(u);
+            });
+
+            auctions.forEach(r => {
+                const s = r.Scenario || '(empty/unset)';
+                if (!scenarioStats[s]) scenarioStats[s] = { users: new Set(), auctions: 0 };
+                scenarioStats[s].auctions++;
+            });
+
+            const sorted = Object.entries(scenarioStats)
+                .map(([scenario, stats]) => ({
+                    scenario,
+                    users: stats.users.size,
+                    auctions: stats.auctions
+                }))
+                .sort((a, b) => b.auctions - a.auctions || b.users - a.users);
+
+            if (sorted.length === 0) {
+                document.getElementById('scenario-summary-table').innerHTML = '<div class="muted">No data yet</div>';
+                return;
+            }
+
+            document.getElementById('scenario-summary-table').innerHTML = `
+                <table>
+                    <thead><tr>
+                        <th>Scenario</th>
+                        <th class="text-right">Users</th>
+                        <th class="text-right">Auctions</th>
+                    </tr></thead>
+                    <tbody>
+                        ${sorted.map(s => `<tr>
+                            <td title="${s.scenario}">${s.scenario}</td>
+                            <td class="text-right">${s.users}</td>
+                            <td class="text-right">${s.auctions}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`;
+        }
+
         function renderErrors() {
             const auctions = getFilteredAuctionData();
-            // Filter out pre-release errors before 2026-01-30 07:00
             const errorCutoff = '2026-01-30 07:00';
             const failed = auctions.filter(a => a.Success === 'false' && (a.Timestamp || '') >= errorCutoff);
             const total = auctions.filter(a => (a.Timestamp || '') >= errorCutoff).length;
@@ -759,6 +969,9 @@
                         <td>${r.Scenario || '-'}</td>
                     </tr>
                 `).join('');
+
+            // Clear sort indicators
+            clearSortIndicators('scenario-table');
         }
 
         function renderHistory() {
@@ -776,9 +989,64 @@
                         <td>${r.NSConvention || '-'}</td>
                         <td>${r.Auction || '-'}</td>
                         <td>${r.DurationMs ? r.DurationMs + 'ms' : '-'}</td>
-                        <td>${r.Success === 'true' ? '✓' : '✗'}</td>
+                        <td>${r.Success === 'true' ? '\u2713' : '\u2717'}</td>
                     </tr>
                 `).join('');
+
+            clearSortIndicators('requests-table');
+        }
+
+        // Sortable column headers for history tables
+        // Groups rows by the sorted column value, maintaining time order within each group
+        function sortHistoryTable(tableId, colIndex, thElement) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            if (rows.length === 0) return;
+
+            // Determine sort direction
+            const wasAsc = thElement.classList.contains('sort-asc');
+            const wasDesc = thElement.classList.contains('sort-desc');
+
+            // Clear all sort indicators in this table
+            clearSortIndicators(tableId);
+
+            let direction;
+            if (!wasAsc && !wasDesc) {
+                direction = 'asc';
+            } else if (wasAsc) {
+                direction = 'desc';
+            } else {
+                // Was desc — reset to time order
+                direction = 'none';
+            }
+
+            if (direction === 'none') {
+                // Re-render to restore original time order
+                if (tableId === 'scenario-table') renderScenarioHistory();
+                else renderHistory();
+                return;
+            }
+
+            thElement.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+
+            // Stable sort: group by column value, maintain time order within groups
+            rows.sort((a, b) => {
+                const aVal = (a.cells[colIndex]?.textContent || '').trim();
+                const bVal = (b.cells[colIndex]?.textContent || '').trim();
+                const cmp = aVal.localeCompare(bVal);
+                return direction === 'asc' ? cmp : -cmp;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function clearSortIndicators(tableId) {
+            const table = document.getElementById(tableId);
+            table.querySelectorAll('th.sortable').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
         }
 
         function renderLogFiles() {

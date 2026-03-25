@@ -1,7 +1,9 @@
+use axum::extract::connect_info::ConnectInfo;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::{Html, IntoResponse, Json, Redirect};
 use serde::Deserialize;
+use std::net::SocketAddr;
 
 use crate::services::ip_anonymizer;
 use crate::AppState;
@@ -11,13 +13,18 @@ pub struct AdminQuery {
     pub key: Option<String>,
 }
 
-fn get_admin_context(headers: &HeaderMap, query: &AdminQuery) -> (Option<String>, String, Option<String>) {
+fn get_admin_context(
+    headers: &HeaderMap,
+    query: &AdminQuery,
+    conn: &SocketAddr,
+) -> (Option<String>, String, Option<String>) {
     let raw_ip = headers
         .get("CF-Connecting-IP")
         .or_else(|| headers.get("X-Forwarded-For"))
         .or_else(|| headers.get("X-Real-IP"))
         .and_then(|v| v.to_str().ok())
-        .map(|s| s.split(',').next().unwrap_or(s).trim().to_string());
+        .map(|s| s.split(',').next().unwrap_or(s).trim().to_string())
+        .or_else(|| Some(conn.ip().to_string()));
 
     let anon_ip = ip_anonymizer::anonymize(raw_ip.as_deref());
     let key = query.key.clone();
@@ -48,8 +55,9 @@ pub async fn whoami(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
 ) -> Json<serde_json::Value> {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query);
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     let allowed = is_allowed(&state, &raw_ip, &anon_ip, &key);
 
     Json(serde_json::json!({
@@ -65,8 +73,9 @@ pub async fn admin_root(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query);
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
@@ -83,13 +92,17 @@ pub async fn dashboard(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query);
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
 
-    Html(include_str!("../../wwwroot/dashboard.html")).into_response()
+    // Try disk first (enables live editing without rebuild), fall back to embedded
+    let html = std::fs::read_to_string("wwwroot/dashboard.html")
+        .unwrap_or_else(|_| include_str!("../../wwwroot/dashboard.html").to_string());
+    Html(html).into_response()
 }
 
 /// GET /admin/api/logs
@@ -97,8 +110,9 @@ pub async fn list_logs(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query);
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
@@ -110,9 +124,10 @@ pub async fn get_log(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
     Path(filename): Path<String>,
 ) -> impl IntoResponse {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query);
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
@@ -128,8 +143,9 @@ pub async fn stats(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query);
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
@@ -148,8 +164,9 @@ pub async fn scenario_stats(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
 ) -> impl IntoResponse {
-    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query);
+    let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
         return StatusCode::UNAUTHORIZED.into_response();
     }

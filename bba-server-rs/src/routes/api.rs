@@ -1,6 +1,8 @@
+use axum::extract::connect_info::ConnectInfo;
 use axum::extract::State;
 use axum::http::HeaderMap;
 use axum::Json;
+use std::net::SocketAddr;
 use std::time::Instant;
 use crate::models::*;
 use crate::AppState;
@@ -8,13 +10,14 @@ use crate::services::ip_anonymizer;
 use epbot_core::{ConventionCard, Scoring};
 
 /// Extract client IP from headers (Cloudflare → X-Forwarded-For → connection).
-fn get_client_ip(headers: &HeaderMap) -> Option<String> {
+fn get_client_ip(headers: &HeaderMap, conn: &SocketAddr) -> Option<String> {
     headers
         .get("CF-Connecting-IP")
         .or_else(|| headers.get("X-Forwarded-For"))
         .or_else(|| headers.get("X-Real-IP"))
         .and_then(|v| v.to_str().ok())
         .map(|s| s.split(',').next().unwrap_or(s).trim().to_string())
+        .or_else(|| Some(conn.ip().to_string()))
 }
 
 fn get_client_version(headers: &HeaderMap) -> String {
@@ -29,10 +32,11 @@ fn get_client_version(headers: &HeaderMap) -> String {
 pub async fn generate_auction(
     State(state): State<AppState>,
     headers: HeaderMap,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
     Json(request): Json<AuctionRequest>,
 ) -> Json<AuctionResponse> {
     let start = Instant::now();
-    let raw_ip = get_client_ip(&headers);
+    let raw_ip = get_client_ip(&headers, &conn);
     let anon_ip = ip_anonymizer::anonymize(raw_ip.as_deref());
     let client_version = get_client_version(&headers);
 
@@ -190,9 +194,10 @@ pub async fn generate_auction(
 pub async fn select_scenario(
     State(state): State<AppState>,
     headers: HeaderMap,
+    ConnectInfo(conn): ConnectInfo<SocketAddr>,
     Json(request): Json<ScenarioSelectRequest>,
 ) -> Json<serde_json::Value> {
-    let raw_ip = get_client_ip(&headers);
+    let raw_ip = get_client_ip(&headers, &conn);
     let anon_ip = ip_anonymizer::anonymize(raw_ip.as_deref());
     let client_version = get_client_version(&headers);
 
