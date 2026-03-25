@@ -122,10 +122,10 @@ pub async fn list_logs(
 /// GET /admin/api/logs/:filename
 pub async fn get_log(
     State(state): State<AppState>,
+    Path(filename): Path<String>,
     headers: HeaderMap,
     Query(query): Query<AdminQuery>,
     ConnectInfo(conn): ConnectInfo<SocketAddr>,
-    Path(filename): Path<String>,
 ) -> impl IntoResponse {
     let (raw_ip, anon_ip, key) = get_admin_context(&headers, &query, &conn);
     if !is_allowed(&state, &raw_ip, &anon_ip, &key) {
