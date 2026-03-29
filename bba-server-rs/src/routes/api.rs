@@ -151,7 +151,7 @@ pub async fn generate_auction(
 
                 let alerts_str = format_alerts(&meanings);
                 let duration = start.elapsed().as_millis() as u64;
-                let auction_readable = auction.join(" ");
+                let auction_readable = format_readable_auction(&auction);
 
                 state.audit_log.log_request(
                     &anon_ip,
@@ -294,6 +294,17 @@ fn encode_bbo_format(bids: &[String]) -> String {
             b => format!("{:<2}", b),
         })
         .collect()
+}
+
+fn format_readable_auction(bids: &[String]) -> String {
+    let s = bids.join(" ");
+    if s == "Pass Pass Pass Pass" {
+        return "PassOut".to_string();
+    }
+    if s.ends_with(" Pass Pass Pass") {
+        return format!("{} AllPass", &s[..s.len() - " Pass Pass Pass".len()]);
+    }
+    s
 }
 
 fn format_alerts(meanings: &[BidMeaning]) -> String {
