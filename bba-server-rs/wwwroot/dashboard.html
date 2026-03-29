@@ -581,8 +581,16 @@
 
         function parseTimestamp(ts) {
             if (!ts) return null;
-            // Format: "2026-01-30 07:15:23" or similar
-            return new Date(ts.replace(' ', 'T'));
+            // Format: "2026-01-30 07:15:23" — stored as UTC
+            return new Date(ts.replace(' ', 'T') + 'Z');
+        }
+
+        function formatTimestamp(ts) {
+            if (!ts) return '-';
+            const d = parseTimestamp(ts);
+            if (!d || isNaN(d)) return ts;
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
         }
 
         function computeUserSessions(scenarioRows, auctionRows) {
@@ -1212,7 +1220,7 @@
                 ? '<tr><td colspan="4" class="muted">No errors</td></tr>'
                 : recentErrors.map(e => `
                     <tr class="error-row">
-                        <td>${e.Timestamp || '-'}</td>
+                        <td>${formatTimestamp(e.Timestamp)}</td>
                         <td>${e.RequestIP || '-'}</td>
                         <td>${e.Scenario || '-'}</td>
                         <td>${e.Error || '-'}</td>
@@ -1229,7 +1237,7 @@
                 ? '<tr><td colspan="3" class="muted">No selections yet</td></tr>'
                 : recent.map(r => `
                     <tr>
-                        <td>${r.Timestamp || '-'}</td>
+                        <td>${formatTimestamp(r.Timestamp)}</td>
                         <td>${r.RequestIP || '-'}</td>
                         <td>${r.Scenario || '-'}</td>
                     </tr>
@@ -1248,7 +1256,7 @@
                 ? '<tr><td colspan="7" class="muted">No requests yet</td></tr>'
                 : recent.map(r => `
                     <tr class="${r.Success === 'false' ? 'error-row' : ''}">
-                        <td>${r.Timestamp || '-'}</td>
+                        <td>${formatTimestamp(r.Timestamp)}</td>
                         <td>${r.RequestIP || '-'}</td>
                         <td>${r.Scenario || '-'}</td>
                         <td>${r.NSConvention || '-'}</td>
