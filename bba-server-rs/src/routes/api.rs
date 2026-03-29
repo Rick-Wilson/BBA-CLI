@@ -151,6 +151,7 @@ pub async fn generate_auction(
 
                 let alerts_str = format_alerts(&meanings);
                 let duration = start.elapsed().as_millis() as u64;
+                let auction_readable = auction.join(" ");
 
                 state.audit_log.log_request(
                     &anon_ip,
@@ -168,7 +169,7 @@ pub async fn generate_auction(
                     scenario_clone.as_deref().unwrap_or(""),
                     &deal_pbn,
                     true,
-                    &encoded,
+                    &auction_readable,
                     &alerts_str,
                     "",
                 );
