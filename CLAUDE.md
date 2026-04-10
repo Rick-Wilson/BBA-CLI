@@ -87,6 +87,22 @@ scp bba-server-rs/wwwroot/dashboard.html root@146.190.135.172:/opt/bba-server/ww
 ssh root@146.190.135.172 'cd /opt/livekit && docker compose restart caddy'
 ```
 
+### Maintenance & Updates
+
+Automatic reboots are disabled (`/etc/apt/apt.conf.d/51no-auto-reboot`). Unattended security upgrades still install but won't reboot.
+
+**Important:** System library updates (especially `libssl3`) can break EPBot's NativeAOT runtime without warning. On 2026-04-09, an automatic `libssl3` update caused "Arithmetic operation resulted in an overflow" on all `epbot_create()` calls. A reboot fixed it.
+
+**Before applying OS updates:**
+1. Check for pending updates: `ssh root@146.190.135.172 'apt list --upgradable'`
+2. Plan a maintenance window (low-traffic period)
+3. Apply updates: `ssh root@146.190.135.172 'apt upgrade -y'`
+4. Restart bba-server: `ssh root@146.190.135.172 'systemctl restart bba-server'`
+5. Verify: `curl https://bba.harmonicsystems.com/health`
+6. If EPBot fails, reboot: `ssh root@146.190.135.172 'reboot'`
+
+**Check for pending reboot:** `ssh root@146.190.135.172 'cat /var/run/reboot-required 2>/dev/null || echo "no reboot required"'`
+
 ### Configuration
 
 Environment file: `/opt/bba-server/.env`
