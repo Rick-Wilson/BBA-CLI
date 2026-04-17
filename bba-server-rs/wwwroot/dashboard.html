@@ -1183,14 +1183,25 @@
             const auctions = getFilteredAuctionData();
             const allRows = [...scenarios, ...auctions];
 
+            // Dedupe by user: a user's most recent non-empty value wins.
+            // Sort by timestamp ascending so later rows overwrite earlier ones.
+            const userEnv = {};
+            allRows
+                .slice()
+                .sort((a, b) => (a.Timestamp || '').localeCompare(b.Timestamp || ''))
+                .forEach(r => {
+                    const user = r.RequestIP;
+                    if (!user) return;
+                    if (!userEnv[user]) userEnv[user] = { ext: '', browser: '', os: '' };
+                    if (r.Extension) userEnv[user].ext = r.Extension;
+                    if (r.Browser) userEnv[user].browser = r.Browser;
+                    if (r.OS) userEnv[user].os = r.OS;
+                });
+
             const extCounts = {};
             const browserCounts = {};
             const osCounts = {};
-
-            allRows.forEach(r => {
-                const ext = r.Extension || '';
-                const browser = r.Browser || '';
-                const os = r.OS || '';
+            Object.values(userEnv).forEach(({ ext, browser, os }) => {
                 if (ext) extCounts[ext] = (extCounts[ext] || 0) + 1;
                 if (browser) browserCounts[browser] = (browserCounts[browser] || 0) + 1;
                 if (os) osCounts[os] = (osCounts[os] || 0) + 1;
