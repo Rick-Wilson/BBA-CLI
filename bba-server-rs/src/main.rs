@@ -77,13 +77,18 @@ async fn main() {
         epbot_version,
     };
 
-    // CORS — allow BridgeBase.com and localhost
+    // CORS — allow BridgeBase.com, Bridge Classroom, and localhost
     let cors = CorsLayer::new()
         .allow_origin(AllowOrigin::list([
             "https://www.bridgebase.com".parse().unwrap(),
             "http://www.bridgebase.com".parse().unwrap(),
             "https://bridgebase.com".parse().unwrap(),
+            "https://bridge-classroom.com".parse().unwrap(),
+            "https://www.bridge-classroom.com".parse().unwrap(),
+            "https://bridge-classroom.org".parse().unwrap(),
+            "https://www.bridge-classroom.org".parse().unwrap(),
             "http://localhost:3000".parse().unwrap(),
+            "http://localhost:3001".parse().unwrap(),
         ]))
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers([
