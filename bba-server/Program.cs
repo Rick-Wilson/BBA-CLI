@@ -162,7 +162,7 @@ app.MapPost("/api/auction/generate", async (
     }
 
     // Generate auction
-    var response = await epbotService.GenerateAuctionAsync(request.Deal, conventions);
+    var response = await epbotService.GenerateAuctionAsync(request.Deal, conventions, request.AuctionPrefix);
     sw.Stop();
 
     // Log to audit CSV

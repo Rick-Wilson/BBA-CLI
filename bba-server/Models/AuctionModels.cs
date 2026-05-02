@@ -21,6 +21,18 @@ public class AuctionRequest
     /// Used if Scenario is not provided.
     /// </summary>
     public ConventionCards? Conventions { get; set; }
+
+    /// <summary>
+    /// Optional forced bid sequence to use for the first N positions of the
+    /// auction. The server still calls set_bid on every player so the EPBot
+    /// state stays consistent, but skips get_bid for these positions and uses
+    /// the provided values instead. Subsequent positions resume normal bot
+    /// bidding. Useful for "what if I had bid X" practice flows.
+    ///
+    /// Each entry must be one of: "Pass", "X", "XX", or
+    /// {1-7}{C|D|H|S|NT}.
+    /// </summary>
+    public List<string>? AuctionPrefix { get; set; }
 }
 
 /// <summary>

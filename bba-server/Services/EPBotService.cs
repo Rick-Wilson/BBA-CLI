@@ -93,7 +93,7 @@ public class EPBotService
     /// <summary>
     /// Generate an auction for a deal.
     /// </summary>
-    public async Task<AuctionResponse> GenerateAuctionAsync(DealInfo deal, ConventionCards conventions)
+    public async Task<AuctionResponse> GenerateAuctionAsync(DealInfo deal, ConventionCards conventions, List<string>? auctionPrefix = null)
     {
         // Fetch convention card content from GitHub before entering semaphore
         string[] nsConvLines, ewConvLines;
@@ -114,7 +114,7 @@ public class EPBotService
         await _semaphore.WaitAsync();
         try
         {
-            return await Task.Run(() => GenerateAuction(deal, conventions, nsConvLines, ewConvLines));
+            return await Task.Run(() => GenerateAuction(deal, conventions, nsConvLines, ewConvLines, auctionPrefix));
         }
         finally
         {
@@ -122,7 +122,7 @@ public class EPBotService
         }
     }
 
-    private AuctionResponse GenerateAuction(DealInfo deal, ConventionCards conventions, string[] nsConvLines, string[] ewConvLines)
+    private AuctionResponse GenerateAuction(DealInfo deal, ConventionCards conventions, string[] nsConvLines, string[] ewConvLines, List<string>? auctionPrefix = null)
     {
         var response = new AuctionResponse
         {
@@ -177,10 +177,28 @@ public class EPBotService
             int passCount = 0;
             bool hasBid = false;
 
+            int prefixLen = auctionPrefix?.Count ?? 0;
             for (int round = 0; round < 100; round++)
             {
-                int bidCode = players[currentPos].get_bid();
-                string bidStr = DecodeBid(bidCode);
+                int bidCode;
+                string bidStr;
+
+                if (round < prefixLen)
+                {
+                    // Forced prefix: don't ask the player to bid, use the supplied bid.
+                    bidStr = auctionPrefix![round];
+                    try { bidCode = EncodeBid(bidStr); }
+                    catch (ArgumentException ex)
+                    {
+                        response.Error = $"Invalid auctionPrefix at index {round}: {ex.Message}";
+                        return response;
+                    }
+                }
+                else
+                {
+                    bidCode = players[currentPos].get_bid();
+                    bidStr = DecodeBid(bidCode);
+                }
                 bids.Add(bidStr);
 
                 // Broadcast bid to all players FIRST
@@ -397,6 +415,33 @@ public class EPBotService
         }
 
         return $"?{code}";
+    }
+
+    /// <summary>
+    /// Inverse of DecodeBid. Accepts "Pass", "X", "XX", "1C".."7NT" (also
+    /// tolerates "1N" as "1NT"). Throws ArgumentException on any other input.
+    /// </summary>
+    private int EncodeBid(string bid)
+    {
+        if (bid == "Pass") return 0;
+        if (bid == "X") return 1;
+        if (bid == "XX") return 2;
+
+        var match = System.Text.RegularExpressions.Regex.Match(bid ?? string.Empty, @"^([1-7])(NT|N|[CDHS])$");
+        if (!match.Success)
+        {
+            throw new ArgumentException($"unrecognised bid '{bid}'");
+        }
+
+        int level = int.Parse(match.Groups[1].Value);
+        string strain = match.Groups[2].Value;
+        if (strain == "N") strain = "NT";
+
+        string[] suits = { "C", "D", "H", "S", "NT" };
+        int suitIdx = Array.IndexOf(suits, strain);
+        if (suitIdx < 0) throw new ArgumentException($"unrecognised strain '{strain}'");
+
+        return 5 + (level - 1) * 5 + suitIdx;
     }
 
     /// <summary>
