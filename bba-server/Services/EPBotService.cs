@@ -193,6 +193,7 @@ public class EPBotService
                 // NOW get bid meaning from PARTNER's perspective (after they've seen the bid)
                 int partnerPos = (currentPos + 2) % 4;
                 string? meaning = null;
+                string? meaningExtended = null;
                 bool isAlert = false;
                 try
                 {
@@ -200,6 +201,10 @@ public class EPBotService
                     if (isAlert)
                     {
                         meaning = players[partnerPos].get_info_meaning(currentPos);
+                        // EPBot also exposes a longer-form explanation. Fetch
+                        // independently so a failure here doesn't drop the short one.
+                        try { meaningExtended = players[partnerPos].get_info_meaning_extended(currentPos); }
+                        catch { }
                     }
                 }
                 catch { }
@@ -209,6 +214,7 @@ public class EPBotService
                     Position = bids.Count - 1,
                     Bid = bidStr,
                     Meaning = meaning,
+                    MeaningExtended = meaningExtended,
                     IsAlert = isAlert
                 });
 

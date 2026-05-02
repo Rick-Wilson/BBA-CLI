@@ -117,9 +117,16 @@ public class BidMeaning
     public required string Bid { get; set; }
 
     /// <summary>
-    /// The meaning/explanation of the bid.
+    /// The short meaning/explanation of the bid (from EPBot info_meaning).
     /// </summary>
     public string? Meaning { get; set; }
+
+    /// <summary>
+    /// The longer/detailed meaning of the bid (from EPBot info_meaning_extended).
+    /// May contain BBOalert suit codes (!C !D !H !S) and additional context
+    /// such as point ranges, suit lengths, and partnership agreements.
+    /// </summary>
+    public string? MeaningExtended { get; set; }
 
     /// <summary>
     /// Whether this bid should be alerted.
