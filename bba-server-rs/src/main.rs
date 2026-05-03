@@ -87,6 +87,8 @@ async fn main() {
             "https://www.bridge-classroom.com".parse().unwrap(),
             "https://bridge-classroom.org".parse().unwrap(),
             "https://www.bridge-classroom.org".parse().unwrap(),
+            "https://game-analysis.bridge-classroom.com".parse().unwrap(),
+            "https://game-analysis.bridge-classroom.org".parse().unwrap(),
             "http://localhost:3000".parse().unwrap(),
             "http://localhost:3001".parse().unwrap(),
         ]))
