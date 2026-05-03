@@ -6,7 +6,9 @@
 use anyhow::{Context, Result};
 use bridge_parsers::pbn::reader::read_pbn_file as bp_read_pbn;
 use bridge_parsers::{Board, Deal, Direction};
-use epbot_core::{generate_auction_with_prefix, ConventionCard, Scoring};
+use epbot_core::bba_hash::{self, HandSuits};
+use epbot_core::score::{self, Strain};
+use epbot_core::{generate_auction_with_options, ConventionCard, Scoring};
 use log::{debug, error, info};
 use std::io::{BufWriter, Write};
 use std::path::Path;
@@ -26,6 +28,8 @@ pub struct OutputConfig {
     pub ew_system_name: String,
     pub ns_conventions_path: String,
     pub ew_conventions_path: String,
+    pub scoring: Scoring,
+    pub single_dummy: bool,
 }
 
 fn direction_to_int(dir: Direction) -> i32 {
@@ -75,6 +79,63 @@ fn vulnerability_to_pbn(vul: i32) -> &'static str {
         3 => "All",
         _ => "None",
     }
+}
+
+fn direction_str_to_int(s: &str) -> i32 {
+    match s {
+        "N" => 0,
+        "E" => 1,
+        "S" => 2,
+        "W" => 3,
+        _ => 0,
+    }
+}
+
+fn strain_index(strain: Strain) -> usize {
+    match strain {
+        Strain::Clubs => 0,
+        Strain::Diamonds => 1,
+        Strain::Hearts => 2,
+        Strain::Spades => 3,
+        Strain::NoTrump => 4,
+    }
+}
+
+fn scoring_tag(scoring: Scoring) -> &'static str {
+    match scoring {
+        Scoring::Matchpoints => "MP",
+        Scoring::Imps => "IMP",
+    }
+}
+
+/// Build the per-player suit strings expected by `bba_hash::encode`.
+///
+/// Cards within each suit are listed using `RANKS` order (A,K,Q,J,T,9..2),
+/// using 'T' for the ten — matches the convention `bba_hash` searches by.
+fn hands_for_bba_hash(deal: &Deal) -> [HandSuits; 4] {
+    let dirs = [Direction::North, Direction::East, Direction::South, Direction::West];
+    let mut out: [HandSuits; 4] = Default::default();
+    for (i, &dir) in dirs.iter().enumerate() {
+        let h = deal.hand(dir);
+        out[i] = HandSuits {
+            clubs:    suit_string_with_t(&h, bridge_parsers::Suit::Clubs),
+            diamonds: suit_string_with_t(&h, bridge_parsers::Suit::Diamonds),
+            hearts:   suit_string_with_t(&h, bridge_parsers::Suit::Hearts),
+            spades:   suit_string_with_t(&h, bridge_parsers::Suit::Spades),
+        };
+    }
+    out
+}
+
+fn suit_string_with_t(hand: &bridge_parsers::Hand, suit: bridge_parsers::Suit) -> String {
+    hand.cards_in_suit(suit)
+        .iter()
+        .map(|c| {
+            let r = format!("{}", c.rank);
+            // bridge_parsers may render the ten as "10"; bba_hash expects 'T'.
+            if r == "10" { "T".to_string() } else { r }
+        })
+        .collect()
 }
 
 /// Format a Deal as a PBN deal string: "N:S.H.D.C S.H.D.C S.H.D.C S.H.D.C"
@@ -148,14 +209,15 @@ pub fn process_pbn_file(
 
         stats.deals_processed += 1;
 
-        let result = generate_auction_with_prefix(
+        let result = generate_auction_with_options(
             &deal_str,
             direction_to_int(dealer),
             vul,
-            Scoring::Matchpoints,
+            config.scoring,
             Some(&ns_card),
             Some(&ew_card),
             auction_prefix,
+            config.single_dummy,
         );
 
         if result.success {
@@ -214,6 +276,19 @@ fn write_rich_pbn(
         writeln!(writer, "[Site \"\"]")?;
         writeln!(writer, "[Date \"{}\"]", today)?;
         writeln!(writer, "[Board \"{}\"]", board_num)?;
+
+        // BBA-style 28-hex board fingerprint, only with --single-dummy.
+        if config.single_dummy {
+            let hands_for_hash = hands_for_bba_hash(&board.deal);
+            let hash = bba_hash::encode(
+                &hands_for_hash,
+                direction_to_int(dealer) as u8,
+                vul as u8,
+                bba_hash::board_extension_for(board_num),
+            );
+            writeln!(writer, "% {}", hash)?;
+        }
+
         writeln!(writer, "[North \"EPBot\"]")?;
         writeln!(writer, "[East \"EPBot\"]")?;
         writeln!(writer, "[South \"EPBot\"]")?;
@@ -231,6 +306,29 @@ fn write_rich_pbn(
                 derive_contract_declarer(&bid_strs, direction_to_int(dealer));
             writeln!(writer, "[Declarer \"{}\"]", declarer)?;
             writeln!(writer, "[Contract \"{}\"]", contract)?;
+
+            // [Result], [Score], [Scoring] only with --single-dummy.
+            if config.single_dummy {
+                if let Some(analysis) = result.analysis.as_ref() {
+                    if let Some((level, strain, doubled)) = score::parse_contract(&contract) {
+                        let strain_idx = strain_index(strain);
+                        let tricks = analysis.tricks[strain_idx];
+                        let declarer_pos = direction_str_to_int(&declarer);
+                        let ns_score = score::score_for_ns(
+                            level,
+                            strain,
+                            doubled,
+                            declarer_pos as u8,
+                            vul as u8,
+                            tricks,
+                        );
+                        writeln!(writer, "[Result \"{}\"]", tricks)?;
+                        writeln!(writer, "[Score \"NS {}\"]", ns_score)?;
+                    }
+                }
+                writeln!(writer, "[Scoring \"{}\"]", scoring_tag(config.scoring))?;
+            }
+
             writeln!(writer, "[Auction \"{}\"]", direction_char(dealer))?;
             write_annotated_auction(&mut writer, &result.bids)?;
         }

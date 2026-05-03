@@ -121,9 +121,10 @@ pub async fn generate_auction(
             let deal_pbn = request.deal.pbn.clone();
             let scenario_clone = request.scenario.clone();
             let auction_prefix = request.auction_prefix.clone();
+            let single_dummy = request.single_dummy;
 
             let result = tokio::task::spawn_blocking(move || {
-                epbot_core::generate_auction_with_prefix(
+                epbot_core::generate_auction_with_options(
                     &pbn,
                     dealer,
                     vul,
@@ -131,6 +132,7 @@ pub async fn generate_auction(
                     Some(&ns_card),
                     Some(&ew_card),
                     auction_prefix.as_deref(),
+                    single_dummy,
                 )
             })
             .await
@@ -177,12 +179,34 @@ pub async fn generate_auction(
                     "",
                 );
 
+                let (contract, declarer, sd_result, sd_score, sd_hash) = if single_dummy {
+                    let (c, d) = derive_contract_and_declarer(&auction, dealer);
+                    let board_number = request.board_number.unwrap_or(1);
+                    let (r, s, h) = derive_single_dummy_outputs(
+                        &result.analysis,
+                        c.as_deref(),
+                        d.as_deref(),
+                        &request.deal.pbn,
+                        dealer,
+                        vul,
+                        board_number,
+                    );
+                    (c, d, r, s, h)
+                } else {
+                    (None, None, None, None, None)
+                };
+
                 AuctionResponse {
                     success: true,
                     auction: Some(auction),
                     auction_encoded: Some(encoded),
                     conventions_used: Some(conventions),
                     meanings: Some(meanings),
+                    contract,
+                    declarer,
+                    result: sd_result,
+                    score: sd_score,
+                    board_hash: sd_hash,
                     error: None,
                 }
             } else {
@@ -216,6 +240,11 @@ pub async fn generate_auction(
                     auction_encoded: None,
                     conventions_used: Some(conventions),
                     meanings: None,
+                    contract: None,
+                    declarer: None,
+                    result: None,
+                    score: None,
+                    board_hash: None,
                     error: Some(err),
                 }
             }
@@ -226,6 +255,11 @@ pub async fn generate_auction(
             auction_encoded: None,
             conventions_used: Some(conventions),
             meanings: None,
+            contract: None,
+            declarer: None,
+            result: None,
+            score: None,
+            board_hash: None,
             error: Some(e),
         },
     };
@@ -308,6 +342,123 @@ fn format_readable_auction(bids: &[String]) -> String {
         return format!("{} AllPass", &s[..s.len() - " Pass Pass Pass".len()]);
     }
     s
+}
+
+/// Walk the bid list, return final contract string ("4H", "3NTX", etc.) and
+/// declarer seat letter. Returns `(None, None)` for an all-pass auction.
+fn derive_contract_and_declarer(bids: &[String], dealer: i32) -> (Option<String>, Option<String>) {
+    let mut last_contract: Option<&str> = None;
+    let mut last_idx = 0;
+    let mut doubled = false;
+    let mut redoubled = false;
+    for (i, bid) in bids.iter().enumerate() {
+        match bid.as_str() {
+            "Pass" => {}
+            "X" => { doubled = true; redoubled = false; }
+            "XX" => { redoubled = true; doubled = false; }
+            other => { last_contract = Some(other); last_idx = i; doubled = false; redoubled = false; }
+        }
+    }
+    let bid = match last_contract { Some(b) => b, None => return (None, None) };
+    let strain = &bid[1..];
+    let suffix = if redoubled { "XX" } else if doubled { "X" } else { "" };
+    let contract = format!("{}{}", bid, suffix);
+
+    let last_pos = (dealer + last_idx as i32) % 4;
+    let last_is_ns = last_pos == 0 || last_pos == 2;
+    let mut declarer_pos = last_pos;
+    for (i, b) in bids.iter().enumerate().take(last_idx + 1) {
+        let pos = (dealer + i as i32) % 4;
+        let pos_is_ns = pos == 0 || pos == 2;
+        if pos_is_ns != last_is_ns { continue; }
+        if b.len() > 1 && &b[1..] == strain {
+            declarer_pos = pos;
+            break;
+        }
+    }
+    let declarer = match declarer_pos { 0 => "N", 1 => "E", 2 => "S", 3 => "W", _ => "?" };
+    (Some(contract), Some(declarer.to_string()))
+}
+
+/// Build (result, score, board_hash) when single-dummy analysis is requested.
+fn derive_single_dummy_outputs(
+    analysis: &Option<epbot_core::SingleDummyAnalysis>,
+    contract: Option<&str>,
+    declarer: Option<&str>,
+    pbn: &str,
+    dealer: i32,
+    vul: i32,
+    board_number: u32,
+) -> (Option<u8>, Option<i32>, Option<String>) {
+    use epbot_core::bba_hash;
+    use epbot_core::score;
+
+    // Hash works whether or not the auction succeeded — depends only on cards.
+    let board_hash = parse_pbn_for_hash(pbn).map(|hands| {
+        bba_hash::encode(
+            &hands,
+            dealer as u8,
+            vul as u8,
+            bba_hash::board_extension_for(board_number),
+        )
+    });
+
+    let (Some(analysis), Some(contract_str), Some(declarer_str)) = (analysis, contract, declarer)
+    else {
+        return (None, None, board_hash);
+    };
+
+    let Some((level, strain, doubled)) = score::parse_contract(contract_str) else {
+        return (None, None, board_hash);
+    };
+
+    let strain_idx = match strain {
+        score::Strain::Clubs => 0,
+        score::Strain::Diamonds => 1,
+        score::Strain::Hearts => 2,
+        score::Strain::Spades => 3,
+        score::Strain::NoTrump => 4,
+    };
+    let tricks = analysis.tricks[strain_idx];
+
+    let declarer_pos = match declarer_str { "N" => 0, "E" => 1, "S" => 2, "W" => 3, _ => 0 };
+    let ns_score = score::score_for_ns(level, strain, doubled, declarer_pos, vul as u8, tricks);
+    (Some(tricks), Some(ns_score), board_hash)
+}
+
+/// Parse the PBN deal string into the per-player suits expected by
+/// `bba_hash::encode`. Returns None if the input is malformed.
+fn parse_pbn_for_hash(pbn: &str) -> Option<[epbot_core::bba_hash::HandSuits; 4]> {
+    use epbot_core::bba_hash::HandSuits;
+    let colon = pbn.find(':')?;
+    let first_seat = match pbn[..colon].trim_end().chars().last()? {
+        'N' | 'n' => 0,
+        'E' | 'e' => 1,
+        'S' | 's' => 2,
+        'W' | 'w' => 3,
+        _ => return None,
+    };
+    let parts: Vec<&str> = pbn[colon + 1..].split_whitespace().collect();
+    if parts.len() != 4 { return None; }
+    let mut hands: [HandSuits; 4] = Default::default();
+    for (i, hand_str) in parts.iter().enumerate() {
+        let pos = (first_seat + i) % 4;
+        let suits: Vec<&str> = hand_str.split('.').collect();
+        if suits.len() != 4 { return None; }
+        // PBN order is S.H.D.C; HandSuits expects clubs/diamonds/hearts/spades.
+        hands[pos] = HandSuits {
+            clubs:    normalize_suit_chars(suits[3]),
+            diamonds: normalize_suit_chars(suits[2]),
+            hearts:   normalize_suit_chars(suits[1]),
+            spades:   normalize_suit_chars(suits[0]),
+        };
+    }
+    Some(hands)
+}
+
+fn normalize_suit_chars(s: &str) -> String {
+    // bba_hash uses 'T' for the ten; PBN strings already use 'T' but be defensive.
+    s.replace("10", "T")
 }
 
 fn format_alerts(meanings: &[BidMeaning]) -> String {

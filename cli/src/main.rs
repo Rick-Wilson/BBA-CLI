@@ -61,6 +61,25 @@ struct Args {
     /// gone X" practice and for A/B testing alongside bba-server.
     #[arg(long = "auction-prefix", value_name = "BIDS")]
     auction_prefix: Option<String>,
+
+    /// Compute single-dummy analysis after each auction. Adds [Result], [Score],
+    /// [Scoring], and a board-id hash comment to the PBN output. Off by default;
+    /// adds roughly 0.22 ms per board (~3-4% on a 500-board file).
+    #[arg(long = "single-dummy", default_value_t = false)]
+    single_dummy: bool,
+
+    /// Scoring mode for the auction. Affects [Score] computation and the
+    /// [Scoring] tag.
+    #[arg(long, value_name = "MODE", default_value = "MP", value_parser = parse_scoring_arg)]
+    scoring: epbot_core::Scoring,
+}
+
+fn parse_scoring_arg(s: &str) -> std::result::Result<epbot_core::Scoring, String> {
+    match s.to_uppercase().as_str() {
+        "MP" | "MATCHPOINTS" => Ok(epbot_core::Scoring::Matchpoints),
+        "IMP" | "IMPS" => Ok(epbot_core::Scoring::Imps),
+        other => Err(format!("unknown scoring mode '{}'; expected MP or IMP", other)),
+    }
 }
 
 fn main() -> Result<()> {
@@ -113,7 +132,13 @@ fn main() -> Result<()> {
         ew_system_name: args.ew_system_name,
         ns_conventions_path: args.ns_conventions.display().to_string(),
         ew_conventions_path: args.ew_conventions.display().to_string(),
+        scoring: args.scoring,
+        single_dummy: args.single_dummy,
     };
+
+    if args.single_dummy {
+        info!("Single-dummy analysis enabled (Result/Score/board-id will be emitted)");
+    }
 
     info!("Processing {:?}...", args.input);
 

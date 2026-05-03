@@ -11,6 +11,15 @@ pub struct AuctionRequest {
     /// {1-7}{C|D|H|S|NT}. Used by "what if I had bid X" practice flows.
     #[serde(default, alias = "auctionPrefix")]
     pub auction_prefix: Option<Vec<String>>,
+    /// When true, also compute single-dummy analysis and include
+    /// `result`, `score`, and `boardHash` in the response. Off by default
+    /// because it adds latency.
+    #[serde(default, alias = "singleDummy")]
+    pub single_dummy: bool,
+    /// Optional PBN [Board] number, used to derive the board-id hash's
+    /// `board_extension` nibble when `singleDummy` is true. Defaults to 1.
+    #[serde(default, alias = "boardNumber")]
+    pub board_number: Option<u32>,
 }
 
 /// Deal information in PBN format.
@@ -65,6 +74,26 @@ pub struct AuctionResponse {
     pub conventions_used: Option<ConventionCards>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub meanings: Option<Vec<BidMeaning>>,
+    /// Final contract (e.g. "4H", "3NT", "5CX"). Present whenever the
+    /// auction produced a contract.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contract: Option<String>,
+    /// Declarer seat ("N", "E", "S", "W"). Present whenever the auction
+    /// produced a contract.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub declarer: Option<String>,
+    /// Single-dummy estimated tricks for the contract's strain. Only set
+    /// when the request included `singleDummy: true`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<u8>,
+    /// Score from NS perspective for the contract+result+vul. Only set when
+    /// the request included `singleDummy: true`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub score: Option<i32>,
+    /// 28-hex BBA-style board fingerprint. Only set when the request
+    /// included `singleDummy: true`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub board_hash: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
