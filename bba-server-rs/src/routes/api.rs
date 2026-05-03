@@ -120,15 +120,17 @@ pub async fn generate_auction(
             let deal_scoring = request.deal.scoring.clone();
             let deal_pbn = request.deal.pbn.clone();
             let scenario_clone = request.scenario.clone();
+            let auction_prefix = request.auction_prefix.clone();
 
             let result = tokio::task::spawn_blocking(move || {
-                epbot_core::generate_auction(
+                epbot_core::generate_auction_with_prefix(
                     &pbn,
                     dealer,
                     vul,
                     scoring,
                     Some(&ns_card),
                     Some(&ew_card),
+                    auction_prefix.as_deref(),
                 )
             })
             .await
@@ -145,6 +147,7 @@ pub async fn generate_auction(
                         position: i,
                         bid: b.bid.clone(),
                         meaning: b.meaning.clone(),
+                        meaning_extended: b.meaning_extended.clone(),
                         is_alert: b.is_alert,
                     })
                     .collect();

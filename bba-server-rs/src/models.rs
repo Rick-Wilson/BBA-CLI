@@ -6,6 +6,11 @@ pub struct AuctionRequest {
     pub deal: DealInfo,
     pub scenario: Option<String>,
     pub conventions: Option<ConventionCards>,
+    /// Optional forced bid sequence to use for the first N positions of the
+    /// auction. Each entry must be one of: "Pass", "X", "XX", or
+    /// {1-7}{C|D|H|S|NT}. Used by "what if I had bid X" practice flows.
+    #[serde(default, alias = "auctionPrefix")]
+    pub auction_prefix: Option<Vec<String>>,
 }
 
 /// Deal information in PBN format.
@@ -72,6 +77,9 @@ pub struct BidMeaning {
     pub bid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub meaning: Option<String>,
+    /// The longer/detailed meaning (from EPBot info_meaning_extended).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub meaning_extended: Option<String>,
     pub is_alert: bool,
 }
 

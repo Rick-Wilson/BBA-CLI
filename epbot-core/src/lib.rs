@@ -34,8 +34,10 @@ pub struct BidInfo {
     pub code: i32,
     /// Position of the bidder (0=N, 1=E, 2=S, 3=W)
     pub position: i32,
-    /// Bid meaning from partner's perspective (if alertable)
+    /// Short bid meaning from partner's perspective (if alertable)
     pub meaning: Option<String>,
+    /// Longer/detailed bid meaning from partner's perspective (if alertable)
+    pub meaning_extended: Option<String>,
     /// Whether this bid should be alerted
     pub is_alert: bool,
 }
@@ -212,13 +214,13 @@ pub fn decode_bid(code: i32) -> String {
     }
 }
 
-/// Encode a bid string to an EPBot bid code.
-/// Pass=0, X=1, XX=2, 1C=5, 1D=6, ..., 7NT=39
-pub fn encode_bid(bid: &str) -> i32 {
+/// Encode a bid string to an EPBot bid code, returning an error on invalid input.
+/// Pass=0, X=1, XX=2, 1C=5, 1D=6, ..., 7NT=39 (also tolerates "1N" as "1NT").
+pub fn try_encode_bid(bid: &str) -> Result<i32, String> {
     match bid {
-        "Pass" | "P" | "pass" => 0,
-        "X" => 1,
-        "XX" => 2,
+        "Pass" | "P" | "pass" => Ok(0),
+        "X" => Ok(1),
+        "XX" => Ok(2),
         _ => {
             let bytes = bid.as_bytes();
             if bytes.len() >= 2 && bytes[0].is_ascii_digit() {
@@ -229,18 +231,24 @@ pub fn encode_bid(bid: &str) -> i32 {
                     "H" => 2,
                     "S" => 3,
                     "N" | "NT" => 4,
-                    _ => return 0,
+                    other => return Err(format!("unrecognised strain '{}'", other)),
                 };
                 if (1..=7).contains(&level) {
-                    5 + (level - 1) * 5 + suit
+                    Ok(5 + (level - 1) * 5 + suit)
                 } else {
-                    0
+                    Err(format!("invalid bid level: {}", level))
                 }
             } else {
-                0
+                Err(format!("unrecognised bid '{}'", bid))
             }
         }
     }
+}
+
+/// Encode a bid string to an EPBot bid code (silently returns 0 on invalid input).
+/// Prefer `try_encode_bid` when invalid input should be reported.
+pub fn encode_bid(bid: &str) -> i32 {
+    try_encode_bid(bid).unwrap_or(0)
 }
 
 /// Get the EPBot library version number.
@@ -317,7 +325,25 @@ pub fn generate_auction(
     ns_card: Option<&ConventionCard>,
     ew_card: Option<&ConventionCard>,
 ) -> AuctionResult {
-    match generate_auction_inner(pbn, dealer, vulnerability, scoring, ns_card, ew_card) {
+    generate_auction_with_prefix(pbn, dealer, vulnerability, scoring, ns_card, ew_card, None)
+}
+
+/// Generate an auction, optionally forcing the first N bids from `auction_prefix`.
+///
+/// When `auction_prefix` is provided, the bidding loop uses those bids for the
+/// first N positions instead of calling `epbot_get_bid`. `epbot_set_bid` is still
+/// called on every player so EPBot's internal state stays consistent. After the
+/// prefix the bots resume normal bidding from the new state.
+pub fn generate_auction_with_prefix(
+    pbn: &str,
+    dealer: i32,
+    vulnerability: i32,
+    scoring: Scoring,
+    ns_card: Option<&ConventionCard>,
+    ew_card: Option<&ConventionCard>,
+    auction_prefix: Option<&[String]>,
+) -> AuctionResult {
+    match generate_auction_inner(pbn, dealer, vulnerability, scoring, ns_card, ew_card, auction_prefix) {
         Ok(bids) => AuctionResult {
             bids,
             success: true,
@@ -338,6 +364,7 @@ fn generate_auction_inner(
     scoring: Scoring,
     ns_card: Option<&ConventionCard>,
     ew_card: Option<&ConventionCard>,
+    auction_prefix: Option<&[String]>,
 ) -> Result<Vec<BidInfo>, EPBotError> {
     let (_first_seat, hands) = parse_pbn_deal(pbn)?;
 
@@ -357,7 +384,7 @@ fn generate_auction_inner(
     }
 
     // Use a closure-like pattern to ensure cleanup on any error
-    let result = run_auction(&players, &hands, dealer, vulnerability, scoring, ns_card, ew_card, &empty_alert);
+    let result = run_auction(&players, &hands, dealer, vulnerability, scoring, ns_card, ew_card, &empty_alert, auction_prefix);
 
     // Always destroy all instances
     for p in &players {
@@ -378,6 +405,7 @@ fn run_auction(
     ns_card: Option<&ConventionCard>,
     ew_card: Option<&ConventionCard>,
     empty_alert: &CString,
+    auction_prefix: Option<&[String]>,
 ) -> Result<Vec<BidInfo>, EPBotError> {
     // Initialize each player
     for i in 0..4 {
@@ -421,19 +449,27 @@ fn run_auction(
     let mut current_pos = dealer;
     let mut pass_count = 0;
     let mut has_bid = false;
+    let prefix_len = auction_prefix.map(|p| p.len()).unwrap_or(0);
 
-    for _ in 0..100 {
-        // Get bid from current player
-        let bid_code = unsafe { ffi::epbot_get_bid(players[current_pos as usize]) };
-
-        if bid_code < 0 {
-            return Err(EPBotError::FfiError {
-                code: bid_code,
-                message: format!("get_bid failed for position {}: {}", current_pos, get_last_error()),
-            });
-        }
-
-        let bid_str = decode_bid(bid_code);
+    for round in 0..100 {
+        // Get bid: from forced prefix if we're still in it, otherwise from EPBot.
+        let (bid_code, bid_str) = if round < prefix_len {
+            let forced = &auction_prefix.unwrap()[round];
+            let code = try_encode_bid(forced).map_err(|e| EPBotError::FfiError {
+                code: 0,
+                message: format!("Invalid auctionPrefix at index {}: {}", round, e),
+            })?;
+            (code, decode_bid(code))
+        } else {
+            let code = unsafe { ffi::epbot_get_bid(players[current_pos as usize]) };
+            if code < 0 {
+                return Err(EPBotError::FfiError {
+                    code,
+                    message: format!("get_bid failed for position {}: {}", current_pos, get_last_error()),
+                });
+            }
+            (code, decode_bid(code))
+        };
 
         // Broadcast bid to all players
         for j in 0..4 {
@@ -459,6 +495,7 @@ fn run_auction(
         // Get bid meaning from partner's perspective
         let partner_pos = (current_pos + 2) % 4;
         let mut meaning = None;
+        let mut meaning_extended = None;
         let mut is_alert = false;
 
         let alert_rc = unsafe { ffi::epbot_get_info_alerting(players[partner_pos as usize], current_pos) };
@@ -482,6 +519,27 @@ fn run_auction(
                     meaning = Some(s);
                 }
             }
+
+            // Fetch the extended meaning independently — a failure here must
+            // not drop the short meaning we already have.
+            let mut ext_buf = [0 as c_char; 4096];
+            let ext_rc = unsafe {
+                ffi::epbot_get_info_meaning_extended(
+                    players[partner_pos as usize],
+                    current_pos,
+                    ext_buf.as_mut_ptr(),
+                    ext_buf.len() as i32,
+                )
+            };
+            if ext_rc == ffi::OK {
+                let s = unsafe { CStr::from_ptr(ext_buf.as_ptr()) }
+                    .to_str()
+                    .unwrap_or("")
+                    .to_string();
+                if !s.is_empty() {
+                    meaning_extended = Some(s);
+                }
+            }
         }
 
         bids.push(BidInfo {
@@ -489,6 +547,7 @@ fn run_auction(
             code: bid_code,
             position: current_pos,
             meaning,
+            meaning_extended,
             is_alert,
         });
 
