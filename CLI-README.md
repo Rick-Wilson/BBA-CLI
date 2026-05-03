@@ -4,20 +4,21 @@ BBA-CLI generates bridge auctions for deals in PBN (Portable Bridge Notation) fi
 
 ## Installation
 
-Download the latest release from [GitHub Releases](https://github.com/rick-wilson/BBA-CLI/releases). The release package includes:
+Download the latest release from [GitHub Releases](https://github.com/rick-wilson/BBA-CLI/releases). Each platform archive contains:
 
-- `bba-cli.exe` - Main CLI executable (C# implementation, recommended)
-- `bba-cli-rust.exe` - Alternative Rust CLI implementation
-- `epbot-wrapper.exe` - EPBot wrapper (used by Rust CLI)
-- `EPBot64.dll` - EPBot bidding engine
-- Supporting DLLs and config files
+- `bba-cli` (or `bba-cli.exe`) — primary Rust CLI, cross-platform
+- `bba-server` (or `bba-server.exe`) — REST API server using the same engine
+- `libEPBot.so` / `libEPBot.dylib` / `EPBot.dll` — native EPBot bidding engine (Edward Piwowar's NativeAOT build)
 
-Extract all files to the same directory.
+Extract all files to the same directory. The `bba-cli` and `bba-server` binaries load EPBot from the same directory.
+
+A legacy C# CLI (`bba-cli-cs.exe`) is built separately for Windows; it links against the older COM-style `EPBot64.dll`. Prefer the Rust `bba-cli` — it shares the same engine and architecture as `bba-server`, so auctions are byte-identical between the two.
 
 ## Requirements
 
-- Windows x64
-- .NET Framework 4.8 (usually pre-installed on Windows 10/11)
+- macOS arm64 (Apple Silicon), Linux x64/arm64, or Windows x64
+- No .NET runtime needed for `bba-cli` or `bba-server` (NativeAOT)
+- The legacy `bba-cli-cs.exe` requires .NET Framework 4.8 on Windows
 
 ## Usage
 
@@ -38,12 +39,14 @@ bba-cli --input <INPUT.pbn> --output <OUTPUT.pbn> --ns-conventions <NS.bbsa> --e
 
 | Argument | Short | Description |
 |----------|-------|-------------|
-| `--scoring <TYPE>` | | Scoring type for output (default: `MP`) |
-| `--auto-update` | | Check for updates and install if available |
-| `--verbose` | `-v` | Enable verbose logging |
+| `--event <NAME>` | | Event name for the `[Event]` tag |
+| `--ns-system-name <NAME>` | | Bidding system name written to `[BidSystemNS]` |
+| `--ew-system-name <NAME>` | | Bidding system name written to `[BidSystemEW]` |
+| `--auction-prefix <BIDS>` | | Force the first N bids of every auction (whitespace-separated, e.g. `"1C Pass 1H Pass"`). Each token must be `Pass`, `X`, `XX`, or `{1-7}{C\|D\|H\|S\|NT}`. EPBot resumes normal bidding after the prefix. Mirrors the bba-server `auctionPrefix` field, so the CLI and server stay interchangeable for A/B testing. |
+| `--verbose` | `-v` | Enable verbose logging (repeat for debug, e.g. `-vv`) |
 | `--dry-run` | | Parse input but don't write output |
 | `--help` | `-h` | Show help message |
-| `--version` | | Show version number |
+| `--version` | `-V` | Show version number |
 
 ### Scoring Types
 

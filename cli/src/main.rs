@@ -54,6 +54,13 @@ struct Args {
     /// Dry run - parse input but don't write output
     #[arg(long, default_value_t = false)]
     dry_run: bool,
+
+    /// Force the first N bids of every auction (whitespace-separated, e.g.
+    /// "1C Pass 1H Pass"). Each token must be Pass, X, XX, or {1-7}{C|D|H|S|NT}.
+    /// EPBot resumes normal bidding after the prefix. Useful for "what if it had
+    /// gone X" practice and for A/B testing alongside bba-server.
+    #[arg(long = "auction-prefix", value_name = "BIDS")]
+    auction_prefix: Option<String>,
 }
 
 fn main() -> Result<()> {
@@ -91,6 +98,15 @@ fn main() -> Result<()> {
         anyhow::bail!("EW conventions file not found: {:?}", args.ew_conventions);
     }
 
+    let auction_prefix: Option<Vec<String>> = args
+        .auction_prefix
+        .as_deref()
+        .map(|s| s.split_whitespace().map(|t| t.to_string()).collect());
+
+    if let Some(ref bids) = auction_prefix {
+        info!("Auction prefix: {} bid(s) — {}", bids.len(), bids.join(" "));
+    }
+
     let config = OutputConfig {
         event: args.event,
         ns_system_name: args.ns_system_name,
@@ -108,6 +124,7 @@ fn main() -> Result<()> {
         &args.ew_conventions,
         args.dry_run,
         &config,
+        auction_prefix.as_deref(),
     )
     .context("Failed to process PBN file")?;
 

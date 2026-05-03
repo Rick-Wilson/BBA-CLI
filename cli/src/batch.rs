@@ -6,7 +6,7 @@
 use anyhow::{Context, Result};
 use bridge_parsers::pbn::reader::read_pbn_file as bp_read_pbn;
 use bridge_parsers::{Board, Deal, Direction};
-use epbot_core::{generate_auction, ConventionCard, Scoring};
+use epbot_core::{generate_auction_with_prefix, ConventionCard, Scoring};
 use log::{debug, error, info};
 use std::io::{BufWriter, Write};
 use std::path::Path;
@@ -110,7 +110,11 @@ fn format_deal_pbn(deal: &Deal) -> String {
     format!("N:{}", hands.join(" "))
 }
 
-/// Process a PBN file, generating auctions for each deal
+/// Process a PBN file, generating auctions for each deal.
+///
+/// `auction_prefix`, if provided, forces the first N bids of every auction
+/// before EPBot resumes normal bidding. Mirrors the bba-server `auctionPrefix`
+/// field so the CLI and server stay interchangeable for A/B testing.
 pub fn process_pbn_file(
     input_path: &Path,
     output_path: &Path,
@@ -118,6 +122,7 @@ pub fn process_pbn_file(
     ew_conventions: &Path,
     dry_run: bool,
     config: &OutputConfig,
+    auction_prefix: Option<&[String]>,
 ) -> Result<ProcessingStats> {
     let mut stats = ProcessingStats::default();
 
@@ -143,13 +148,14 @@ pub fn process_pbn_file(
 
         stats.deals_processed += 1;
 
-        let result = generate_auction(
+        let result = generate_auction_with_prefix(
             &deal_str,
             direction_to_int(dealer),
             vul,
             Scoring::Matchpoints,
             Some(&ns_card),
             Some(&ew_card),
+            auction_prefix,
         );
 
         if result.success {
