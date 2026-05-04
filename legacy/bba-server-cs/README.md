@@ -161,7 +161,7 @@ The server runs on a Windows VM (Parallels on Mac) and is managed via SSH.
 
 ### Management Scripts
 
-All scripts are in `/Users/rick/Development/GitHub/BBA-CLI/bba-server/`:
+All scripts are in `/Users/rick/Development/GitHub/BBA-Tools/bba-server/`:
 
 | Script | Purpose |
 |--------|---------|
@@ -201,13 +201,13 @@ python3 test-scenario.py Smolen 1,3,7 --verbose
 - Windows 11 ARM (Parallels VM)
 - .NET 8 SDK
 - OpenSSH Server enabled
-- EPBot DLLs in `G:\BBA-CLI\epbot-wrapper\`
+- EPBot DLLs in `G:\BBA-Tools\epbot-wrapper\`
 - PBS project mapped to `P:\` drive
 
 ### Directory Structure on Windows
 
 ```
-G:\BBA-CLI\
+G:\BBA-Tools\
 ├── bba-server\
 │   ├── bin\Debug\net8.0-windows\
 │   │   ├── bba-server.exe
@@ -268,7 +268,7 @@ ingress:
 wscript.exe "C:\Users\rick\.cloudflared\start-tunnel.vbs"
 
 # Start BBA server
-wscript.exe "G:\BBA-CLI\bba-server\bin\Debug\net8.0-windows\start-hidden.vbs"
+wscript.exe "G:\BBA-Tools\bba-server\bin\Debug\net8.0-windows\start-hidden.vbs"
 
 # Stop services
 taskkill /f /im cloudflared.exe
@@ -281,7 +281,7 @@ tasklist | findstr "cloudflared bba-server"
 **From Mac (via SSH):**
 ```bash
 # Using the management scripts (recommended)
-cd /Users/rick/Development/GitHub/BBA-CLI/bba-server
+cd /Users/rick/Development/GitHub/BBA-Tools/bba-server
 python3 restart-server.py
 
 # Or direct SSH
@@ -298,15 +298,15 @@ from ssh_runner import run_windows_command
 
 # Stop, build, and restart
 run_windows_command('taskkill /IM bba-server.exe /F', check=False)
-run_windows_command(r'cd /d G:\BBA-CLI\bba-server && dotnet build -c Release -o G:\BBA-CLI\dist\bba-server')
-run_windows_command(r'schtasks /Create /TN "StartBBAServer" /TR "G:\BBA-CLI\dist\bba-server\bba-server.exe" /SC ONCE /ST 00:00 /F && schtasks /Run /TN "StartBBAServer"')
+run_windows_command(r'cd /d G:\BBA-Tools\bba-server && dotnet build -c Release -o G:\BBA-Tools\dist\bba-server')
+run_windows_command(r'schtasks /Create /TN "StartBBAServer" /TR "G:\BBA-Tools\dist\bba-server\bba-server.exe" /SC ONCE /ST 00:00 /F && schtasks /Run /TN "StartBBAServer"')
 ```
 
 ## Logging
 
 ### Application Logs
 
-Log files are in `G:\BBA-CLI\dist\bba-server\logs\`:
+Log files are in `G:\BBA-Tools\dist\bba-server\logs\`:
 - `bba-server-YYYY-MM-DD.log` - Daily log files (30-day retention)
 
 ### Audit Logs (CSV)
@@ -351,7 +351,7 @@ The server reads convention cards from the PBS project:
 python3 start-server.py build
 
 # On Windows
-cd G:\BBA-CLI\bba-server
+cd G:\BBA-Tools\bba-server
 dotnet build
 ```
 
@@ -362,7 +362,7 @@ dotnet build
 {
   "Pbs": {
     "DlrPath": "P:\\dlr",
-    "BbsaPath": "G:\\BBA-CLI\\epbot-wrapper"
+    "BbsaPath": "G:\\BBA-Tools\\epbot-wrapper"
   },
   "Version": "1.0.0"
 }

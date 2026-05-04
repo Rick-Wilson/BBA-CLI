@@ -201,7 +201,7 @@ Since EPBot is Windows-only, the wrapper runs on a Windows VM (Parallels) and is
 ### Direct SSH
 
 ```bash
-ssh rick@10.211.55.5 "net use G: \\\\Mac\\Home\\Development\\GitHub >nul 2>&1 & G:\\BBA-CLI\\epbot-wrapper\\bin\\Debug\\net48\\epbot-wrapper.exe --test"
+ssh rick@10.211.55.5 "net use G: \\\\Mac\\Home\\Development\\GitHub >nul 2>&1 & G:\\BBA-Tools\\epbot-wrapper\\bin\\Debug\\net48\\epbot-wrapper.exe --test"
 ```
 
 ### Using ssh_runner.py
@@ -219,7 +219,7 @@ from ssh_runner import run_windows_command, mac_to_windows_path
 
 # Run epbot-wrapper
 returncode, stdout, stderr = run_windows_command(
-    r'G:\BBA-CLI\epbot-wrapper\bin\Debug\net48\epbot-wrapper.exe --test',
+    r'G:\BBA-Tools\epbot-wrapper\bin\Debug\net48\epbot-wrapper.exe --test',
     check=False
 )
 print(stdout)

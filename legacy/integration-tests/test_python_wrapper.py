@@ -9,7 +9,7 @@ import json
 import clr
 
 # Add reference to the EPBot DLL
-clr.AddReference(r"G:\BBA-CLI\EPBot64.dll")
+clr.AddReference(r"G:\BBA-Tools\EPBot64.dll")
 from EPBot64 import EPBot
 
 def parse_pbn_hand(pbn):
@@ -137,7 +137,7 @@ def run_auction(pbn, dealer_str, vul_str, ns_conv, ew_conv):
 
 def main():
     # Read batch request
-    with open(r'G:\BBA-CLI\integration-tests\batch-request.json', 'r') as f:
+    with open(r'G:\BBA-Tools\integration-tests\batch-request.json', 'r') as f:
         data = json.load(f)
 
     ns_conv = data['ns_conventions']

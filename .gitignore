@@ -59,7 +59,7 @@ Thumbs.db
 
 # Logs
 *.log
-bba-server-rs/logs/
+bba-server/logs/
 
 # Generated PDFs (created by GitHub Actions)
 CLI-README.pdf

@@ -1,18 +1,18 @@
-# Claude Code Instructions for BBA-CLI
+# Claude Code Instructions for BBA-Tools
 
 ## Architecture
 
-BBA-CLI is a pure Rust project using Edward Piwowar's native EPBot libraries (NativeAOT-compiled .NET → native shared libraries). No .NET runtime needed at runtime.
+BBA-Tools is a pure Rust project using Edward Piwowar's native EPBot libraries (NativeAOT-compiled .NET → native shared libraries). No .NET runtime needed at runtime.
 
 ### Components
 
 | Directory | Purpose |
 |-----------|---------|
 | `epbot-core/` | Shared Rust crate: FFI bindings to native EPBot, auction orchestration, convention loading |
-| `cli/` | CLI binary (`bba-cli`): batch PBN processing |
-| `bba-server-rs/` | Axum web server (`bba-server`): REST API for browser extensions |
+| `bba-cli/` | CLI binary (`bba-cli`): batch PBN processing |
+| `bba-server/` | Axum web server (`bba-server`): REST API for browser extensions |
 | `epbot-libs/` | Native EPBot libraries per platform (checked into repo) |
-| `bba-server/` | **Legacy** C# ASP.NET server (no longer deployed) |
+| `legacy/` | Retired C# code (`bba-server-cs`, `bba-cli-cs`, `epbot-wrapper`) and old Windows tooling, kept as reference. Not built by CI. |
 | `history/` | Archived documentation from the Windows-hosted era |
 
 ### EPBot Native Libraries
@@ -72,14 +72,14 @@ ssh root@146.190.135.172 'journalctl -u bba-server -n 50 --no-pager'
 ssh root@146.190.135.172 'bash -s' << 'REMOTE'
 systemctl stop bba-server
 cd /opt/bba-server
-curl -sL https://github.com/Rick-Wilson/BBA-CLI/releases/download/TAG/bba-TAG-linux-x64.tar.gz | tar xz
+curl -sL https://github.com/Rick-Wilson/BBA-Tools/releases/download/TAG/bba-TAG-linux-x64.tar.gz | tar xz
 systemctl start bba-server
 REMOTE
 ```
 
 **Update dashboard only** (no rebuild needed):
 ```bash
-scp bba-server-rs/wwwroot/dashboard.html root@146.190.135.172:/opt/bba-server/wwwroot/
+scp bba-server/wwwroot/dashboard.html root@146.190.135.172:/opt/bba-server/wwwroot/
 ```
 
 **Restart Caddy** (if Caddyfile changes):
@@ -143,10 +143,10 @@ GitHub Actions (`.github/workflows/build.yml`) builds all platforms on push to m
 
 ```bash
 # CLI
-cd cli && cargo build --release
+cd bba-cli && cargo build --release
 
 # Server
-cd bba-server-rs && cargo build --release
+cd bba-server && cargo build --release
 
 # Run server locally
 DYLD_LIBRARY_PATH=../epbot-libs/macos/arm64 cargo run
@@ -155,8 +155,8 @@ DYLD_LIBRARY_PATH=../epbot-libs/macos/arm64 cargo run
 ### Dependencies
 
 - `epbot-core` depends on native EPBot library at link time
-- `cli` depends on `epbot-core` and `bridge-parsers` (sibling repo at `../../Bridge-Parsers`)
-- `bba-server-rs` depends on `epbot-core`
+- `bba-cli` depends on `epbot-core` and `bridge-parsers` (sibling repo at `../../Bridge-Parsers`)
+- `bba-server` depends on `epbot-core`
 
 ## Windows VM Access via SSH
 

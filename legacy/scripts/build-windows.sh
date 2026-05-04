@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Build script for BBA-CLI on Windows via Parallels
+# Build script for BBA-Tools on Windows via Parallels
 # Run from macOS - uses Parallels shared folders
 #
 # SSH sessions don't inherit mapped drives, so we use net use to map them first.
@@ -16,7 +16,7 @@ LOCAL_PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Drive mapping: G: -> \\Mac\Home\Development\GitHub
 DRIVE_MAP_CMD='net use G: \\Mac\Home\Development\GitHub >nul 2>&1'
-WIN_PROJECT_DIR='G:\BBA-CLI'
+WIN_PROJECT_DIR='G:\BBA-Tools'
 
 # Parse command line arguments
 BUILD_WRAPPER=true
@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "=============================================="
-echo "BBA-CLI Windows Build (via Parallels)"
+echo "BBA-Tools Windows Build (via Parallels)"
 echo "=============================================="
 echo "Local: $LOCAL_PROJECT_DIR"
 echo "Windows: $WIN_PROJECT_DIR"
@@ -118,6 +118,6 @@ echo ""
 echo "To test the C# wrapper on Windows:"
 echo "  ssh $VM_HOST"
 echo "  net use G: \\\\\\\\Mac\\\\Home\\\\Development\\\\GitHub"
-echo "  cd G:\\BBA-CLI\\epbot-wrapper\\bin\\Release\\net48"
+echo "  cd G:\\BBA-Tools\\epbot-wrapper\\bin\\Release\\net48"
 echo '  echo {"deals":[{"pbn":"N:AKQ.JT9.876.5432","dealer":"N","vulnerability":"None"}]} | epbot-wrapper.exe'
 echo ""

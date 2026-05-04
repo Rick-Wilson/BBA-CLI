@@ -1,4 +1,4 @@
-BBA-CLI
+BBA-Tools
 
 [![N|Solid](https://github.com/EdwardPiwowar/BBA/blob/main/BBALogo.jpg?raw=true)](https://sites.google.com/view/bbaenglish)
 
@@ -6,13 +6,13 @@ Cross-platform CLI and server for Bridge Bot Analyzer (EPBot)
 
 ## Architecture
 
-BBA-CLI uses Edward Piwowar's native EPBot libraries (NativeAOT-compiled) via Rust FFI. No .NET runtime required.
+BBA-Tools uses Edward Piwowar's native EPBot libraries (NativeAOT-compiled) via Rust FFI. No .NET runtime required.
 
 | Component | Description |
 |-----------|-------------|
 | `epbot-core/` | Shared Rust crate: FFI bindings, auction orchestration, convention loading |
-| `cli/` | CLI tool: batch-processes PBN files to generate auctions |
-| `bba-server-rs/` | Axum web server: REST API for browser extensions |
+| `bba-cli/` | CLI tool: batch-processes PBN files to generate auctions |
+| `bba-server/` | Axum web server: REST API for browser extensions |
 | `epbot-libs/` | Native EPBot libraries for each platform |
 
 ### Platform Support
@@ -50,8 +50,8 @@ GitHub Actions builds all platforms on push to main. Tagged releases (`v*`) crea
 
 ```bash
 # Local build (macOS)
-cd cli && cargo build --release
-cd bba-server-rs && cargo build --release
+cd bba-cli && cargo build --release
+cd bba-server && cargo build --release
 ```
 
 The EPBot native library must be available at runtime (in `epbot-libs/` or on the library path).

@@ -14,7 +14,7 @@ sys.path.insert(0, PBS_BUILD_SCRIPTS)
 
 from ssh_runner import run_windows_command, test_ssh_connection, mac_to_windows_path
 
-# BBA-CLI project root (parent of bba-server)
+# BBA-Tools project root (parent of bba-server)
 BBA_CLI_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BBA_SERVER_PATH = os.path.join(BBA_CLI_ROOT, "bba-server")
 
@@ -36,8 +36,8 @@ def start_server(port: int = 5000, background: bool = False):
         return False
 
     # Convert path to Windows format
-    # BBA-CLI is at G:\BBA-CLI on Windows (sibling of Practice-Bidding-Scenarios)
-    windows_server_path = "G:\\BBA-CLI\\bba-server"
+    # BBA-Tools is at G:\BBA-Tools on Windows (sibling of Practice-Bidding-Scenarios)
+    windows_server_path = "G:\\BBA-Tools\\bba-server"
 
     # Build and run command
     if background:
@@ -134,7 +134,7 @@ def build_server():
         print("ERROR: Cannot connect to Windows VM via SSH")
         return False
 
-    windows_server_path = "G:\\BBA-CLI\\bba-server"
+    windows_server_path = "G:\\BBA-Tools\\bba-server"
     cmd = f'cd /d {windows_server_path} && dotnet build'
 
     try:

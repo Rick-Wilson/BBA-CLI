@@ -27,8 +27,8 @@ sys.path.insert(0, PBS_BUILD_SCRIPTS)
 from ssh_runner import run_windows_command, test_ssh_connection
 
 # Configuration
-WINDOWS_SERVER_PATH = r"G:\BBA-CLI\bba-server"
-WINDOWS_LOG_PATH = r"G:\BBA-CLI\bba-server\bin\Debug\net8.0-windows\logs"
+WINDOWS_SERVER_PATH = r"G:\BBA-Tools\bba-server"
+WINDOWS_LOG_PATH = r"G:\BBA-Tools\bba-server\bin\Debug\net8.0-windows\logs"
 SERVER_PORT = 5000
 VM_IP = "10.211.55.5"
 SHUTDOWN_TIMEOUT = 15  # seconds to wait for shutdown
@@ -120,8 +120,8 @@ def start_server_background() -> bool:
     log("Starting server in background...")
 
     # Path to the built executable (net8.0-windows for Windows target)
-    exe_path = r"G:\BBA-CLI\bba-server\bin\Debug\net8.0-windows\bba-server.exe"
-    working_dir = r"G:\BBA-CLI\bba-server\bin\Debug\net8.0-windows"
+    exe_path = r"G:\BBA-Tools\bba-server\bin\Debug\net8.0-windows\bba-server.exe"
+    working_dir = r"G:\BBA-Tools\bba-server\bin\Debug\net8.0-windows"
 
     # Method 1: Use schtasks to create and run a one-time task
     # This detaches from the SSH session properly
@@ -132,7 +132,7 @@ def start_server_background() -> bool:
 
     # Use pre-created VBS script to run the server hidden
     # The VBS file was created once and lives in the bin directory
-    vbs_path = r"G:\BBA-CLI\bba-server\bin\Debug\net8.0-windows\start-hidden.vbs"
+    vbs_path = r"G:\BBA-Tools\bba-server\bin\Debug\net8.0-windows\start-hidden.vbs"
 
     # Create a task to run the VBS script
     create_cmd = f'schtasks /create /tn {task_name} /tr "wscript.exe \\"{vbs_path}\\"" /sc once /st 00:00 /f'

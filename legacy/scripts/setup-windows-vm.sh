@@ -14,10 +14,10 @@ set -e
 source ~/.zshrc 2>/dev/null || true
 
 VM_HOST="${WINDOWS_USER:-Rick}@${WINDOWS_HOST:-10.211.55.5}"
-VM_PROJECT_DIR="C:/Users/${WINDOWS_USER:-Rick}/Development/BBA-CLI"
+VM_PROJECT_DIR="C:/Users/${WINDOWS_USER:-Rick}/Development/BBA-Tools"
 
 echo "=============================================="
-echo "BBA-CLI Windows VM Setup"
+echo "BBA-Tools Windows VM Setup"
 echo "=============================================="
 echo "VM Host: $VM_HOST"
 echo "Project Dir: $VM_PROJECT_DIR"
