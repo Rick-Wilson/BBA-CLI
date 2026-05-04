@@ -1,4 +1,4 @@
-name: Build BBA-CLI
+name: Build BBA-Tools
 
 on:
   push:
@@ -13,10 +13,10 @@ jobs:
   build-linux-x64:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout BBA-CLI
+      - name: Checkout BBA-Tools
         uses: actions/checkout@v4
         with:
-          path: BBA-CLI
+          path: BBA-Tools
 
       - name: Checkout Bridge-Parsers (for CLI PBN/hand analysis)
         uses: actions/checkout@v4
@@ -29,12 +29,12 @@ jobs:
 
       - name: Build bba-cli
         run: |
-          cd BBA-CLI/cli
+          cd BBA-Tools/bba-cli
           cargo build --release
 
       - name: Build bba-server
         run: |
-          cd BBA-CLI/bba-server-rs
+          cd BBA-Tools/bba-server
           cargo build --release
 
       - name: Upload artifacts
@@ -42,17 +42,17 @@ jobs:
         with:
           name: bba-linux-x64
           path: |
-            BBA-CLI/cli/target/release/bba-cli
-            BBA-CLI/bba-server-rs/target/release/bba-server
-            BBA-CLI/epbot-libs/linux/x64/libEPBot.so
+            BBA-Tools/bba-cli/target/release/bba-cli
+            BBA-Tools/bba-server/target/release/bba-server
+            BBA-Tools/epbot-libs/linux/x64/libEPBot.so
 
   build-linux-arm64:
     runs-on: ubuntu-24.04-arm
     steps:
-      - name: Checkout BBA-CLI
+      - name: Checkout BBA-Tools
         uses: actions/checkout@v4
         with:
-          path: BBA-CLI
+          path: BBA-Tools
 
       - name: Checkout Bridge-Parsers
         uses: actions/checkout@v4
@@ -65,12 +65,12 @@ jobs:
 
       - name: Build bba-cli
         run: |
-          cd BBA-CLI/cli
+          cd BBA-Tools/bba-cli
           cargo build --release
 
       - name: Build bba-server
         run: |
-          cd BBA-CLI/bba-server-rs
+          cd BBA-Tools/bba-server
           cargo build --release
 
       - name: Upload artifacts
@@ -78,17 +78,17 @@ jobs:
         with:
           name: bba-linux-arm64
           path: |
-            BBA-CLI/cli/target/release/bba-cli
-            BBA-CLI/bba-server-rs/target/release/bba-server
-            BBA-CLI/epbot-libs/linux/arm64/libEPBot.so
+            BBA-Tools/bba-cli/target/release/bba-cli
+            BBA-Tools/bba-server/target/release/bba-server
+            BBA-Tools/epbot-libs/linux/arm64/libEPBot.so
 
   build-macos-arm64:
     runs-on: macos-latest
     steps:
-      - name: Checkout BBA-CLI
+      - name: Checkout BBA-Tools
         uses: actions/checkout@v4
         with:
-          path: BBA-CLI
+          path: BBA-Tools
 
       - name: Checkout Bridge-Parsers
         uses: actions/checkout@v4
@@ -101,30 +101,91 @@ jobs:
 
       - name: Build bba-cli
         run: |
-          cd BBA-CLI/cli
+          cd BBA-Tools/bba-cli
           cargo build --release
 
       - name: Build bba-server
         run: |
-          cd BBA-CLI/bba-server-rs
+          cd BBA-Tools/bba-server
           cargo build --release
+
+      # Code-signing + notarization: required so macOS Gatekeeper accepts
+      # downloaded binaries without the right-click-Open dance. Both
+      # executables and the bundled libEPBot.dylib must be signed by the
+      # same Developer ID, otherwise hardened-runtime library validation
+      # rejects the dylib at load time.
+      - name: Import Developer ID certificate
+        env:
+          DEVELOPER_ID_CERT_BASE64: ${{ secrets.DEVELOPER_ID_CERT_BASE64 }}
+          DEVELOPER_ID_CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+        run: |
+          echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > certificate.p12
+          security create-keychain -p actions build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p actions build.keychain
+          security import certificate.p12 -k build.keychain \
+            -P "$DEVELOPER_ID_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k actions build.keychain
+          rm certificate.p12
+
+      - name: Sign macOS binaries
+        run: |
+          BBA_CLI=BBA-Tools/bba-cli/target/release/bba-cli
+          BBA_SERVER=BBA-Tools/bba-server/target/release/bba-server
+          LIBEPBOT=BBA-Tools/epbot-libs/macos/arm64/libEPBot.dylib
+
+          # Stage a writable copy of the dylib alongside the binaries so
+          # the signed copy is what we package, without polluting the
+          # checked-in epbot-libs/.
+          STAGED_LIB=BBA-Tools/bba-cli/target/release/libEPBot.dylib
+          cp "$LIBEPBOT" "$STAGED_LIB"
+
+          for bin in "$BBA_CLI" "$BBA_SERVER" "$STAGED_LIB"; do
+            codesign --force --options runtime --timestamp \
+              --sign "Developer ID Application" "$bin"
+            codesign --verify --verbose "$bin"
+          done
+
+      - name: Notarize macOS binaries
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          BBA_CLI=BBA-Tools/bba-cli/target/release/bba-cli
+          BBA_SERVER=BBA-Tools/bba-server/target/release/bba-server
+          STAGED_LIB=BBA-Tools/bba-cli/target/release/libEPBot.dylib
+
+          # Notarize all three in a single submission: zip them together,
+          # submit, wait for Apple to register the ticket. Raw binaries
+          # don't support stapling — once notarized, the OS looks up the
+          # ticket online on first launch, after which it's cached locally.
+          zip -j notarize.zip "$BBA_CLI" "$BBA_SERVER" "$STAGED_LIB"
+
+          xcrun notarytool submit notarize.zip \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          rm notarize.zip
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: bba-macos-arm64
           path: |
-            BBA-CLI/cli/target/release/bba-cli
-            BBA-CLI/bba-server-rs/target/release/bba-server
-            BBA-CLI/epbot-libs/macos/arm64/libEPBot.dylib
+            BBA-Tools/bba-cli/target/release/bba-cli
+            BBA-Tools/bba-server/target/release/bba-server
+            BBA-Tools/bba-cli/target/release/libEPBot.dylib
 
   build-windows-x64:
     runs-on: windows-latest
     steps:
-      - name: Checkout BBA-CLI
+      - name: Checkout BBA-Tools
         uses: actions/checkout@v4
         with:
-          path: BBA-CLI
+          path: BBA-Tools
 
       - name: Checkout Bridge-Parsers
         uses: actions/checkout@v4
@@ -137,12 +198,12 @@ jobs:
 
       - name: Build bba-cli
         run: |
-          cd BBA-CLI/cli
+          cd BBA-Tools/bba-cli
           cargo build --release
 
       - name: Build bba-server
         run: |
-          cd BBA-CLI/bba-server-rs
+          cd BBA-Tools/bba-server
           cargo build --release
 
       - name: Upload artifacts
@@ -150,9 +211,9 @@ jobs:
         with:
           name: bba-windows-x64
           path: |
-            BBA-CLI/cli/target/release/bba-cli.exe
-            BBA-CLI/bba-server-rs/target/release/bba-server.exe
-            BBA-CLI/epbot-libs/windows/x64/EPBot.dll
+            BBA-Tools/bba-cli/target/release/bba-cli.exe
+            BBA-Tools/bba-server/target/release/bba-server.exe
+            BBA-Tools/epbot-libs/windows/x64/EPBot.dll
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
