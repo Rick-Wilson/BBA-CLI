@@ -5,22 +5,17 @@ bin/
 obj/
 
 # Rust
-/cli/target/
-/cli-mac/target/
-/epbot-core/target/
-/bba-server-rs/target/
+**/target/
 **/*.rs.bk
-Cargo.lock
+# epbot-core is a library consumed only via path by the binary crates;
+# its lockfile is unused, the binaries' own lockfiles govern.
+epbot-core/Cargo.lock
 
 # .NET build artifacts
 *.nupkg
 packages/
 
-# C++/CLI wrapper build
-/wrapper/build/
-/wrapper/x64/
-/wrapper/Debug/
-/wrapper/Release/
+# C++/CLI build artifacts (legacy/epbot-wrapper/)
 *.obj
 *.pch
 *.idb
