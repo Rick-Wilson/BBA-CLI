@@ -150,11 +150,9 @@ jobs:
             codesign --verify --verbose "$f"
           done
 
-          # Drop in a short README and a "Bridge Utilities" symlink that
-          # acts as a drag-target into /Applications/Bridge Utilities/.
-          # If the user doesn't have that folder, the symlink is broken
-          # but the rest of the .dmg is fine — they can drag elsewhere.
-          ln -s "/Applications/Bridge Utilities" "dmg-staging/Bridge Utilities"
+          # Drop in a short README. The "Bridge Utilities" Finder alias
+          # is created in a separate step (it needs the target folder to
+          # exist on disk at creation time, then we clean it up).
           cat > dmg-staging/README.txt <<EOF
           BBA-Tools — Bridge Bidding Analyzer
 
@@ -172,6 +170,29 @@ jobs:
 
           Source: https://github.com/Rick-Wilson/BBA-Tools
           EOF
+
+      - name: Create Bridge Utilities drag-target alias
+        run: |
+          # A Unix symlink to a folder doesn't accept Finder drag-drop
+          # cleanly — only a true Finder alias (created via AppleScript)
+          # does. The alias's target folder must exist on disk at
+          # creation time so AppleScript can resolve it; we make a
+          # placeholder, generate the alias, then clean up. The alias
+          # records both a path and a bookmark; on the user's machine
+          # the path-based fallback resolves to their real folder.
+          sudo mkdir -p "/Applications/Bridge Utilities"
+
+          STAGING_ABS="$(cd dmg-staging && pwd)"
+          osascript <<APPLESCRIPT
+          tell application "Finder"
+              set targetFolder to POSIX file "/Applications/Bridge Utilities" as alias
+              set aliasFile to make alias file at POSIX file "$STAGING_ABS" to targetFolder
+              set name of aliasFile to "Bridge Utilities"
+          end tell
+          APPLESCRIPT
+
+          sudo rmdir "/Applications/Bridge Utilities"
+          ls -la dmg-staging/
 
       - name: Build, sign, notarize, and staple .dmg
         env:
